@@ -1,25 +1,11 @@
-import { auth } from "@/lib/auth";
-import { NextResponse } from "next/server";
+import NextAuth from "next-auth";
+import { authConfig } from "@/lib/auth.config";
 
-export default auth((req) => {
-    const isLoggedIn = !!req.auth;
-    const isOnDashboard = req.nextUrl.pathname.startsWith("/dashboard");
-    const isOnQuotes = req.nextUrl.pathname.startsWith("/quotes");
-    const isOnSettings = req.nextUrl.pathname.startsWith("/settings");
-    const isOnTemplates = req.nextUrl.pathname.startsWith("/templates");
-
-    // Protected routes
-    if ((isOnDashboard || isOnQuotes || isOnSettings || isOnTemplates) && !isLoggedIn) {
-        return NextResponse.redirect(new URL("/login", req.nextUrl));
-    }
-
-    // Redirect logged-in users from login to dashboard
-    if (req.nextUrl.pathname === "/login" && isLoggedIn) {
-        return NextResponse.redirect(new URL("/dashboard", req.nextUrl));
-    }
-
-    return NextResponse.next();
-});
+/**
+ * Lightweight middleware using auth.config (no Prisma)
+ * This keeps bundle under 1MB for Vercel Hobby plan
+ */
+export const { auth: middleware } = NextAuth(authConfig);
 
 export const config = {
     matcher: [
