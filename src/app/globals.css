@@ -1,60 +1,73 @@
 @import "tailwindcss";
 
 @theme {
-  /* Color palette - Modern dark theme */
-  --color-background: oklch(0.145 0 0);
-  --color-foreground: oklch(0.985 0 0);
-  
-  --color-card: oklch(0.205 0 0);
-  --color-card-foreground: oklch(0.985 0 0);
-  
-  --color-popover: oklch(0.205 0 0);
-  --color-popover-foreground: oklch(0.985 0 0);
-  
-  --color-primary: oklch(0.65 0.2 250);
-  --color-primary-foreground: oklch(0.985 0 0);
-  
-  --color-secondary: oklch(0.269 0 0);
-  --color-secondary-foreground: oklch(0.985 0 0);
-  
-  --color-muted: oklch(0.269 0 0);
-  --color-muted-foreground: oklch(0.708 0 0);
-  
-  --color-accent: oklch(0.269 0 0);
-  --color-accent-foreground: oklch(0.985 0 0);
-  
-  --color-destructive: oklch(0.55 0.2 25);
-  --color-destructive-foreground: oklch(0.985 0 0);
-  
-  --color-success: oklch(0.6 0.2 145);
-  --color-success-foreground: oklch(0.985 0 0);
-  
-  --color-warning: oklch(0.7 0.18 85);
-  --color-warning-foreground: oklch(0.145 0 0);
-  
-  --color-border: oklch(0.3 0 0);
-  --color-input: oklch(0.269 0 0);
-  --color-ring: oklch(0.65 0.2 250);
-  
-  /* Sidebar */
-  --color-sidebar: oklch(0.175 0 0);
-  --color-sidebar-foreground: oklch(0.985 0 0);
-  --color-sidebar-accent: oklch(0.269 0 0);
-  --color-sidebar-accent-foreground: oklch(0.985 0 0);
-  --color-sidebar-border: oklch(0.3 0 0);
-  
-  /* Priority colors */
-  --color-priority-high: oklch(0.6 0.22 25);
-  --color-priority-low: oklch(0.6 0.15 200);
+  /* ==========================================================================
+     RITMO DESIGN SYSTEM - Clean & Professional
+     ========================================================================== */
 
-  /* Border radius */
+  /* Neutral palette - subtle grays, not pure black */
+  --color-background: oklch(0.13 0.005 260);
+  --color-foreground: oklch(0.95 0 0);
+
+  --color-card: oklch(0.17 0.005 260);
+  --color-card-foreground: oklch(0.95 0 0);
+
+  --color-popover: oklch(0.17 0.005 260);
+  --color-popover-foreground: oklch(0.95 0 0);
+
+  /* Primary - Professional blue */
+  --color-primary: oklch(0.65 0.18 245);
+  --color-primary-hover: oklch(0.60 0.18 245);
+  --color-primary-foreground: oklch(0.98 0 0);
+
+  /* Secondary - Subtle */
+  --color-secondary: oklch(0.22 0.005 260);
+  --color-secondary-foreground: oklch(0.85 0 0);
+
+  /* Muted - For less important text */
+  --color-muted: oklch(0.25 0.005 260);
+  --color-muted-foreground: oklch(0.65 0 0);
+
+  /* Accent - Hover states */
+  --color-accent: oklch(0.22 0.01 245);
+  --color-accent-foreground: oklch(0.95 0 0);
+
+  /* Semantic colors */
+  --color-success: oklch(0.65 0.17 155);
+  --color-success-foreground: oklch(0.98 0 0);
+
+  --color-warning: oklch(0.75 0.15 75);
+  --color-warning-foreground: oklch(0.15 0 0);
+
+  --color-destructive: oklch(0.55 0.2 25);
+  --color-destructive-foreground: oklch(0.98 0 0);
+
+  /* Border & Input */
+  --color-border: oklch(0.28 0.005 260);
+  --color-input: oklch(0.20 0.005 260);
+  --color-ring: oklch(0.65 0.18 245);
+
+  /* Priority badges */
+  --color-priority-high: oklch(0.55 0.2 25);
+  --color-priority-low: oklch(0.55 0.12 220);
+
+  /* Sidebar */
+  --color-sidebar: oklch(0.14 0.005 260);
+  --color-sidebar-foreground: oklch(0.85 0 0);
+  --color-sidebar-accent: oklch(0.20 0.01 245);
+  --color-sidebar-border: oklch(0.25 0.005 260);
+
+  /* Border radius - slightly rounded */
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.75rem;
 }
 
-/* Base styles */
+/* ==========================================================================
+   BASE STYLES
+   ========================================================================== */
+
 html {
   color-scheme: dark;
 }
@@ -62,7 +75,10 @@ html {
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Focus visible */
@@ -71,21 +87,95 @@ body {
   outline-offset: 2px;
 }
 
-/* Scrollbar styling */
+/* ==========================================================================
+   TYPOGRAPHY
+   ========================================================================== */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+h3 {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+h4 {
+  font-size: 1.125rem;
+  line-height: 1.5rem;
+}
+
+/* ==========================================================================
+   SCROLLBAR
+   ========================================================================== */
+
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-background);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--color-border);
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-muted-foreground);
+}
+
+/* ==========================================================================
+   UTILITY CLASSES
+   ========================================================================== */
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-success) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Container */
+.container-app {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .container-app {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* Subtle card hover */
+.card-interactive {
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.card-interactive:hover {
+  background-color: var(--color-accent);
+  border-color: var(--color-border);
 }

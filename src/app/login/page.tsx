@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button, Input, Label, Card, CardHeader, CardContent, CardFooter } from "@/components/ui";
+import { AlertCircle } from "lucide-react";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -37,81 +40,74 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center p-4">
-            <div className="w-full max-w-md">
-                {/* Logo */}
-                <div className="mb-8 text-center">
-                    <h1 className="text-4xl font-bold">
-                        <span className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-success)] bg-clip-text text-transparent">
-                            Ritmo
-                        </span>
-                    </h1>
-                    <p className="mt-2 text-[var(--color-muted-foreground)]">
-                        Inicie sessão para continuar
-                    </p>
+        <div className="flex min-h-screen flex-col">
+            {/* Header */}
+            <header className="border-b border-[var(--color-border)]">
+                <div className="container-app flex h-14 items-center">
+                    <Link href="/" className="text-xl font-bold text-gradient">
+                        Ritmo
+                    </Link>
                 </div>
+            </header>
 
-                {/* Form */}
-                <form
-                    onSubmit={handleSubmit}
-                    className="rounded-xl bg-[var(--color-card)] p-8"
-                >
-                    {error && (
-                        <div className="mb-4 rounded-lg bg-red-500/10 p-3 text-sm text-red-400">
-                            {error}
-                        </div>
-                    )}
+            {/* Content */}
+            <main className="flex flex-1 items-center justify-center p-6">
+                <Card className="w-full max-w-sm">
+                    <CardHeader className="text-center">
+                        <h1 className="text-xl font-semibold">Iniciar sessão</h1>
+                        <p className="text-sm text-[var(--color-muted-foreground)]">
+                            Entre com as suas credenciais
+                        </p>
+                    </CardHeader>
 
-                    <div className="mb-4">
-                        <label
-                            htmlFor="email"
-                            className="mb-2 block text-sm font-medium"
-                        >
-                            Email
-                        </label>
-                        <input
-                            id="email"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-input)] px-4 py-3 text-[var(--color-foreground)] placeholder-[var(--color-muted-foreground)] focus:border-[var(--color-ring)] focus:outline-none"
-                            placeholder="seu@email.com"
-                            required
-                        />
-                    </div>
+                    <form onSubmit={handleSubmit}>
+                        <CardContent className="space-y-4">
+                            {error && (
+                                <div className="flex items-center gap-2 rounded-md border border-[var(--color-destructive)]/30 bg-[var(--color-destructive)]/10 px-3 py-2 text-sm text-[var(--color-destructive)]">
+                                    <AlertCircle className="h-4 w-4 shrink-0" />
+                                    {error}
+                                </div>
+                            )}
 
-                    <div className="mb-6">
-                        <label
-                            htmlFor="password"
-                            className="mb-2 block text-sm font-medium"
-                        >
-                            Password
-                        </label>
-                        <input
-                            id="password"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-input)] px-4 py-3 text-[var(--color-foreground)] placeholder-[var(--color-muted-foreground)] focus:border-[var(--color-ring)] focus:outline-none"
-                            placeholder="••••••••"
-                            required
-                        />
-                    </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="email">Email</Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="seu@email.com"
+                                    autoComplete="email"
+                                    required
+                                />
+                            </div>
 
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full rounded-lg bg-[var(--color-primary)] px-4 py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-                    >
-                        {loading ? "A entrar..." : "Entrar"}
-                    </button>
-                </form>
+                            <div className="space-y-2">
+                                <Label htmlFor="password">Password</Label>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="••••••••"
+                                    autoComplete="current-password"
+                                    required
+                                />
+                            </div>
+                        </CardContent>
 
-                {/* Dev hint */}
-                <div className="mt-4 rounded-lg bg-[var(--color-card)] p-4 text-center text-sm text-[var(--color-muted-foreground)]">
-                    <strong>Dev:</strong> admin@demo.ritmo.app / demo123
-                </div>
-            </div>
+                        <CardFooter className="flex-col gap-3">
+                            <Button type="submit" className="w-full" disabled={loading}>
+                                {loading ? "A entrar..." : "Entrar"}
+                            </Button>
+
+                            <p className="text-center text-xs text-[var(--color-muted-foreground)]">
+                                Demo: admin@demo.ritmo.app / demo123
+                            </p>
+                        </CardFooter>
+                    </form>
+                </Card>
+            </main>
         </div>
     );
 }
