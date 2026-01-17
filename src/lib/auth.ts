@@ -15,7 +15,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 password: { label: "Password", type: "password" },
             },
             async authorize(credentials) {
+                console.log("[Auth] authorize called with:", credentials?.email);
+
                 if (!credentials?.email || !credentials?.password) {
+                    console.log("[Auth] Missing email or password");
                     return null;
                 }
 
@@ -27,13 +30,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     include: { organization: true },
                 });
 
+                console.log("[Auth] User found:", user ? user.email : "null");
+
                 if (!user || !user.passwordHash) {
+                    console.log("[Auth] User not found or no passwordHash");
                     return null;
                 }
 
                 // TODO: Sprint 1 - Add proper password hashing with bcrypt
                 // For now, simple comparison for dev
                 const isValid = user.passwordHash === credentials.password;
+                console.log("[Auth] Password valid:", isValid);
 
                 if (!isValid) {
                     return null;
