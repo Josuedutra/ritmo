@@ -19,7 +19,7 @@ describe("Entitlements System", () => {
             const org = {
                 id: "org-1",
                 trialEndsAt: new Date("2024-06-20"), // Trial still valid
-                trialSentLimit: 30,
+                trialSentLimit: 20,
                 trialSentUsed: 5,
                 autoEmailEnabled: true,
                 bccInboundEnabled: true,
@@ -43,7 +43,7 @@ describe("Entitlements System", () => {
             const org = {
                 id: "org-1",
                 trialEndsAt: new Date("2024-06-20"), // 5 days remaining
-                trialSentLimit: 30,
+                trialSentLimit: 20,
                 trialSentUsed: 10,
                 autoEmailEnabled: true,
                 bccInboundEnabled: true,
@@ -53,8 +53,9 @@ describe("Entitlements System", () => {
             const entitlements = calculateEntitlements(org, 5, now);
 
             expect(entitlements.tier).toBe("trial");
-            expect(entitlements.effectivePlanLimit).toBe(30);
+            expect(entitlements.effectivePlanLimit).toBe(20);
             expect(entitlements.quotesUsed).toBe(10); // Uses trialSentUsed
+            expect(entitlements.quotesRemaining).toBe(10); // 20 - 10 = 10
             expect(entitlements.trialActive).toBe(true);
             expect(entitlements.trialDaysRemaining).toBe(5);
             expect(entitlements.autoEmailEnabled).toBe(true);
@@ -65,7 +66,7 @@ describe("Entitlements System", () => {
             const org = {
                 id: "org-1",
                 trialEndsAt: new Date("2024-06-10"), // Expired 5 days ago
-                trialSentLimit: 30,
+                trialSentLimit: 20,
                 trialSentUsed: 25,
                 autoEmailEnabled: true, // DB still has true but should be overridden
                 bccInboundEnabled: true,
@@ -89,7 +90,7 @@ describe("Entitlements System", () => {
             const orgBeforeTrial = {
                 id: "org-1",
                 trialEndsAt: new Date("2024-06-16"), // Tomorrow
-                trialSentLimit: 30,
+                trialSentLimit: 20,
                 trialSentUsed: 15,
                 autoEmailEnabled: true,
                 bccInboundEnabled: true,
@@ -114,7 +115,7 @@ describe("Entitlements System", () => {
             const org = {
                 id: "org-1",
                 trialEndsAt: new Date("2024-06-10"), // Expired
-                trialSentLimit: 30,
+                trialSentLimit: 20,
                 trialSentUsed: 25, // Had 25 during trial
                 autoEmailEnabled: true,
                 bccInboundEnabled: true,
@@ -126,7 +127,7 @@ describe("Entitlements System", () => {
             // Should use period usage (3), not trial usage (25)
             expect(entitlements.quotesUsed).toBe(3);
             expect(entitlements.effectivePlanLimit).toBe(FREE_TIER_LIMIT);
-            expect(entitlements.quotesRemaining).toBe(7);
+            expect(entitlements.quotesRemaining).toBe(2); // FREE_TIER_LIMIT (5) - 3 = 2
         });
     });
 
@@ -135,31 +136,31 @@ describe("Entitlements System", () => {
             const org = {
                 id: "org-1",
                 trialEndsAt: null,
-                trialSentLimit: 30,
+                trialSentLimit: 20,
                 trialSentUsed: 0,
                 autoEmailEnabled: false,
                 bccInboundEnabled: false,
                 subscription: null,
             };
 
-            const entitlements = calculateEntitlements(org, 5, now);
+            const entitlements = calculateEntitlements(org, 3, now); // 3 used, FREE_TIER_LIMIT is 5
 
             expect(entitlements.canMarkSent.allowed).toBe(true);
-            expect(entitlements.quotesRemaining).toBe(5);
+            expect(entitlements.quotesRemaining).toBe(2); // 5 - 3 = 2
         });
 
         it("should block sending when free tier limit reached", () => {
             const org = {
                 id: "org-1",
                 trialEndsAt: null,
-                trialSentLimit: 30,
+                trialSentLimit: 20,
                 trialSentUsed: 0,
                 autoEmailEnabled: false,
                 bccInboundEnabled: false,
                 subscription: null,
             };
 
-            const entitlements = calculateEntitlements(org, 10, now);
+            const entitlements = calculateEntitlements(org, 5, now); // 5 used = FREE_TIER_LIMIT
 
             expect(entitlements.canMarkSent.allowed).toBe(false);
             expect(entitlements.canMarkSent.reason).toBe("LIMIT_EXCEEDED");
@@ -171,7 +172,7 @@ describe("Entitlements System", () => {
             const org = {
                 id: "org-1",
                 trialEndsAt: new Date("2024-06-20"),
-                trialSentLimit: 30,
+                trialSentLimit: 20,
                 trialSentUsed: 30,
                 autoEmailEnabled: true,
                 bccInboundEnabled: true,
@@ -189,7 +190,7 @@ describe("Entitlements System", () => {
             const org = {
                 id: "org-1",
                 trialEndsAt: null,
-                trialSentLimit: 30,
+                trialSentLimit: 20,
                 trialSentUsed: 0,
                 autoEmailEnabled: false,
                 bccInboundEnabled: false,
@@ -211,7 +212,7 @@ describe("Entitlements System", () => {
             const org = {
                 id: "org-1",
                 trialEndsAt: null,
-                trialSentLimit: 30,
+                trialSentLimit: 20,
                 trialSentUsed: 0,
                 autoEmailEnabled: false,
                 bccInboundEnabled: false,
@@ -234,8 +235,8 @@ describe("Entitlements System", () => {
         // Note: Resend logic is in mark-sent/route.ts, not in entitlements
         // These tests verify the constants are exported correctly
         it("should export correct limits", () => {
-            expect(FREE_TIER_LIMIT).toBe(10);
-            expect(TRIAL_LIMIT).toBe(30);
+            expect(FREE_TIER_LIMIT).toBe(5);
+            expect(TRIAL_LIMIT).toBe(20);
         });
     });
 });
@@ -248,7 +249,7 @@ describe("Cron AUTO_EMAIL Gating", () => {
         const paidOrg = {
             id: "org-1",
             trialEndsAt: null,
-            trialSentLimit: 30,
+            trialSentLimit: 20,
             trialSentUsed: 0,
             autoEmailEnabled: true,
             bccInboundEnabled: true,
@@ -265,7 +266,7 @@ describe("Cron AUTO_EMAIL Gating", () => {
         const trialOrg = {
             id: "org-1",
             trialEndsAt: new Date("2024-06-20"),
-            trialSentLimit: 30,
+            trialSentLimit: 20,
             trialSentUsed: 0,
             autoEmailEnabled: true,
             bccInboundEnabled: true,
@@ -278,7 +279,7 @@ describe("Cron AUTO_EMAIL Gating", () => {
         const freeOrg = {
             id: "org-1",
             trialEndsAt: new Date("2024-06-10"), // Expired
-            trialSentLimit: 30,
+            trialSentLimit: 20,
             trialSentUsed: 0,
             autoEmailEnabled: true, // DB value ignored
             bccInboundEnabled: true,
@@ -297,7 +298,7 @@ describe("BCC Inbound Gating", () => {
         const freeOrg = {
             id: "org-1",
             trialEndsAt: null, // No trial
-            trialSentLimit: 30,
+            trialSentLimit: 20,
             trialSentUsed: 0,
             autoEmailEnabled: false,
             bccInboundEnabled: false,
@@ -310,7 +311,7 @@ describe("BCC Inbound Gating", () => {
         const trialOrg = {
             id: "org-1",
             trialEndsAt: new Date("2024-06-20"),
-            trialSentLimit: 30,
+            trialSentLimit: 20,
             trialSentUsed: 0,
             autoEmailEnabled: true,
             bccInboundEnabled: true,

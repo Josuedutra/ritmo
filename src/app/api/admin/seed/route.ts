@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
                 bccAddress: "bcc+demo@inbound.ritmo.app",
                 // Trial setup (P0)
                 trialEndsAt,
-                trialSentLimit: 30,
+                trialSentLimit: 20,
                 trialSentUsed: 0,
                 autoEmailEnabled: true,
                 bccInboundEnabled: true,
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
                 organizationId: org.id,
                 planId: "free",
                 status: "active",
-                quotesLimit: 10,
+                quotesLimit: 5,
                 currentPeriodStart: new Date(),
                 currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
             },

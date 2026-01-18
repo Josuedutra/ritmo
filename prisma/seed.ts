@@ -53,7 +53,7 @@ async function main() {
             organizationId: org.id,
             planId: "free",
             status: "active",
-            quotesLimit: 10,
+            quotesLimit: 5,
             currentPeriodStart: new Date(),
             currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // +30 days
         },

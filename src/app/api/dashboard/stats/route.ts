@@ -120,7 +120,7 @@ export async function GET(request: NextRequest) {
             }),
         ]);
 
-        const quotesLimit = subscription?.quotesLimit ?? 10;
+        const quotesLimit = subscription?.quotesLimit ?? 5;
         const quotesSent = usageCounter?.quotesSent ?? 0;
 
         return success({

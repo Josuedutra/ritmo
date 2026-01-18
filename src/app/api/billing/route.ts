@@ -77,7 +77,7 @@ export async function GET() {
                 : null,
             usage: {
                 quotesSent: usageCounter?.quotesSent || 0,
-                quotesLimit: subscription?.quotesLimit || 10,
+                quotesLimit: subscription?.quotesLimit || 5,
                 periodStart: periodStart,
             },
             plans: plans.map((p) => ({

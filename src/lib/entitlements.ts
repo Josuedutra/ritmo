@@ -4,8 +4,8 @@
  * Central source of truth for organization capabilities.
  * Determines what an org can do based on:
  * - Active subscription (paid plan)
- * - Active trial (14 days, 30 quotes)
- * - Free tier (10 quotes, no automation)
+ * - Active trial (14 days, 20 quotes)
+ * - Free tier (5 quotes, no automation)
  *
  * Usage:
  *   const entitlements = await getEntitlements(orgId);
@@ -17,8 +17,8 @@
 import { prisma } from "@/lib/prisma";
 
 // Constants
-export const FREE_TIER_LIMIT = 10;
-export const TRIAL_LIMIT = 30;
+export const FREE_TIER_LIMIT = 5;
+export const TRIAL_LIMIT = 20;
 export const TRIAL_DURATION_DAYS = 14;
 export const MAX_RESENDS_PER_MONTH = 2;
 

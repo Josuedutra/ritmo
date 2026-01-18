@@ -22,7 +22,7 @@ export const PLANS = {
     free: {
         id: "free",
         name: "Gratuito",
-        quotesLimit: 10,
+        quotesLimit: 5,
         priceMonthly: 0,
         stripePriceId: null,
     },

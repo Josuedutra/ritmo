@@ -330,7 +330,7 @@ async function handleSubscriptionDeleted(
 
     // Get free plan limits
     const freePlan = await prisma.plan.findUnique({ where: { id: "free" } });
-    const quotesLimit = freePlan?.monthlyQuoteLimit || 10;
+    const quotesLimit = freePlan?.monthlyQuoteLimit || 5;
 
     // Downgrade to free plan instead of deleting
     await prisma.subscription.update({

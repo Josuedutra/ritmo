@@ -118,7 +118,7 @@ model Organization {
 
   // Trial system (P0)
   trialEndsAt         DateTime? @map("trial_ends_at")     // null = no trial or trial expired
-  trialSentLimit      Int       @default(30) @map("trial_sent_limit")  // Max quotes during trial
+  trialSentLimit      Int       @default(20) @map("trial_sent_limit")  // Max quotes during trial
   trialSentUsed       Int       @default(0) @map("trial_sent_used")    // Quotes sent during trial
 
   // Feature flags (determines automation capabilities)
@@ -481,7 +481,7 @@ model Subscription {
   stripeSubscriptionId  String?            @unique @map("stripe_subscription_id") // Unique for lookup
   planId                String             @default("free") @map("plan_id")
   status                SubscriptionStatus @default(active)
-  quotesLimit           Int                @default(10) @map("quotes_limit")
+  quotesLimit           Int                @default(5) @map("quotes_limit")
   currentPeriodStart    DateTime?          @map("current_period_start")
   currentPeriodEnd      DateTime?          @map("current_period_end")
   cancelAtPeriodEnd     Boolean            @default(false) @map("cancel_at_period_end")
