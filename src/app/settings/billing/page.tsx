@@ -69,11 +69,17 @@ export default async function BillingPage() {
             quotesLimit: p.monthlyQuoteLimit,
             priceMonthly: p.priceMonthly,
             hasStripePrice: !!p.stripePriceId,
-            // Features based on plan
+            // Features based on plan - P0-BILL-03
             features:
                 p.id === "free"
-                    ? []
-                    : ["Emails automáticos", "Captura de proposta por BCC"],
+                    ? [
+                          { text: "Modo manual (sem emails automáticos)", enabled: false },
+                          { text: "Sem captura BCC", enabled: false },
+                      ]
+                    : [
+                          { text: "Emails automáticos", enabled: true },
+                          { text: "Captura de proposta por BCC", enabled: true },
+                      ],
         })),
     };
 

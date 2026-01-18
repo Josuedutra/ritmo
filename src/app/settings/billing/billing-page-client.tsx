@@ -10,6 +10,7 @@ import {
     CardContent,
     Button,
     Badge,
+    toast,
 } from "@/components/ui";
 import {
     CreditCard,
@@ -19,7 +20,14 @@ import {
     ExternalLink,
     Loader2,
     Check,
+    X,
+    Clock,
 } from "lucide-react";
+
+interface PlanFeature {
+    text: string;
+    enabled: boolean;
+}
 
 interface Plan {
     id: string;
@@ -27,7 +35,7 @@ interface Plan {
     quotesLimit: number;
     priceMonthly: number;
     hasStripePrice: boolean;
-    features: string[];
+    features: PlanFeature[];
 }
 
 interface BillingData {
@@ -83,6 +91,7 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
     // Status helpers
     const isPastDue = entitlements.subscriptionStatus === "past_due";
     const isCancelled = entitlements.subscriptionStatus === "cancelled";
+    const isCancelAtPeriodEnd = subscription?.cancelAtPeriodEnd ?? false;
 
     const formatDate = (dateStr: string | null) => {
         if (!dateStr) return "-";
@@ -108,11 +117,15 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
 
             if (response.ok && result.url) {
                 window.location.href = result.url;
+            } else if (result.action === "choose_plan") {
+                // No Stripe customer - scroll to plans section
+                toast({ title: "Escolha um plano", description: result.message || "Selecione um plano para começar." });
+                document.getElementById("plans-section")?.scrollIntoView({ behavior: "smooth" });
             } else {
-                alert(result.error || "Erro ao abrir portal");
+                toast.error("Erro", result.error || "Erro ao abrir portal");
             }
         } catch {
-            alert("Erro ao abrir portal");
+            toast.error("Erro", "Erro ao abrir portal");
         } finally {
             setLoading(null);
         }
@@ -131,10 +144,10 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
             if (response.ok && result.url) {
                 window.location.href = result.url;
             } else {
-                alert(result.error || "Erro ao criar checkout");
+                toast.error("Erro", result.error || "Erro ao criar checkout");
             }
         } catch {
-            alert("Erro ao criar checkout");
+            toast.error("Erro", "Erro ao criar checkout");
         } finally {
             setLoading(null);
         }
@@ -303,6 +316,35 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                 </Card>
             )}
 
+            {/* Cancel at period end banner - P0-BILL-06 */}
+            {isCancelAtPeriodEnd && !isCancelled && (
+                <Card className="border-yellow-500/50 bg-yellow-500/10">
+                    <CardContent className="flex items-center justify-between py-4">
+                        <div className="flex items-center gap-3">
+                            <Clock className="h-5 w-5 text-yellow-500" />
+                            <div>
+                                <p className="font-medium text-yellow-700 dark:text-yellow-300">
+                                    Termina em {formatDate(subscription?.currentPeriodEnd ?? null)}
+                                </p>
+                                <p className="text-sm text-yellow-600 dark:text-yellow-400">
+                                    A subscrição não será renovada. Pode reativar a qualquer momento.
+                                </p>
+                            </div>
+                        </div>
+                        <Button
+                            onClick={handlePortal}
+                            disabled={loading === "portal"}
+                            variant="outline"
+                        >
+                            {loading === "portal" && (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            )}
+                            Reativar
+                        </Button>
+                    </CardContent>
+                </Card>
+            )}
+
             {/* A. Plano atual + B. Utilização */}
             <div className="grid gap-6 md:grid-cols-2">
                 {/* A. Plano atual */}
@@ -452,13 +494,24 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                                         {formatPrice(plan.priceMonthly)}
                                     </div>
 
-                                    {/* Features */}
+                                    {/* Features - P0-BILL-03 */}
                                     {plan.features.length > 0 && (
-                                        <ul className="space-y-1 text-sm text-muted-foreground">
+                                        <ul className="space-y-1.5 text-sm">
                                             {plan.features.map((feature, i) => (
-                                                <li key={i} className="flex items-center gap-2">
-                                                    <Check className="h-4 w-4 text-green-500" />
-                                                    {feature}
+                                                <li
+                                                    key={i}
+                                                    className={`flex items-center gap-2 ${
+                                                        feature.enabled
+                                                            ? "text-foreground"
+                                                            : "text-muted-foreground"
+                                                    }`}
+                                                >
+                                                    {feature.enabled ? (
+                                                        <Check className="h-4 w-4 text-green-500" />
+                                                    ) : (
+                                                        <X className="h-4 w-4 text-muted-foreground" />
+                                                    )}
+                                                    {feature.text}
                                                 </li>
                                             ))}
                                         </ul>

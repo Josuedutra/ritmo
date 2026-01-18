@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getApiSession, unauthorized, serverError } from "@/lib/api-utils";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
+import { getEntitlements } from "@/lib/entitlements";
 
 /**
  * GET /api/billing
@@ -60,7 +61,10 @@ export async function GET() {
             orderBy: { priceMonthly: "asc" },
         });
 
-        // Build response
+        // Get entitlements (single source of truth) - P0-BILL-09
+        const entitlements = await getEntitlements(organizationId);
+
+        // Build response with normalized contract
         const response = {
             subscription: subscription
                 ? {
@@ -79,6 +83,17 @@ export async function GET() {
                 quotesSent: usageCounter?.quotesSent || 0,
                 quotesLimit: subscription?.quotesLimit || 5,
                 periodStart: periodStart,
+            },
+            // P0-BILL-09: entitlements included in response
+            entitlements: {
+                tier: entitlements.tier,
+                planName: entitlements.planName,
+                quotesUsed: entitlements.quotesUsed,
+                effectivePlanLimit: entitlements.effectivePlanLimit,
+                trialDaysRemaining: entitlements.trialDaysRemaining,
+                autoEmailEnabled: entitlements.autoEmailEnabled,
+                bccInboundEnabled: entitlements.bccInboundEnabled,
+                subscriptionStatus: entitlements.subscriptionStatus,
             },
             plans: plans.map((p) => ({
                 id: p.id,
