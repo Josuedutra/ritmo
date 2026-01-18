@@ -31,6 +31,7 @@ export function QuoteForm({ contacts }: QuoteFormProps) {
     const [serviceType, setServiceType] = useState("");
     const [value, setValue] = useState("");
     const [proposalLink, setProposalLink] = useState("");
+    const [proposalLinkError, setProposalLinkError] = useState<string | null>(null);
     const [notes, setNotes] = useState("");
     const [showNewContact, setShowNewContact] = useState(false);
 
@@ -42,7 +43,34 @@ export function QuoteForm({ contacts }: QuoteFormProps) {
             ? !!(selectedContact.email || (selectedContact as any).phone)
             : false;
 
+    // Validate proposal link
+    const validateProposalLink = (link: string): boolean => {
+        if (!link) return true; // Empty is valid
+        try {
+            const url = new URL(link);
+            return url.protocol === "http:" || url.protocol === "https:";
+        } catch {
+            return false;
+        }
+    };
+
+    const handleProposalLinkChange = (value: string) => {
+        setProposalLink(value);
+        if (value && !validateProposalLink(value)) {
+            setProposalLinkError("Insira um URL válido (ex: https://drive.google.com/...)");
+        } else {
+            setProposalLinkError(null);
+        }
+    };
+
     const handleSubmit = async (action: "save" | "send") => {
+        // Validate proposal link before submitting
+        if (proposalLink && !validateProposalLink(proposalLink)) {
+            setProposalLinkError("Insira um URL válido (ex: https://drive.google.com/...)");
+            toast.error("Erro", "O link da proposta deve ser um URL válido");
+            return;
+        }
+
         setLoading(action);
         setError(null);
 
@@ -192,14 +220,21 @@ export function QuoteForm({ contacts }: QuoteFormProps) {
                                 <Label htmlFor="proposalLink">Link da proposta</Label>
                                 <Input
                                     id="proposalLink"
-                                    type="url"
+                                    type="text"
                                     value={proposalLink}
-                                    onChange={(e) => setProposalLink(e.target.value)}
-                                    placeholder="https://..."
+                                    onChange={(e) => handleProposalLinkChange(e.target.value)}
+                                    placeholder="https://drive.google.com/..."
+                                    className={proposalLinkError ? "border-red-500" : ""}
                                 />
-                                <p className="mt-1 text-xs text-[var(--color-muted-foreground)]">
-                                    Cole o link do PDF/Drive/OneDrive
-                                </p>
+                                {proposalLinkError ? (
+                                    <p className="mt-1 text-xs text-red-500">
+                                        {proposalLinkError}
+                                    </p>
+                                ) : (
+                                    <p className="mt-1 text-xs text-[var(--color-muted-foreground)]">
+                                        Cole o link do Google Drive, OneDrive ou Dropbox
+                                    </p>
+                                )}
                             </div>
                         </div>
 
