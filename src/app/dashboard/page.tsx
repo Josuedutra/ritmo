@@ -14,8 +14,88 @@ import {
 } from "@/components/ui";
 import { Plus, FileText, Clock, TrendingUp } from "lucide-react";
 import { ActionsList } from "@/components/actions";
-import { OnboardingBanner } from "@/components/onboarding";
+import { OnboardingChecklist } from "@/components/onboarding";
 import { LifecycleBanner } from "@/components/lifecycle";
+import { getEntitlements, type Entitlements } from "@/lib/entitlements";
+
+// Usage Meter Component - shows correct limits based on tier
+function UsageMeter({ entitlements }: { entitlements: Entitlements }) {
+    const { quotesUsed, effectivePlanLimit, tier, trialDaysRemaining, planName } = entitlements;
+    const percentUsed = effectivePlanLimit > 0
+        ? Math.round((quotesUsed / effectivePlanLimit) * 100)
+        : 0;
+
+    const tierLabel = tier === "trial"
+        ? `Trial${trialDaysRemaining ? ` (${trialDaysRemaining}d)` : ""}`
+        : tier === "paid"
+            ? planName
+            : "Gratuito";
+
+    return (
+        <Card className={percentUsed >= 100 ? "border-red-500/50" : percentUsed >= 80 ? "border-orange-500/50" : ""}>
+            <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm">Utilização</CardTitle>
+                    <span className="rounded bg-[var(--color-muted)] px-1.5 py-0.5 text-xs font-medium">
+                        {tierLabel}
+                    </span>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <div className="mb-2 flex items-baseline justify-between">
+                    <span className="text-2xl font-semibold">{quotesUsed}</span>
+                    <span className="text-sm text-[var(--color-muted-foreground)]">
+                        / {effectivePlanLimit} orçamentos
+                    </span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--color-muted)]">
+                    <div
+                        className={`h-full rounded-full transition-all ${
+                            percentUsed >= 100
+                                ? "bg-red-500"
+                                : percentUsed >= 80
+                                    ? "bg-orange-500"
+                                    : "bg-[var(--color-primary)]"
+                        }`}
+                        style={{ width: `${Math.min(100, percentUsed)}%` }}
+                    />
+                </div>
+                {percentUsed >= 100 ? (
+                    <div className="mt-3 rounded-md bg-red-500/10 p-2">
+                        <p className="text-xs font-medium text-red-500">
+                            Limite atingido. Atualize para continuar.
+                        </p>
+                        <Link
+                            href="/settings/billing"
+                            className="mt-1 inline-flex text-xs font-medium text-red-500 underline"
+                        >
+                            Ver planos →
+                        </Link>
+                    </div>
+                ) : percentUsed >= 80 ? (
+                    <div className="mt-3 rounded-md bg-orange-500/10 p-2">
+                        <p className="text-xs text-orange-500">
+                            {effectivePlanLimit - quotesUsed} restantes
+                        </p>
+                        <Link
+                            href="/settings/billing"
+                            className="mt-1 inline-flex text-xs text-orange-500 underline"
+                        >
+                            Ver planos
+                        </Link>
+                    </div>
+                ) : (
+                    <p className="mt-2 text-xs text-[var(--color-muted-foreground)]">
+                        {effectivePlanLimit - quotesUsed} restantes ·{" "}
+                        <Link href="/settings/billing" className="underline">
+                            {tier === "paid" ? "Gerir" : "Atualizar"}
+                        </Link>
+                    </p>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
 
 // Map event types to template codes
 const EVENT_TO_TEMPLATE: Record<string, string> = {
@@ -36,8 +116,6 @@ async function getDashboardData(organizationId: string, timezone: string) {
         quotesSent,
         pendingQuotes,
         pipelineAgg,
-        usageCounter,
-        subscription,
         templates,
     ] = await Promise.all([
         // Today's cadence events
@@ -126,18 +204,6 @@ async function getDashboardData(organizationId: string, timezone: string) {
                 businessStatus: { in: ["sent", "negotiation"] },
             },
             _sum: { value: true },
-        }),
-        // Usage
-        prisma.usageCounter.findFirst({
-            where: {
-                organizationId,
-                periodStart: { lte: new Date() },
-                periodEnd: { gte: new Date() },
-            },
-        }),
-        // Subscription
-        prisma.subscription.findUnique({
-            where: { organizationId },
         }),
         // Templates for cadence events
         prisma.template.findMany({
@@ -237,12 +303,6 @@ async function getDashboardData(organizationId: string, timezone: string) {
             calls: callEvents,
             tasks,
         },
-        usage: {
-            quotesSent: usageCounter?.quotesSent ?? 0,
-            quotesLimit: subscription?.quotesLimit ?? 10,
-            percentUsed: Math.round(((usageCounter?.quotesSent ?? 0) / (subscription?.quotesLimit ?? 10)) * 100),
-        },
-        plan: subscription?.planId ?? "free",
     };
 }
 
@@ -253,11 +313,14 @@ export default async function DashboardPage() {
         redirect("/login");
     }
 
-    // Get organization timezone
-    const org = await prisma.organization.findUnique({
-        where: { id: session.user.organizationId },
-        select: { timezone: true },
-    });
+    // Get organization timezone and entitlements in parallel
+    const [org, entitlements] = await Promise.all([
+        prisma.organization.findUnique({
+            where: { id: session.user.organizationId },
+            select: { timezone: true },
+        }),
+        getEntitlements(session.user.organizationId),
+    ]);
 
     const timezone = org?.timezone ?? "Europe/Lisbon";
     const data = await getDashboardData(session.user.organizationId, timezone);
@@ -279,8 +342,8 @@ export default async function DashboardPage() {
                     </Link>
                 </PageHeader>
 
-                {/* Onboarding Banner */}
-                <OnboardingBanner isAdmin={session.user.role === "admin"} />
+                {/* Onboarding Checklist */}
+                <OnboardingChecklist isAdmin={session.user.role === "admin"} />
 
                 {/* Lifecycle Banner (Trial/Free tier messaging) */}
                 <LifecycleBanner />
@@ -369,68 +432,8 @@ export default async function DashboardPage() {
                             </CardContent>
                         </Card>
 
-                        {/* Usage Meter */}
-                        <Card className={data.usage.percentUsed >= 100 ? "border-red-500/50" : data.usage.percentUsed >= 80 ? "border-orange-500/50" : ""}>
-                            <CardHeader>
-                                <CardTitle className="text-sm">Utilização mensal</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="mb-2 flex items-baseline justify-between">
-                                    <span className="text-2xl font-semibold">
-                                        {data.usage.quotesSent}
-                                    </span>
-                                    <span className="text-sm text-[var(--color-muted-foreground)]">
-                                        / {data.usage.quotesLimit} orçamentos
-                                    </span>
-                                </div>
-                                <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--color-muted)]">
-                                    <div
-                                        className={`h-full rounded-full ${
-                                            data.usage.percentUsed >= 100
-                                                ? "bg-red-500"
-                                                : data.usage.percentUsed >= 80
-                                                    ? "bg-orange-500"
-                                                    : "bg-[var(--color-primary)]"
-                                        }`}
-                                        style={{
-                                            width: `${Math.min(100, data.usage.percentUsed)}%`,
-                                        }}
-                                    />
-                                </div>
-                                {data.usage.percentUsed >= 100 ? (
-                                    <div className="mt-3 rounded-md bg-red-500/10 p-2">
-                                        <p className="text-xs font-medium text-red-500">
-                                            Limite atingido. Atualize o plano para continuar.
-                                        </p>
-                                        <Link
-                                            href="/settings/billing"
-                                            className="mt-1 inline-flex items-center text-xs font-medium text-red-500 underline"
-                                        >
-                                            Atualizar plano →
-                                        </Link>
-                                    </div>
-                                ) : data.usage.percentUsed >= 80 ? (
-                                    <div className="mt-3 rounded-md bg-orange-500/10 p-2">
-                                        <p className="text-xs text-orange-500">
-                                            {100 - data.usage.percentUsed}% restante. Considere atualizar.
-                                        </p>
-                                        <Link
-                                            href="/settings/billing"
-                                            className="mt-1 inline-flex text-xs text-orange-500 underline"
-                                        >
-                                            Ver planos
-                                        </Link>
-                                    </div>
-                                ) : (
-                                    <p className="mt-2 text-xs text-[var(--color-muted-foreground)]">
-                                        Plano {data.plan} ·{" "}
-                                        <Link href="/settings/billing" className="underline">
-                                            Atualizar
-                                        </Link>
-                                    </p>
-                                )}
-                            </CardContent>
-                        </Card>
+                        {/* Usage Meter - uses entitlements for correct limits */}
+                        <UsageMeter entitlements={entitlements} />
                     </div>
                 </div>
             </main>

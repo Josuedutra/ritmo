@@ -2,9 +2,10 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { ActionCard, type ActionCardProps } from "./action-card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui";
-import { Mail, Phone, ListTodo, Inbox } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent, Button } from "@/components/ui";
+import { Mail, Phone, ListTodo, Inbox, FileText, Send, Zap, Plus } from "lucide-react";
 
 interface ActionData {
     id: string;
@@ -120,14 +121,69 @@ export function ActionsList({ emails, calls, tasks }: ActionsListProps) {
 
     if (totalCount === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="mb-4 rounded-full bg-[var(--color-muted)] p-4">
-                    <Inbox className="h-8 w-8 text-[var(--color-muted-foreground)]" />
+            <div className="py-6">
+                <h3 className="mb-4 text-center text-sm font-medium text-[var(--color-muted-foreground)]">
+                    Como funciona o Ritmo
+                </h3>
+                <div className="space-y-3">
+                    {/* Step 1 */}
+                    <div className="flex items-center gap-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] p-4">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)]/10 text-sm font-semibold text-[var(--color-primary)]">
+                            1
+                        </div>
+                        <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                                <FileText className="h-4 w-4 text-[var(--color-muted-foreground)]" />
+                                <span className="font-medium">Criar orçamento</span>
+                            </div>
+                            <p className="mt-0.5 text-xs text-[var(--color-muted-foreground)]">
+                                Registe o orçamento com contacto e valor
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="flex items-center gap-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] p-4">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)]/10 text-sm font-semibold text-[var(--color-primary)]">
+                            2
+                        </div>
+                        <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                                <Send className="h-4 w-4 text-[var(--color-muted-foreground)]" />
+                                <span className="font-medium">Marcar como enviado</span>
+                            </div>
+                            <p className="mt-0.5 text-xs text-[var(--color-muted-foreground)]">
+                                Quando enviar o email, marque no Ritmo
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="flex items-center gap-4 rounded-lg border border-[var(--color-primary)]/30 bg-[var(--color-primary)]/5 p-4">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)] text-sm font-semibold text-white">
+                            3
+                        </div>
+                        <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                                <Zap className="h-4 w-4 text-[var(--color-primary)]" />
+                                <span className="font-medium text-[var(--color-primary)]">Ações aparecem aqui</span>
+                            </div>
+                            <p className="mt-0.5 text-xs text-[var(--color-muted-foreground)]">
+                                D+1, D+3, D+7 chamada, D+14 — tudo automático
+                            </p>
+                        </div>
+                    </div>
                 </div>
-                <h3 className="mb-2 text-lg font-medium">Sem ações para hoje</h3>
-                <p className="text-sm text-[var(--color-muted-foreground)]">
-                    Todas as ações de follow-up estão em dia.
-                </p>
+
+                {/* CTA */}
+                <div className="mt-6 text-center">
+                    <Link href="/quotes/new">
+                        <Button>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Criar primeiro orçamento
+                        </Button>
+                    </Link>
+                </div>
             </div>
         );
     }
