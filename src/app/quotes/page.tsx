@@ -20,6 +20,16 @@ const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secon
     lost: { label: "Perdido", variant: "destructive" },
 };
 
+// P1-01: Tag display config (show max 2 tags on list)
+const TAG_CONFIG: Record<string, { label: string; color: string }> = {
+    urgente: { label: "Urgente", color: "text-red-600 border-red-300 bg-red-500/10" },
+    obra: { label: "Obra", color: "text-blue-600 border-blue-300 bg-blue-500/10" },
+    manutencao: { label: "Manutenção", color: "text-green-600 border-green-300 bg-green-500/10" },
+    it: { label: "IT", color: "text-purple-600 border-purple-300 bg-purple-500/10" },
+    residencial: { label: "Residencial", color: "text-amber-600 border-amber-300 bg-amber-500/10" },
+    comercial: { label: "Comercial", color: "text-cyan-600 border-cyan-300 bg-cyan-500/10" },
+};
+
 const FILTERS = [
     { id: "all", label: "Todos" },
     { id: "no_response", label: "Sem resposta" },
@@ -230,13 +240,30 @@ export default async function QuotesPage({ searchParams }: PageProps) {
                                 <Card key={quote.id} className="p-4 transition-colors hover:border-[var(--color-border-hover)]">
                                     <div className="flex items-start justify-between gap-4">
                                         <Link href={`/quotes/${quote.id}`} className="min-w-0 flex-1">
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex flex-wrap items-center gap-2">
                                                 <h3 className="truncate font-medium">
                                                     {quote.title}
                                                 </h3>
                                                 <Badge variant={statusConfig.variant}>
                                                     {statusConfig.label}
                                                 </Badge>
+                                                {/* P1-01: Show tags (max 2) */}
+                                                {quote.tags.slice(0, 2).map((tag) => {
+                                                    const tagConfig = TAG_CONFIG[tag] || { label: tag, color: "text-gray-600 border-gray-300 bg-gray-500/10" };
+                                                    return (
+                                                        <span
+                                                            key={tag}
+                                                            className={`inline-flex h-5 items-center rounded-full border px-2 text-xs font-medium ${tagConfig.color}`}
+                                                        >
+                                                            {tagConfig.label}
+                                                        </span>
+                                                    );
+                                                })}
+                                                {quote.tags.length > 2 && (
+                                                    <span className="text-xs text-[var(--color-muted-foreground)]">
+                                                        +{quote.tags.length - 2}
+                                                    </span>
+                                                )}
                                             </div>
                                             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[var(--color-muted-foreground)]">
                                                 {quote.reference && (

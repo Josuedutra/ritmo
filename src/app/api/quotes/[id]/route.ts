@@ -22,6 +22,7 @@ const updateQuoteSchema = z.object({
     proposalLink: z.string().url().optional().nullable(),
     notes: z.string().optional().nullable(),
     tags: z.array(z.string()).optional(),  // P1-03: Quick tags
+    lossReason: z.string().optional().nullable(),  // P1-02: Loss reason
 });
 
 interface RouteParams {

@@ -271,6 +271,7 @@ model Quote {
   
   notes           String?
   tags            String[]       @default([])           // P1-03: Quick tags
+  lossReason      String?        @map("loss_reason")    // P1-02: Reason for losing the quote
   lastActivityAt  DateTime?      @map("last_activity_at")
   createdById     String?        @map("created_by")
 

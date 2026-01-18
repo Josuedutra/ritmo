@@ -13,9 +13,20 @@ import {
     AlertTriangle,
     ClipboardCopy,
     Loader2,
+    X,
 } from "lucide-react";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
+
+// P1-02: Common loss reasons
+const LOSS_REASONS = [
+    { id: "price", label: "Preço elevado" },
+    { id: "competitor", label: "Escolheu concorrente" },
+    { id: "no_budget", label: "Sem orçamento" },
+    { id: "timing", label: "Má altura" },
+    { id: "no_response", label: "Sem resposta" },
+    { id: "other", label: "Outro motivo" },
+];
 
 interface Quote {
     id: string;
@@ -45,6 +56,9 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
         used: number;
         action?: string;
     } | null>(null);
+    // P1-02: Loss reason modal state
+    const [showLossReasonModal, setShowLossReasonModal] = useState(false);
+    const [selectedLossReason, setSelectedLossReason] = useState<string | null>(null);
 
     const handleMarkSent = async () => {
         setLoading("send");
@@ -106,13 +120,23 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
         }
     };
 
-    const handleStatusChange = async (newStatus: string) => {
+    const handleStatusChange = async (newStatus: string, lossReason?: string | null) => {
         setLoading(newStatus);
         try {
+            const body: Record<string, any> = { businessStatus: newStatus };
+            // P1-02: Include loss reason if provided
+            if (newStatus === "lost" && lossReason) {
+                body.lossReason = lossReason;
+            }
+            // Clear loss reason if reopening
+            if (newStatus !== "lost") {
+                body.lossReason = null;
+            }
+
             const response = await fetch(`/api/quotes/${quote.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ businessStatus: newStatus }),
+                body: JSON.stringify(body),
             });
 
             if (!response.ok) {
@@ -134,7 +158,19 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
             toast.error("Erro ao atualizar", "Verifique a sua conexão e tente novamente");
         } finally {
             setLoading(null);
+            setShowLossReasonModal(false);
+            setSelectedLossReason(null);
         }
+    };
+
+    // P1-02: Handle lost button click - show modal
+    const handleLostClick = () => {
+        setShowLossReasonModal(true);
+    };
+
+    // P1-02: Confirm lost with optional reason
+    const handleConfirmLost = () => {
+        handleStatusChange("lost", selectedLossReason);
     };
 
     const handleCopySummary = async () => {
@@ -305,7 +341,7 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
                     </button>
                     <button
                         type="button"
-                        onClick={() => handleStatusChange("lost")}
+                        onClick={handleLostClick}
                         disabled={loading !== null}
                         className="inline-flex h-7 items-center gap-1.5 rounded-md border border-red-500/30 bg-red-500/10 px-2.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/20 disabled:opacity-50"
                     >
@@ -316,6 +352,73 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
                         )}
                         Perdido
                     </button>
+                </div>
+            )}
+
+            {/* P1-02: Loss reason modal */}
+            {showLossReasonModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="w-full max-w-sm rounded-lg bg-[var(--color-background)] p-4 shadow-lg">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-medium">Marcar como perdido</h3>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowLossReasonModal(false);
+                                    setSelectedLossReason(null);
+                                }}
+                                className="rounded p-1 hover:bg-[var(--color-muted)]"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+
+                        <p className="text-sm text-[var(--color-muted-foreground)] mb-3">
+                            Motivo (opcional):
+                        </p>
+
+                        <div className="space-y-2 mb-4">
+                            {LOSS_REASONS.map((reason) => (
+                                <button
+                                    key={reason.id}
+                                    type="button"
+                                    onClick={() => setSelectedLossReason(reason.id === selectedLossReason ? null : reason.id)}
+                                    className={`w-full text-left px-3 py-2 text-sm rounded-md border transition-colors ${
+                                        selectedLossReason === reason.id
+                                            ? "border-red-500 bg-red-500/10 text-red-600"
+                                            : "border-[var(--color-border)] hover:bg-[var(--color-muted)]"
+                                    }`}
+                                >
+                                    {reason.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="flex gap-2">
+                            <Button
+                                variant="ghost"
+                                onClick={() => {
+                                    setShowLossReasonModal(false);
+                                    setSelectedLossReason(null);
+                                }}
+                                className="flex-1"
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                onClick={handleConfirmLost}
+                                disabled={loading === "lost"}
+                                className="flex-1 gap-1.5 bg-red-600 hover:bg-red-700"
+                            >
+                                {loading === "lost" ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <XCircle className="h-4 w-4" />
+                                )}
+                                Confirmar
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
