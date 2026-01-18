@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getEntitlements } from "@/lib/entitlements";
+import { AppHeader, PageHeader } from "@/components/layout";
 import { BillingPageClient } from "./billing-page-client";
 
 export default async function BillingPage() {
@@ -69,12 +70,12 @@ export default async function BillingPage() {
             quotesLimit: p.monthlyQuoteLimit,
             priceMonthly: p.priceMonthly,
             hasStripePrice: !!p.stripePriceId,
-            // Features based on plan - P0-BILL-03
+            // Features based on plan - spec compliant copy
             features:
                 p.id === "free"
                     ? [
-                          { text: "Modo manual (sem emails automáticos)", enabled: false },
-                          { text: "Sem captura BCC", enabled: false },
+                          { text: "Sem emails automáticos (modo manual)", enabled: false },
+                          { text: "Sem captura por BCC", enabled: false },
                       ]
                     : [
                           { text: "Emails automáticos", enabled: true },
@@ -83,5 +84,18 @@ export default async function BillingPage() {
         })),
     };
 
-    return <BillingPageClient data={data} />;
+    return (
+        <div className="min-h-screen bg-[var(--color-background)]">
+            <AppHeader user={session.user} />
+
+            <main className="container-app py-6">
+                <PageHeader
+                    title="Plano e faturação"
+                    description="Veja o seu plano, utilização e faça upgrade quando precisar."
+                />
+
+                <BillingPageClient data={data} />
+            </main>
+        </div>
+    );
 }

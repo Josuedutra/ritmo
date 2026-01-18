@@ -1,16 +1,13 @@
-import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { requireOnboardingIncomplete } from "@/lib/onboarding-gate";
 import { OnboardingWizard } from "./onboarding-wizard";
 
 export default async function OnboardingPage() {
-    const session = await auth();
+    // Requirement C: If onboarding is complete, redirect to dashboard
+    const session = await requireOnboardingIncomplete();
 
-    if (!session?.user) {
-        redirect("/login");
-    }
-
-    // Check if user is admin
+    // Check if user is admin (only admins can complete onboarding)
     if (session.user.role !== "admin") {
         redirect("/dashboard");
     }
@@ -36,11 +33,6 @@ export default async function OnboardingPage() {
     });
 
     if (!org) {
-        redirect("/dashboard");
-    }
-
-    // If onboarding is complete, redirect to dashboard
-    if (org.onboardingCompleted) {
         redirect("/dashboard");
     }
 

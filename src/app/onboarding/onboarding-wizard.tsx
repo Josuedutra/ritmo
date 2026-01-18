@@ -81,8 +81,8 @@ export function OnboardingWizard({
                 return;
             }
 
-            toast.success("Onboarding concluído!");
-            router.push("/dashboard");
+            toast.success("Configuração concluída. Vamos ao primeiro orçamento.");
+            router.push("/dashboard?onboarding=complete");
         } catch (error) {
             console.error("Error completing onboarding:", error);
             toast.error("Erro ao completar onboarding");
@@ -103,8 +103,9 @@ export function OnboardingWizard({
                 return;
             }
 
-            toast.success("Está tudo pronto! Bom trabalho.");
-            router.push("/dashboard");
+            // Requirement E: Toast message after onboarding
+            toast.success("Configuração concluída. Vamos ao primeiro orçamento.");
+            router.push("/dashboard?onboarding=complete");
         } catch (error) {
             console.error("Error completing onboarding:", error);
             toast.error("Erro ao completar onboarding");

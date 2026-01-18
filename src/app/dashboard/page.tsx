@@ -1,7 +1,7 @@
-import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { requireOnboardingComplete } from "@/lib/onboarding-gate";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
 import { startOfDay, endOfDay } from "date-fns";
 import { AppHeader, PageHeader, StatCard } from "@/components/layout";
@@ -351,11 +351,8 @@ async function getDashboardData(organizationId: string, timezone: string) {
 }
 
 export default async function DashboardPage() {
-    const session = await auth();
-
-    if (!session?.user) {
-        redirect("/login");
-    }
+    // Requirement C: Onboarding gate - redirects to /onboarding if not complete
+    const session = await requireOnboardingComplete();
 
     // Get organization timezone and entitlements in parallel
     const [org, entitlements] = await Promise.all([

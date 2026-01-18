@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import {
     Card,
     CardHeader,
@@ -72,12 +72,26 @@ interface BillingPageClientProps {
 
 export function BillingPageClient({ data }: BillingPageClientProps) {
     const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
     const [loading, setLoading] = useState<string | null>(null);
 
     const success = searchParams.get("success") === "true";
     const canceled = searchParams.get("canceled") === "true";
 
     const { subscription, entitlements, plans } = data;
+
+    // Show toasts for success/cancel query params and clear them
+    useEffect(() => {
+        if (success) {
+            toast.success("Plano ativado com sucesso.");
+            router.replace(pathname);
+        }
+        if (canceled) {
+            toast({ title: "Checkout cancelado", description: "Pode retomar quando quiser." });
+            router.replace(pathname);
+        }
+    }, [success, canceled, router, pathname]);
 
     // Usage calculation
     const usagePercentage =
@@ -118,8 +132,7 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
             if (response.ok && result.url) {
                 window.location.href = result.url;
             } else if (result.action === "choose_plan") {
-                // No Stripe customer - scroll to plans section
-                toast({ title: "Escolha um plano", description: result.message || "Selecione um plano para começar." });
+                toast({ title: "Escolha um plano", description: "Selecione um plano para começar." });
                 document.getElementById("plans-section")?.scrollIntoView({ behavior: "smooth" });
             } else {
                 toast.error("Erro", result.error || "Erro ao abrir portal");
@@ -153,32 +166,58 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
         }
     };
 
-    // Get "Inclui" text for plan card
-    const getIncludesText = () => {
+    // Get helper text for plan card (Inclui section)
+    const getPlanHelper = () => {
         if (entitlements.tier === "trial") {
-            return `Inclui ${entitlements.effectivePlanLimit} envios no trial`;
+            return `Trial ativo — inclui ${entitlements.effectivePlanLimit} envios. Termina em ${entitlements.trialDaysRemaining} dias.`;
         }
         if (entitlements.tier === "free") {
-            return `Inclui ${entitlements.effectivePlanLimit} envios/mês`;
+            return `Modo manual — inclui ${entitlements.effectivePlanLimit} envios por mês.`;
         }
-        return `${entitlements.effectivePlanLimit} envios/mês`;
+        if (isPastDue) {
+            return "Pagamento em atraso. Atualize o método de pagamento para continuar a enviar.";
+        }
+        if (isCancelled) {
+            return "A subscrição foi cancelada. Para voltar a enviar, reative o plano.";
+        }
+        if (isCancelAtPeriodEnd) {
+            return "O plano termina no fim do período atual.";
+        }
+        return "Tudo ativo — emails automáticos e captura por BCC incluídos no seu plano.";
     };
 
-    // Get helper text for usage section
+    // Get status badge
+    const getStatusBadge = () => {
+        if (isPastDue) return { text: "Em atraso", variant: "destructive" as const };
+        if (isCancelled) return { text: "Cancelado", variant: "secondary" as const };
+        if (isCancelAtPeriodEnd) return { text: "Termina no fim do período", variant: "warning" as const };
+        if (entitlements.tier === "trial") return { text: "Trial", variant: "default" as const };
+        return { text: "Ativo", variant: "success" as const };
+    };
+
+    // Get usage helper text
     const getUsageHelper = () => {
         if (entitlements.tier === "trial" && entitlements.trialDaysRemaining) {
-            return ` · faltam ${entitlements.trialDaysRemaining} dias`;
+            return `Faltam ${entitlements.trialDaysRemaining} dias de trial.`;
         }
-        return "";
+        if (entitlements.tier === "free") {
+            return "Está em modo manual (sem emails automáticos).";
+        }
+        return null;
     };
 
-    // Get status display
-    const getStatusDisplay = () => {
-        if (isPastDue) return { text: "Em atraso", color: "text-red-600" };
-        if (isCancelled) return { text: "Cancelado", color: "text-gray-500" };
-        if (subscription?.cancelAtPeriodEnd)
-            return { text: "Termina no fim do período", color: "text-yellow-600" };
-        return { text: "Ativo", color: "text-green-600" };
+    // Get usage threshold text
+    const getUsageThresholdText = () => {
+        if (usagePercentage >= 100) {
+            return { text: "Limite atingido.", color: "text-red-600" };
+        }
+        if (usagePercentage >= 90) {
+            return { text: "Quase no limite — considere upgrade para não parar.", color: "text-red-600" };
+        }
+        if (usagePercentage >= 70) {
+            return { text: "A aproximar-se do limite.", color: "text-yellow-600" };
+        }
+        return null;
     };
 
     // Get CTA for usage card
@@ -191,9 +230,7 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                     variant="destructive"
                     className="w-full"
                 >
-                    {loading === "portal" && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    )}
+                    {loading === "portal" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Atualizar pagamento
                 </Button>
             );
@@ -206,9 +243,7 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                     variant="outline"
                     className="w-full"
                 >
-                    {loading === "portal" && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    )}
+                    {loading === "portal" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Reativar plano
                 </Button>
             );
@@ -217,9 +252,7 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
             return (
                 <Button
                     onClick={() => {
-                        document
-                            .getElementById("plans-section")
-                            ?.scrollIntoView({ behavior: "smooth" });
+                        document.getElementById("plans-section")?.scrollIntoView({ behavior: "smooth" });
                     }}
                     className="w-full"
                 >
@@ -230,17 +263,39 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
         return null;
     };
 
-    const status = getStatusDisplay();
+    const statusBadge = getStatusBadge();
+    const usageThreshold = getUsageThresholdText();
+    const usageHelper = getUsageHelper();
+
+    // Determine button text for plan cards (short version for mobile)
+    const getPlanButtonText = (plan: Plan, isCurrent: boolean): { full: string; short: string } => {
+        if (isCurrent) return { full: "Plano atual", short: "Atual" };
+        if (subscription?.hasStripeCustomer) return { full: "Gerir subscrição", short: "Gerir" };
+        if (!plan.hasStripePrice) {
+            return plan.priceMonthly === 0
+                ? { full: "Plano gratuito", short: "Grátis" }
+                : { full: "Contactar vendas", short: "Contactar" };
+        }
+
+        // Determine if it's upgrade or downgrade based on price
+        const currentPlanPrice = plans.find(
+            (p) => p.id === subscription?.planId || (entitlements.tier === "free" && p.id === "free")
+        )?.priceMonthly ?? 0;
+
+        if (plan.priceMonthly > currentPlanPrice) return { full: "Fazer upgrade", short: "Upgrade" };
+        if (plan.priceMonthly < currentPlanPrice) return { full: "Fazer downgrade", short: "Downgrade" };
+        return { full: "Escolher plano", short: "Escolher" };
+    };
 
     return (
         <div className="space-y-6">
-            {/* Success/Cancel messages */}
+            {/* Success/Cancel banners (visual feedback) */}
             {success && (
                 <Card className="border-green-500/50 bg-green-500/10">
                     <CardContent className="flex items-center gap-3 py-4">
                         <CheckCircle className="h-5 w-5 text-green-500" />
                         <p className="text-sm text-green-700 dark:text-green-300">
-                            Pagamento concluído com sucesso! O seu plano foi atualizado.
+                            Plano ativado com sucesso.
                         </p>
                     </CardContent>
                 </Card>
@@ -251,8 +306,7 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                     <CardContent className="flex items-center gap-3 py-4">
                         <AlertTriangle className="h-5 w-5 text-yellow-500" />
                         <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                            O processo de checkout foi cancelado. Pode tentar novamente
-                            quando quiser.
+                            Checkout cancelado. Pode retomar quando quiser.
                         </p>
                     </CardContent>
                 </Card>
@@ -269,7 +323,7 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                                     Pagamento em atraso
                                 </p>
                                 <p className="text-sm text-red-600 dark:text-red-400">
-                                    Atualize o método de pagamento para continuar a enviar.
+                                    Atualize o método de pagamento para continuar a enviar orçamentos e follow-ups.
                                 </p>
                             </div>
                         </div>
@@ -278,27 +332,25 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                             disabled={loading === "portal"}
                             variant="destructive"
                         >
-                            {loading === "portal" && (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            )}
+                            {loading === "portal" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Atualizar pagamento
                         </Button>
                     </CardContent>
                 </Card>
             )}
 
-            {/* Cancelled banner */}
+            {/* Cancelled banner - neutral color (not alarming) */}
             {isCancelled && (
-                <Card className="border-red-500/50 bg-red-500/10">
+                <Card className="border-[var(--color-border)] bg-[var(--color-muted)]">
                     <CardContent className="flex items-center justify-between py-4">
                         <div className="flex items-center gap-3">
-                            <AlertTriangle className="h-5 w-5 text-red-500" />
+                            <AlertTriangle className="h-5 w-5 text-muted-foreground" />
                             <div>
-                                <p className="font-medium text-red-700 dark:text-red-300">
+                                <p className="font-medium text-foreground">
                                     Subscrição cancelada
                                 </p>
-                                <p className="text-sm text-red-600 dark:text-red-400">
-                                    Reative para voltar a enviar.
+                                <p className="text-sm text-muted-foreground">
+                                    Para continuar a enviar e manter a cadência ativa, reative um plano.
                                 </p>
                             </div>
                         </div>
@@ -307,16 +359,14 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                             disabled={loading === "portal"}
                             variant="outline"
                         >
-                            {loading === "portal" && (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            )}
-                            Reativar
+                            {loading === "portal" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Reativar plano
                         </Button>
                     </CardContent>
                 </Card>
             )}
 
-            {/* Cancel at period end banner - P0-BILL-06 */}
+            {/* Cancel at period end banner */}
             {isCancelAtPeriodEnd && !isCancelled && (
                 <Card className="border-yellow-500/50 bg-yellow-500/10">
                     <CardContent className="flex items-center justify-between py-4">
@@ -324,10 +374,10 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                             <Clock className="h-5 w-5 text-yellow-500" />
                             <div>
                                 <p className="font-medium text-yellow-700 dark:text-yellow-300">
-                                    Termina em {formatDate(subscription?.currentPeriodEnd ?? null)}
+                                    Plano a terminar
                                 </p>
                                 <p className="text-sm text-yellow-600 dark:text-yellow-400">
-                                    A subscrição não será renovada. Pode reativar a qualquer momento.
+                                    O seu plano termina em {formatDate(subscription?.currentPeriodEnd ?? null)}. Pode reativar a qualquer momento.
                                 </p>
                             </div>
                         </div>
@@ -336,10 +386,8 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                             disabled={loading === "portal"}
                             variant="outline"
                         >
-                            {loading === "portal" && (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            )}
-                            Reativar
+                            {loading === "portal" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Gerir subscrição
                         </Button>
                     </CardContent>
                 </Card>
@@ -358,31 +406,24 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                     <CardContent className="space-y-4">
                         <div className="flex items-center justify-between">
                             <span className="text-sm text-muted-foreground">Plano</span>
-                            <span className="text-lg font-semibold">
-                                {entitlements.planName}
-                            </span>
+                            <span className="text-lg font-semibold">{entitlements.planName}</span>
                         </div>
 
                         <div className="flex items-center justify-between">
                             <span className="text-sm text-muted-foreground">Estado</span>
-                            <span className={`font-medium ${status.color}`}>
-                                {status.text}
-                            </span>
+                            <Badge variant={statusBadge.variant}>{statusBadge.text}</Badge>
                         </div>
 
-                        {subscription?.currentPeriodEnd &&
-                            !entitlements.tier.startsWith("trial") && (
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-muted-foreground">
-                                        Renovação
-                                    </span>
-                                    <span>{formatDate(subscription.currentPeriodEnd)}</span>
-                                </div>
-                            )}
+                        {subscription?.currentPeriodEnd && entitlements.tier === "paid" && !isCancelAtPeriodEnd && (
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-muted-foreground">Renovação</span>
+                                <span>{formatDate(subscription.currentPeriodEnd)}</span>
+                            </div>
+                        )}
 
-                        <div className="flex items-center gap-2 rounded bg-muted/50 p-3 text-sm">
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                            <span>{getIncludesText()}</span>
+                        <div className="flex items-start gap-2 rounded bg-muted/50 p-3 text-sm">
+                            <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
+                            <span>{getPlanHelper()}</span>
                         </div>
 
                         {/* Portal button for paid users */}
@@ -393,9 +434,7 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                                 variant="outline"
                                 className="w-full"
                             >
-                                {loading === "portal" && (
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                )}
+                                {loading === "portal" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 <ExternalLink className="mr-2 h-4 w-4" />
                                 Gerir subscrição
                             </Button>
@@ -413,9 +452,7 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="text-lg font-medium">
-                            {entitlements.quotesUsed} / {entitlements.effectivePlanLimit}{" "}
-                            envios
-                            {getUsageHelper()}
+                            {entitlements.quotesUsed} / {entitlements.effectivePlanLimit} envios
                         </div>
 
                         {/* Progress bar */}
@@ -432,30 +469,16 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                             />
                         </div>
 
-                        {/* Status text */}
-                        {usagePercentage >= 90 && (
-                            <p className="text-sm font-medium text-red-600">
-                                Limite a atingir
-                            </p>
-                        )}
-                        {usagePercentage >= 70 && usagePercentage < 90 && (
-                            <p className="text-sm text-yellow-600">
-                                A aproximar-se do limite
+                        {/* Threshold text */}
+                        {usageThreshold && (
+                            <p className={`text-sm font-medium ${usageThreshold.color}`}>
+                                {usageThreshold.text}
                             </p>
                         )}
 
                         {/* Helper text for trial/free */}
-                        {entitlements.tier === "trial" && (
-                            <p className="text-xs text-muted-foreground">
-                                Inclui {entitlements.effectivePlanLimit} envios. Termina em{" "}
-                                {entitlements.trialDaysRemaining} dias.
-                            </p>
-                        )}
-                        {entitlements.tier === "free" && (
-                            <p className="text-xs text-muted-foreground">
-                                Modo manual. Inclui {entitlements.effectivePlanLimit}{" "}
-                                envios/mês.
-                            </p>
+                        {usageHelper && (
+                            <p className="text-xs text-muted-foreground">{usageHelper}</p>
                         )}
 
                         {/* CTA */}
@@ -464,14 +487,21 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                 </Card>
             </div>
 
-            {/* C. Planos disponíveis */}
+            {/* C. Planos */}
             <div id="plans-section">
-                <h2 className="mb-4 text-lg font-semibold">Planos disponíveis</h2>
+                <div className="mb-4">
+                    <h2 className="text-lg font-semibold">Planos</h2>
+                    <p className="text-sm text-muted-foreground">
+                        Escolha o nível certo para o seu volume de envios.
+                    </p>
+                </div>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {plans.map((plan) => {
                         const isCurrent =
                             subscription?.planId === plan.id ||
                             (entitlements.tier === "free" && plan.id === "free");
+
+                        const buttonText = getPlanButtonText(plan, isCurrent);
 
                         return (
                             <Card
@@ -485,25 +515,19 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                                 )}
                                 <CardHeader className="pb-2">
                                     <CardTitle className="text-lg">{plan.name}</CardTitle>
-                                    <CardDescription>
-                                        {plan.quotesLimit} envios/mês
-                                    </CardDescription>
+                                    <CardDescription>{plan.quotesLimit} envios/mês</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                    <div className="text-2xl font-bold">
-                                        {formatPrice(plan.priceMonthly)}
-                                    </div>
+                                    <div className="text-2xl font-bold">{formatPrice(plan.priceMonthly)}</div>
 
-                                    {/* Features - P0-BILL-03 */}
+                                    {/* Features */}
                                     {plan.features.length > 0 && (
                                         <ul className="space-y-1.5 text-sm">
                                             {plan.features.map((feature, i) => (
                                                 <li
                                                     key={i}
                                                     className={`flex items-center gap-2 ${
-                                                        feature.enabled
-                                                            ? "text-foreground"
-                                                            : "text-muted-foreground"
+                                                        feature.enabled ? "text-foreground" : "text-muted-foreground"
                                                     }`}
                                                 >
                                                     {feature.enabled ? (
@@ -517,14 +541,11 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                                         </ul>
                                     )}
 
-                                    {/* Button */}
+                                    {/* Button - responsive text */}
                                     {isCurrent ? (
-                                        <Button
-                                            variant="outline"
-                                            className="w-full"
-                                            disabled
-                                        >
-                                            Plano atual
+                                        <Button variant="outline" className="w-full" disabled>
+                                            <span className="sm:hidden">{buttonText.short}</span>
+                                            <span className="hidden sm:inline">{buttonText.full}</span>
                                         </Button>
                                     ) : subscription?.hasStripeCustomer ? (
                                         <Button
@@ -533,10 +554,9 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                                             variant="outline"
                                             className="w-full"
                                         >
-                                            {loading === "portal" && (
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            )}
-                                            Gerir subscrição
+                                            {loading === "portal" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                            <span className="sm:hidden">{buttonText.short}</span>
+                                            <span className="hidden sm:inline">{buttonText.full}</span>
                                         </Button>
                                     ) : plan.hasStripePrice ? (
                                         <Button
@@ -544,20 +564,14 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                                             disabled={loading === plan.id}
                                             className="w-full"
                                         >
-                                            {loading === plan.id && (
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            )}
-                                            Escolher plano
+                                            {loading === plan.id && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                            <span className="sm:hidden">{buttonText.short}</span>
+                                            <span className="hidden sm:inline">{buttonText.full}</span>
                                         </Button>
                                     ) : (
-                                        <Button
-                                            variant="outline"
-                                            className="w-full"
-                                            disabled
-                                        >
-                                            {plan.priceMonthly === 0
-                                                ? "Plano gratuito"
-                                                : "Contactar vendas"}
+                                        <Button variant="outline" className="w-full" disabled>
+                                            <span className="sm:hidden">{buttonText.short}</span>
+                                            <span className="hidden sm:inline">{buttonText.full}</span>
                                         </Button>
                                     )}
                                 </CardContent>

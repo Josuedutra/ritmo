@@ -17,25 +17,33 @@ export const authConfig: NextAuthConfig = {
     callbacks: {
         authorized({ auth, request: { nextUrl } }) {
             const isLoggedIn = !!auth?.user;
-            const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
-            const isOnQuotes = nextUrl.pathname.startsWith("/quotes");
-            const isOnSettings = nextUrl.pathname.startsWith("/settings");
-            const isOnTemplates = nextUrl.pathname.startsWith("/templates");
-            const isProtected = isOnDashboard || isOnQuotes || isOnSettings || isOnTemplates;
+            const pathname = nextUrl.pathname;
 
+            // Protected routes that require auth
+            const isOnDashboard = pathname.startsWith("/dashboard");
+            const isOnQuotes = pathname.startsWith("/quotes");
+            const isOnSettings = pathname.startsWith("/settings");
+            const isOnTemplates = pathname.startsWith("/templates");
+            const isOnOnboarding = pathname.startsWith("/onboarding");
+            const isProtected = isOnDashboard || isOnQuotes || isOnSettings || isOnTemplates || isOnOnboarding;
+
+            // Requirement D: Protect app routes
             if (isProtected) {
                 if (isLoggedIn) return true;
-                return false; // Redirect to login
+                // Redirect to login with ?next= param
+                const loginUrl = new URL("/login", nextUrl);
+                loginUrl.searchParams.set("next", pathname);
+                return Response.redirect(loginUrl);
             }
 
-            // Redirect logged-in users from login to dashboard
-            if (nextUrl.pathname === "/login" && isLoggedIn) {
+            // Requirement D: Redirect logged-in users from login/signup to dashboard
+            if ((pathname === "/login" || pathname === "/signup") && isLoggedIn) {
                 return Response.redirect(new URL("/dashboard", nextUrl));
             }
 
             return true;
         },
-        async jwt({ token, user }) {
+        async jwt({ token, user, trigger }) {
             if (user) {
                 token.id = user.id;
                 token.organizationId = (user as { organizationId?: string }).organizationId;
