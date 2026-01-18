@@ -77,57 +77,106 @@ async function main() {
         }
     }
 
+    // Helper to check if table exists
+    async function tableExists(tableName: string): Promise<boolean> {
+        const result = await prisma.$queryRaw<{ exists: boolean }[]>`
+            SELECT EXISTS (
+                SELECT 1 FROM information_schema.tables
+                WHERE table_schema = 'public' AND table_name = ${tableName}
+            ) as exists
+        `;
+        return result[0]?.exists ?? false;
+    }
+
+    // Helper to check if column exists
+    async function columnExists(
+        tableName: string,
+        columnName: string
+    ): Promise<boolean> {
+        const result = await prisma.$queryRaw<{ exists: boolean }[]>`
+            SELECT EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_schema = 'public' AND table_name = ${tableName} AND column_name = ${columnName}
+            ) as exists
+        `;
+        return result[0]?.exists ?? false;
+    }
+
     // Clean up duplicate cadence_event_id in email_logs (keep first, delete rest)
-    console.log("🧹 Cleaning up duplicate email_logs for unique constraint...");
-    await prisma.$executeRaw`
-        DELETE FROM email_logs
-        WHERE id IN (
-            SELECT id FROM (
-                SELECT id, ROW_NUMBER() OVER (PARTITION BY cadence_event_id ORDER BY created_at) as rn
-                FROM email_logs
-                WHERE cadence_event_id IS NOT NULL
-            ) t WHERE rn > 1
-        )
-    `;
+    if (
+        (await tableExists("email_logs")) &&
+        (await columnExists("email_logs", "cadence_event_id"))
+    ) {
+        console.log(
+            "🧹 Cleaning up duplicate email_logs for unique constraint..."
+        );
+        await prisma.$executeRaw`
+            DELETE FROM email_logs
+            WHERE id IN (
+                SELECT id FROM (
+                    SELECT id, ROW_NUMBER() OVER (PARTITION BY cadence_event_id ORDER BY created_at) as rn
+                    FROM email_logs
+                    WHERE cadence_event_id IS NOT NULL
+                ) t WHERE rn > 1
+            )
+        `;
+    }
 
     // Clean up duplicate cadence_event_id in tasks (keep first, delete rest)
-    console.log("🧹 Cleaning up duplicate tasks for unique constraint...");
-    await prisma.$executeRaw`
-        DELETE FROM tasks
-        WHERE id IN (
-            SELECT id FROM (
-                SELECT id, ROW_NUMBER() OVER (PARTITION BY cadence_event_id ORDER BY created_at) as rn
-                FROM tasks
-                WHERE cadence_event_id IS NOT NULL
-            ) t WHERE rn > 1
-        )
-    `;
+    if (
+        (await tableExists("tasks")) &&
+        (await columnExists("tasks", "cadence_event_id"))
+    ) {
+        console.log("🧹 Cleaning up duplicate tasks for unique constraint...");
+        await prisma.$executeRaw`
+            DELETE FROM tasks
+            WHERE id IN (
+                SELECT id FROM (
+                    SELECT id, ROW_NUMBER() OVER (PARTITION BY cadence_event_id ORDER BY created_at) as rn
+                    FROM tasks
+                    WHERE cadence_event_id IS NOT NULL
+                ) t WHERE rn > 1
+            )
+        `;
+    }
 
     // Clean up duplicate provider_message_id in inbound_ingestions (keep first, delete rest)
-    console.log("🧹 Cleaning up duplicate inbound_ingestions for unique constraint...");
-    await prisma.$executeRaw`
-        DELETE FROM inbound_ingestions
-        WHERE id IN (
-            SELECT id FROM (
-                SELECT id, ROW_NUMBER() OVER (PARTITION BY provider_message_id ORDER BY created_at) as rn
-                FROM inbound_ingestions
-                WHERE provider_message_id IS NOT NULL
-            ) t WHERE rn > 1
-        )
-    `;
+    if (
+        (await tableExists("inbound_ingestions")) &&
+        (await columnExists("inbound_ingestions", "provider_message_id"))
+    ) {
+        console.log(
+            "🧹 Cleaning up duplicate inbound_ingestions for unique constraint..."
+        );
+        await prisma.$executeRaw`
+            DELETE FROM inbound_ingestions
+            WHERE id IN (
+                SELECT id FROM (
+                    SELECT id, ROW_NUMBER() OVER (PARTITION BY provider_message_id ORDER BY created_at) as rn
+                    FROM inbound_ingestions
+                    WHERE provider_message_id IS NOT NULL
+                ) t WHERE rn > 1
+            )
+        `;
+    }
 
     // Ensure unique public_id in quotes (regenerate duplicates)
-    console.log("🧹 Fixing duplicate public_id in quotes...");
-    await prisma.$executeRaw`
-        UPDATE quotes
-        SET public_id = CONCAT('c', SUBSTRING(MD5(RANDOM()::TEXT || id), 1, 24))
-        WHERE id IN (
-            SELECT id FROM (
-                SELECT id, ROW_NUMBER() OVER (PARTITION BY public_id ORDER BY created_at) as rn
-                FROM quotes
-            ) t WHERE rn > 1
-        )
-    `;
+    if (
+        (await tableExists("quotes")) &&
+        (await columnExists("quotes", "public_id"))
+    ) {
+        console.log("🧹 Fixing duplicate public_id in quotes...");
+        await prisma.$executeRaw`
+            UPDATE quotes
+            SET public_id = CONCAT('c', SUBSTRING(MD5(RANDOM()::TEXT || id), 1, 24))
+            WHERE id IN (
+                SELECT id FROM (
+                    SELECT id, ROW_NUMBER() OVER (PARTITION BY public_id ORDER BY created_at) as rn
+                    FROM quotes
+                ) t WHERE rn > 1
+            )
+        `;
+    }
 
     console.log("✅ Pre-migration complete");
 }
