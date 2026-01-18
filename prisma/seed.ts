@@ -45,6 +45,27 @@ async function main() {
 
     console.log(`✅ Admin user created: ${admin.email} (${admin.id})`);
 
+    // Create demo user (regular user for testing)
+    const demoUser = await prisma.user.upsert({
+        where: {
+            organizationId_email: {
+                organizationId: org.id,
+                email: "demo@demo.ritmo.app",
+            },
+        },
+        update: {},
+        create: {
+            organizationId: org.id,
+            email: "demo@demo.ritmo.app",
+            name: "Demo User",
+            passwordHash: "demo123", // TEMP: Plain text for dev only
+            role: "member",
+            emailVerified: new Date(),
+        },
+    });
+
+    console.log(`✅ Demo user created: ${demoUser.email} (${demoUser.id})`);
+
     // Create subscription (free plan)
     await prisma.subscription.upsert({
         where: { organizationId: org.id },
@@ -185,8 +206,8 @@ Teve oportunidade de analisar? Há alguma questão que possa esclarecer?"
 
     console.log("\n🎉 Seed completed successfully!");
     console.log("\n📋 Login credentials:");
-    console.log("   Email: admin@demo.ritmo.app");
-    console.log("   Password: demo123");
+    console.log("   Admin: admin@demo.ritmo.app / demo123");
+    console.log("   Demo:  demo@demo.ritmo.app / demo123");
 }
 
 main()

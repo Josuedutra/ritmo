@@ -67,7 +67,7 @@ export function LifecycleBanner() {
                                 {entitlements.trialDaysRemaining !== 1 ? "s" : ""}
                             </p>
                             <p className="mt-0.5 text-sm text-orange-300/80">
-                                Já enviou {entitlements.quotesUsed} de {entitlements.quotesLimit} orçamentos.
+                                Já enviou {entitlements.quotesUsed} de {entitlements.quotesLimit} envios.
                                 Escolha um plano para continuar com automação.
                             </p>
                             <Link
@@ -102,7 +102,7 @@ export function LifecycleBanner() {
                                 {entitlements.trialDaysRemaining !== 1 ? "s" : ""} restantes
                             </p>
                             <p className="mt-0.5 text-sm text-blue-300/80">
-                                {entitlements.quotesRemaining} orçamentos disponíveis. Automação de emails e BCC ativas.
+                                {entitlements.quotesRemaining} envios disponíveis. Automação de emails e BCC ativas.
                             </p>
                         </div>
                     </div>
@@ -163,7 +163,7 @@ export function LifecycleBanner() {
                                 Pagamento em atraso
                             </p>
                             <p className="mt-0.5 text-sm text-red-300/80">
-                                Atualize o seu método de pagamento para continuar a enviar orçamentos.
+                                Atualize o método de pagamento para continuar a enviar.
                             </p>
                             <Link
                                 href="/settings/billing"
@@ -190,7 +190,7 @@ export function LifecycleBanner() {
                                 Subscrição cancelada
                             </p>
                             <p className="mt-0.5 text-sm text-red-300/80">
-                                Reative o seu plano para continuar a enviar orçamentos com automação.
+                                Reative o plano para continuar a enviar com automação.
                             </p>
                             <Link
                                 href="/settings/billing"

@@ -1,5 +1,4 @@
 import type { NextAuthConfig } from "next-auth";
-import Credentials from "next-auth/providers/credentials";
 
 /**
  * Auth config without Prisma - used by middleware (Edge runtime)
@@ -13,17 +12,8 @@ export const authConfig: NextAuthConfig = {
         signIn: "/login",
         error: "/login",
     },
-    providers: [
-        Credentials({
-            name: "credentials",
-            credentials: {
-                email: { label: "Email", type: "email" },
-                password: { label: "Password", type: "password" },
-            },
-            // Authorize is handled in the full auth.ts with Prisma
-            authorize: () => null,
-        }),
-    ],
+    // Providers are defined in auth.ts with full Prisma access
+    providers: [],
     callbacks: {
         authorized({ auth, request: { nextUrl } }) {
             const isLoggedIn = !!auth?.user;

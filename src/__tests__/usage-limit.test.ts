@@ -75,7 +75,7 @@ async function checkUsageLimit(organizationId: string): Promise<UsageCheckResult
                 limit,
                 used,
                 message:
-                    "A sua subscrição foi cancelada. Reative o plano para continuar a enviar orçamentos.",
+                    "A sua subscrição foi cancelada. Reative para continuar a enviar.",
             };
         }
 
@@ -98,7 +98,7 @@ async function checkUsageLimit(organizationId: string): Promise<UsageCheckResult
             reason: "LIMIT_EXCEEDED",
             limit,
             used,
-            message: `Atingiu o limite de ${limit} orçamentos do plano ${planName}. Atualize o seu plano para continuar.`,
+            message: `Atingiu o limite de ${limit} envios do plano ${planName}. Atualize o seu plano para continuar.`,
         };
     }
 

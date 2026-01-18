@@ -232,7 +232,7 @@ function calculateCanMarkSent(params: CanMarkSentParams): Entitlements["canMarkS
         return {
             allowed: false,
             reason: "SUBSCRIPTION_CANCELLED",
-            message: "A sua subscrição foi cancelada. Reative para continuar a enviar orçamentos.",
+            message: "A sua subscrição foi cancelada. Reative para continuar a enviar.",
             ctaAction: "reactivate_subscription",
             ctaUrl: "/settings/billing",
         };
@@ -254,7 +254,7 @@ function calculateCanMarkSent(params: CanMarkSentParams): Entitlements["canMarkS
             return {
                 allowed: false,
                 reason: "LIMIT_EXCEEDED",
-                message: `Atingiu o limite de ${effectivePlanLimit} orçamentos do trial. Escolha um plano para continuar.`,
+                message: `Atingiu o limite de ${effectivePlanLimit} envios do trial. Escolha um plano para continuar.`,
                 ctaAction: "start_subscription",
                 ctaUrl: "/settings/billing",
             };
@@ -264,7 +264,7 @@ function calculateCanMarkSent(params: CanMarkSentParams): Entitlements["canMarkS
             return {
                 allowed: false,
                 reason: "LIMIT_EXCEEDED",
-                message: `Atingiu o limite de ${effectivePlanLimit} orçamentos do plano gratuito. Atualize para enviar mais.`,
+                message: `Atingiu o limite de ${effectivePlanLimit} envios do plano gratuito. Atualize para enviar mais.`,
                 ctaAction: "upgrade_plan",
                 ctaUrl: "/settings/billing",
             };
@@ -274,7 +274,7 @@ function calculateCanMarkSent(params: CanMarkSentParams): Entitlements["canMarkS
         return {
             allowed: false,
             reason: "LIMIT_EXCEEDED",
-            message: `Atingiu o limite de ${effectivePlanLimit} orçamentos do plano ${planName}. Atualize o seu plano para continuar.`,
+            message: `Atingiu o limite de ${effectivePlanLimit} envios do plano ${planName}. Atualize o seu plano para continuar.`,
             ctaAction: "upgrade_plan",
             ctaUrl: "/settings/billing",
         };

@@ -247,7 +247,7 @@ export function BillingContent({ data }: BillingContentProps) {
                                         Limite mensal
                                     </span>
                                     <span className="font-medium">
-                                        {subscription.quotesLimit} orçamentos
+                                        {subscription.quotesLimit} envios
                                     </span>
                                 </div>
                                 {subscription.currentPeriodEnd && (
@@ -392,7 +392,7 @@ export function BillingContent({ data }: BillingContentProps) {
                                 <CardHeader className="pb-2">
                                     <CardTitle className="text-lg">{plan.name}</CardTitle>
                                     <CardDescription>
-                                        {plan.quotesLimit} orçamentos/mês
+                                        {plan.quotesLimit} envios/mês
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
