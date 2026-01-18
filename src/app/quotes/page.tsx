@@ -5,7 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { AppHeader, PageHeader } from "@/components/layout";
 import { Button, Card, Badge } from "@/components/ui";
 import { GenerateActionButton } from "@/components/quotes";
-import { Plus, FileText, Clock, Euro, Building2, AlertCircle } from "lucide-react";
+import { Plus, FileText, Clock, Euro, Building2, AlertCircle, Zap } from "lucide-react";
+import { formatDistanceToNow, isToday, isTomorrow } from "date-fns";
+import { pt } from "date-fns/locale";
 
 interface PageProps {
     searchParams: Promise<{ filter?: string }>;
@@ -39,6 +41,28 @@ const FILTERS = [
     { id: "won", label: "Ganhos" },
     { id: "lost", label: "Perdidos" },
 ];
+
+// P1: Event type short labels for next action badge
+const EVENT_SHORT_LABELS: Record<string, string> = {
+    email_d1: "D+1",
+    email_d3: "D+3",
+    call_d7: "D+7",
+    email_d14: "D+14",
+};
+
+// P1: Format next action for badge display
+function formatNextAction(event: { eventType: string; scheduledFor: Date }): string {
+    const label = EVENT_SHORT_LABELS[event.eventType] || "Follow-up";
+    const date = new Date(event.scheduledFor);
+
+    if (isToday(date)) {
+        return `${label} hoje`;
+    } else if (isTomorrow(date)) {
+        return `${label} amanhã`;
+    } else {
+        return `${label} ${formatDistanceToNow(date, { addSuffix: false, locale: pt })}`;
+    }
+}
 
 async function getQuotes(organizationId: string, filter: string) {
     // Build where clause based on filter
@@ -90,6 +114,20 @@ async function getQuotes(organizationId: string, filter: string) {
                     name: true,
                     email: true,
                     company: true,
+                },
+            },
+            // P1: Include next scheduled action for badge display
+            cadenceEvents: {
+                where: {
+                    status: "scheduled",
+                    scheduledFor: { gte: new Date() },
+                },
+                orderBy: { scheduledFor: "asc" },
+                take: 1,
+                select: {
+                    id: true,
+                    eventType: true,
+                    scheduledFor: true,
                 },
             },
         },
@@ -235,6 +273,8 @@ export default async function QuotesPage({ searchParams }: PageProps) {
                                 ? `€${quote.value.toNumber().toLocaleString("pt-PT")}`
                                 : null;
                             const isNoResponseFilter = filter === "no_response";
+                            // P1: Get next scheduled action
+                            const nextAction = quote.cadenceEvents[0] || null;
 
                             return (
                                 <Card key={quote.id} className="p-4 transition-colors hover:border-[var(--color-border-hover)]">
@@ -262,6 +302,13 @@ export default async function QuotesPage({ searchParams }: PageProps) {
                                                 {quote.tags.length > 2 && (
                                                     <span className="text-xs text-[var(--color-muted-foreground)]">
                                                         +{quote.tags.length - 2}
+                                                    </span>
+                                                )}
+                                                {/* P1: Next action badge */}
+                                                {nextAction && (
+                                                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2 py-0.5 text-xs font-medium text-blue-600">
+                                                        <Zap className="h-3 w-3" />
+                                                        {formatNextAction(nextAction)}
                                                     </span>
                                                 )}
                                             </div>
