@@ -10,15 +10,25 @@ import {
 } from "@/lib/api-utils";
 
 // Validation schemas
+// Helper to convert empty strings to null before validation
+const emptyToNull = (v: string | null | undefined) =>
+    v === "" ? null : v;
+
 const createQuoteSchema = z.object({
-    contactId: z.string().uuid().optional().nullable(),
+    contactId: z.preprocess(
+        emptyToNull,
+        z.string().uuid().optional().nullable()
+    ),
     reference: z.string().optional().nullable(),
     title: z.string().min(1, "Title is required"),
     serviceType: z.string().optional().nullable(),
     value: z.number().positive().optional().nullable(),
     currency: z.string().default("EUR"),
     validUntil: z.string().datetime().optional().nullable(),
-    proposalLink: z.string().url().optional().nullable(),
+    proposalLink: z.preprocess(
+        emptyToNull,
+        z.string().url().optional().nullable()
+    ),
     notes: z.string().optional().nullable(),
 });
 

@@ -69,7 +69,7 @@ export function QuoteForm({ contacts }: QuoteFormProps) {
                 body: JSON.stringify({
                     title,
                     reference: reference || null,
-                    contactId: finalContactId,
+                    contactId: finalContactId || null,
                     serviceType: serviceType || null,
                     value: value ? parseFloat(value) : null,
                     proposalLink: proposalLink || null,
