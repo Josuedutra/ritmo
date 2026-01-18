@@ -61,19 +61,25 @@ async function main() {
 
     console.log(`✅ Subscription created (free plan)`);
 
-    // Create sample contact
-    const contact = await prisma.contact.upsert({
-        where: { id: "sample-contact-1" },
-        update: {},
-        create: {
-            id: "sample-contact-1",
+    // Create sample contact (find by email, not hardcoded id)
+    const existingContact = await prisma.contact.findFirst({
+        where: {
             organizationId: org.id,
-            name: "João Silva",
-            company: "TechCorp Lda",
             email: "joao.silva@techcorp.pt",
-            phone: "+351 912 345 678",
         },
     });
+
+    const contact = existingContact
+        ? existingContact
+        : await prisma.contact.create({
+              data: {
+                  organizationId: org.id,
+                  name: "João Silva",
+                  company: "TechCorp Lda",
+                  email: "joao.silva@techcorp.pt",
+                  phone: "+351 912 345 678",
+              },
+          });
 
     console.log(`✅ Sample contact created: ${contact.name}`);
 

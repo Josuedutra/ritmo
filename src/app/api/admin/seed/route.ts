@@ -98,12 +98,21 @@ export async function POST(request: NextRequest) {
 
         console.log(`✅ Subscription created`);
 
-        // Create sample contact
+        // Create sample contact (use email as unique identifier instead of hardcoded id)
         const contact = await prisma.contact.upsert({
-            where: { id: "sample-contact-1" },
+            where: {
+                id: (
+                    await prisma.contact.findFirst({
+                        where: {
+                            organizationId: org.id,
+                            email: "joao.silva@techcorp.pt",
+                        },
+                        select: { id: true },
+                    })
+                )?.id ?? "00000000-0000-0000-0000-000000000000",
+            },
             update: {},
             create: {
-                id: "sample-contact-1",
                 organizationId: org.id,
                 name: "João Silva",
                 company: "TechCorp Lda",

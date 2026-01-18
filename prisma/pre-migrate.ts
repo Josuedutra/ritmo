@@ -178,6 +178,18 @@ async function main() {
         `;
     }
 
+    // Fix contacts with non-UUID IDs (like 'sample-contact-1')
+    if (await tableExists("contacts")) {
+        console.log("🔧 Fixing contacts with non-UUID IDs...");
+        // Update contacts with invalid UUIDs to have valid UUIDs
+        // This uses a regex pattern to identify non-UUID strings
+        await prisma.$executeRaw`
+            UPDATE contacts
+            SET id = gen_random_uuid()::text
+            WHERE id !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+        `;
+    }
+
     console.log("✅ Pre-migration complete");
 }
 
