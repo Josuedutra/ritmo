@@ -11,8 +11,9 @@ import {
     Badge,
     Input,
     Label,
+    toast,
 } from "@/components/ui";
-import { Mail, Phone, Pencil, Save, X, Check } from "lucide-react";
+import { Mail, Phone, Pencil, Save, X, Check, Loader2 } from "lucide-react";
 
 interface Template {
     id: string;
@@ -80,14 +81,17 @@ export function TemplatesList({ templates }: TemplatesListProps) {
             });
 
             if (!response.ok) {
-                throw new Error("Failed to save template");
+                const data = await response.json();
+                throw new Error(data.message || "Failed to save template");
             }
 
+            toast.success("Template guardado!");
             setEditingId(null);
             router.refresh();
         } catch (error) {
             console.error("Error saving template:", error);
-            alert("Erro ao guardar template");
+            const message = error instanceof Error ? error.message : "Erro desconhecido";
+            toast.error("Erro ao guardar", message);
         } finally {
             setSaving(false);
         }
@@ -216,7 +220,10 @@ export function TemplatesList({ templates }: TemplatesListProps) {
                                                 className="gap-1.5"
                                             >
                                                 {saving ? (
-                                                    <>A guardar...</>
+                                                    <>
+                                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                                        A guardar...
+                                                    </>
                                                 ) : (
                                                     <>
                                                         <Save className="h-3.5 w-3.5" />

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Button, Badge, Card, CardContent } from "@/components/ui";
+import { Button, Badge, Card, CardContent, toast } from "@/components/ui";
 import {
     Mail,
     Phone,
@@ -15,8 +15,9 @@ import {
     Euro,
     CheckCircle2,
     Plus,
+    ClipboardCopy,
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 
 export interface ActionCardProps {
@@ -101,9 +102,40 @@ export function ActionCard({
             await navigator.clipboard.writeText(processedTemplate);
             setCopied(true);
             onCopyTemplate?.(processedTemplate);
+            toast.success("Template copiado!");
             setTimeout(() => setCopied(false), 2000);
         } catch (error) {
             console.error("Failed to copy:", error);
+            toast.error("Erro ao copiar", "Não foi possível copiar para o clipboard");
+        }
+    };
+
+    const handleCopySummary = async () => {
+        const sentDate = quote.sentAt
+            ? format(new Date(quote.sentAt), "d 'de' MMMM", { locale: pt })
+            : "N/A";
+
+        const summary = [
+            `Cliente: ${contact?.name || "N/A"}`,
+            contact?.company ? `Empresa: ${contact.company}` : null,
+            `Orçamento: ${quote.reference || quote.title}`,
+            formattedValue ? `Valor: ${formattedValue}` : null,
+            `Enviado: ${sentDate}`,
+            "",
+            "---",
+            type === "call"
+                ? `Script: "Bom dia/boa tarde, ${contact?.name || "cliente"}. Daqui fala [Nome] da [Empresa]. Estou a ligar relativamente ao orçamento que enviei há cerca de uma semana para ${quote.title}. Teve oportunidade de analisar? Há alguma questão que possa esclarecer?"`
+                : `Objetivo: Follow-up ${stageLabel} para ${quote.title}`,
+        ]
+            .filter(Boolean)
+            .join("\n");
+
+        try {
+            await navigator.clipboard.writeText(summary);
+            toast.success("Resumo copiado!");
+        } catch (error) {
+            console.error("Failed to copy summary:", error);
+            toast.error("Erro ao copiar", "Não foi possível copiar para o clipboard");
         }
     };
 
@@ -241,6 +273,15 @@ export function ActionCard({
                                     {copied ? "Copiado!" : "Copiar template"}
                                 </Button>
                             )}
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleCopySummary}
+                                className="gap-1.5"
+                            >
+                                <ClipboardCopy className="h-3.5 w-3.5" />
+                                Resumo
+                            </Button>
                             {contact?.email && (
                                 <a
                                     href={buildMailtoLink(
@@ -271,6 +312,15 @@ export function ActionCard({
                     {/* Call-specific actions */}
                     {type === "call" && (
                         <>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleCopySummary}
+                                className="gap-1.5"
+                            >
+                                <ClipboardCopy className="h-3.5 w-3.5" />
+                                Copiar resumo
+                            </Button>
                             {contact?.phone && (
                                 <a
                                     href={`tel:${contact.phone}`}

@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Card, CardHeader, CardTitle, CardContent, Input, Label, Textarea } from "@/components/ui";
-import { Send, Save, Plus } from "lucide-react";
+import { Button, Card, CardHeader, CardTitle, CardContent, Input, Label, Textarea, toast } from "@/components/ui";
+import { Send, Save, Plus, Loader2 } from "lucide-react";
 
 interface Contact {
     id: string;
@@ -101,9 +101,15 @@ export function QuoteForm({ contacts }: QuoteFormProps) {
                 }
             }
 
+            toast.success(
+                action === "send" ? "Orçamento enviado!" : "Orçamento guardado!",
+                action === "send" ? "Cadência de follow-up iniciada" : "Pode continuar a editar"
+            );
             router.push(`/quotes/${quote.id}`);
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Erro ao guardar orçamento");
+            const message = err instanceof Error ? err.message : "Erro ao guardar orçamento";
+            setError(message);
+            toast.error("Erro", message);
         } finally {
             setLoading(null);
         }
@@ -290,7 +296,11 @@ export function QuoteForm({ contacts }: QuoteFormProps) {
                             disabled={loading !== null || !title}
                             className="w-full gap-1.5"
                         >
-                            <Send className="h-4 w-4" />
+                            {loading === "send" ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <Send className="h-4 w-4" />
+                            )}
                             {loading === "send" ? "A criar..." : "Criar e marcar como enviado"}
                         </Button>
                         <Button
@@ -299,7 +309,11 @@ export function QuoteForm({ contacts }: QuoteFormProps) {
                             disabled={loading !== null || !title}
                             className="w-full gap-1.5"
                         >
-                            <Save className="h-4 w-4" />
+                            {loading === "save" ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <Save className="h-4 w-4" />
+                            )}
                             {loading === "save" ? "A guardar..." : "Guardar rascunho"}
                         </Button>
                     </CardContent>

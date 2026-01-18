@@ -7,3 +7,5 @@ export { Textarea } from "./textarea";
 export { Label } from "./label";
 export { EmptyState, EmptyStateNoActions, EmptyStateNoQuotes, EmptyStateNoResults } from "./empty-state";
 export { Tabs, TabsList, TabsTrigger, TabsContent } from "./tabs";
+export { useToast, toast } from "./use-toast";
+export { Toaster } from "./toaster";
