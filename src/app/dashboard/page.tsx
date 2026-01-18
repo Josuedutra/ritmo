@@ -25,27 +25,42 @@ function UsageMeter({ entitlements }: { entitlements: Entitlements }) {
         ? Math.round((quotesUsed / effectivePlanLimit) * 100)
         : 0;
 
+    // P0-05: More descriptive tier labels
     const tierLabel = tier === "trial"
-        ? `Trial${trialDaysRemaining ? ` (${trialDaysRemaining}d)` : ""}`
+        ? "Trial"
         : tier === "paid"
             ? planName
             : "Gratuito";
+
+    // P0-05: Subtitle with context
+    const tierSubtitle = tier === "trial" && trialDaysRemaining
+        ? `${trialDaysRemaining} dias restantes`
+        : tier === "free"
+            ? "modo manual"
+            : null;
 
     return (
         <Card className={percentUsed >= 100 ? "border-red-500/50" : percentUsed >= 80 ? "border-orange-500/50" : ""}>
             <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                     <CardTitle className="text-sm">Utilização</CardTitle>
-                    <span className="rounded bg-[var(--color-muted)] px-1.5 py-0.5 text-xs font-medium">
-                        {tierLabel}
-                    </span>
+                    <div className="flex items-center gap-2">
+                        <span className="rounded bg-[var(--color-muted)] px-1.5 py-0.5 text-xs font-medium">
+                            {tierLabel}
+                        </span>
+                        {tierSubtitle && (
+                            <span className="text-xs text-[var(--color-muted-foreground)]">
+                                {tierSubtitle}
+                            </span>
+                        )}
+                    </div>
                 </div>
             </CardHeader>
             <CardContent>
                 <div className="mb-2 flex items-baseline justify-between">
                     <span className="text-2xl font-semibold">{quotesUsed}</span>
                     <span className="text-sm text-[var(--color-muted-foreground)]">
-                        / {effectivePlanLimit} orçamentos
+                        / {effectivePlanLimit} envios
                     </span>
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--color-muted)]">
@@ -117,6 +132,7 @@ async function getDashboardData(organizationId: string, timezone: string) {
         pendingQuotes,
         pipelineAgg,
         templates,
+        nextAction,
     ] = await Promise.all([
         // Today's cadence events
         prisma.cadenceEvent.findMany({
@@ -219,6 +235,26 @@ async function getDashboardData(organizationId: string, timezone: string) {
                 body: true,
             },
         }),
+        // P0-06: Next scheduled action (after today)
+        prisma.cadenceEvent.findFirst({
+            where: {
+                organizationId,
+                scheduledFor: { gt: todayEnd },
+                status: "scheduled",
+            },
+            select: {
+                id: true,
+                eventType: true,
+                scheduledFor: true,
+                quote: {
+                    select: {
+                        id: true,
+                        title: true,
+                    },
+                },
+            },
+            orderBy: { scheduledFor: "asc" },
+        }),
     ]);
 
     // Create template lookup
@@ -303,6 +339,14 @@ async function getDashboardData(organizationId: string, timezone: string) {
             calls: callEvents,
             tasks,
         },
+        // P0-06: Next action info for empty state
+        nextAction: nextAction ? {
+            id: nextAction.id,
+            eventType: nextAction.eventType,
+            scheduledFor: nextAction.scheduledFor.toISOString(),
+            quoteId: nextAction.quote.id,
+            quoteTitle: nextAction.quote.title,
+        } : null,
     };
 }
 
@@ -388,6 +432,8 @@ export default async function DashboardPage() {
                                     emails={data.actions.emails}
                                     calls={data.actions.calls}
                                     tasks={data.actions.tasks}
+                                    quotesSent={data.stats.quotesSent}
+                                    nextAction={data.nextAction}
                                 />
                             </CardContent>
                         </Card>

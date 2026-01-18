@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ActionCard, type ActionCardProps } from "./action-card";
 import { Tabs, TabsList, TabsTrigger, TabsContent, Button } from "@/components/ui";
-import { Mail, Phone, ListTodo, Inbox, FileText, Send, Zap, Plus } from "lucide-react";
+import { Mail, Phone, ListTodo, Inbox, FileText, Send, Zap, Plus, Calendar, ArrowRight } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { pt } from "date-fns/locale";
 
 interface ActionData {
     id: string;
@@ -61,13 +63,24 @@ interface TaskData {
     };
 }
 
+// P0-06: Next action info for empty state
+interface NextActionData {
+    id: string;
+    eventType: string;
+    scheduledFor: string;
+    quoteId: string;
+    quoteTitle: string;
+}
+
 interface ActionsListProps {
     emails: ActionData[];
     calls: ActionData[];
     tasks: TaskData[];
+    quotesSent?: number;
+    nextAction?: NextActionData | null;
 }
 
-export function ActionsList({ emails, calls, tasks }: ActionsListProps) {
+export function ActionsList({ emails, calls, tasks, quotesSent = 0, nextAction }: ActionsListProps) {
     const router = useRouter();
     const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
 
@@ -134,7 +147,58 @@ export function ActionsList({ emails, calls, tasks }: ActionsListProps) {
 
     const totalCount = visibleEmails.length + visibleCalls.length + visibleTasks.length;
 
+    // P0-06: Different empty states based on context
     if (totalCount === 0) {
+        // Case 1: Has quotes sent but no actions today - show next action
+        if (quotesSent > 0) {
+            const getEventLabel = (eventType: string) => {
+                switch (eventType) {
+                    case "email_d1": return "Follow-up D+1";
+                    case "email_d3": return "Follow-up D+3";
+                    case "call_d7": return "Chamada D+7";
+                    case "email_d14": return "Follow-up D+14";
+                    default: return "Follow-up";
+                }
+            };
+
+            return (
+                <div className="py-8 text-center">
+                    <div className="mb-4 flex justify-center">
+                        <div className="rounded-full bg-green-500/10 p-3">
+                            <Calendar className="h-6 w-6 text-green-500" />
+                        </div>
+                    </div>
+                    <h3 className="mb-1 font-medium">Sem ações hoje</h3>
+                    <p className="text-sm text-[var(--color-muted-foreground)]">
+                        Todas as ações de hoje foram concluídas
+                    </p>
+
+                    {nextAction && (
+                        <div className="mt-6">
+                            <p className="mb-2 text-xs font-medium text-[var(--color-muted-foreground)]">
+                                Próxima ação
+                            </p>
+                            <Link
+                                href={`/quotes/${nextAction.quoteId}`}
+                                className="inline-flex items-center gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-4 py-3 transition-colors hover:bg-[var(--color-accent)]"
+                            >
+                                <div className="flex flex-col items-start">
+                                    <span className="text-sm font-medium">
+                                        {getEventLabel(nextAction.eventType)}
+                                    </span>
+                                    <span className="text-xs text-[var(--color-muted-foreground)]">
+                                        {nextAction.quoteTitle} · {formatDistanceToNow(new Date(nextAction.scheduledFor), { addSuffix: true, locale: pt })}
+                                    </span>
+                                </div>
+                                <ArrowRight className="h-4 w-4 text-[var(--color-muted-foreground)]" />
+                            </Link>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // Case 2: No quotes sent - show "Como funciona"
         return (
             <div className="py-6">
                 <h3 className="mb-4 text-center text-sm font-medium text-[var(--color-muted-foreground)]">
