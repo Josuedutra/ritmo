@@ -2,8 +2,8 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardHeader, CardTitle, CardContent, Button, Input, Label } from "@/components/ui";
-import { FileText, Upload, ExternalLink, Trash2, Link as LinkIcon, Save, Copy, Check, Mail } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent, Button, Input, Label, toast } from "@/components/ui";
+import { FileText, Upload, ExternalLink, Trash2, Link as LinkIcon, Save, Copy, Check, Mail, Plus } from "lucide-react";
 
 // Inbound domain for BCC addresses
 const INBOUND_DOMAIN = process.env.NEXT_PUBLIC_INBOUND_DOMAIN || "inbound.ritmo.app";
@@ -47,9 +47,11 @@ export function ProposalSection({ quote }: ProposalSectionProps) {
         try {
             await navigator.clipboard.writeText(bccAddress);
             setBccCopied(true);
+            toast.success("BCC copiado!");
             setTimeout(() => setBccCopied(false), 2000);
         } catch (err) {
             console.error("Failed to copy BCC:", err);
+            toast.error("Erro ao copiar");
         }
     };
 
@@ -167,92 +169,94 @@ export function ProposalSection({ quote }: ProposalSectionProps) {
 
     return (
         <Card>
-            <CardHeader>
+            <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
                     <FileText className="h-4 w-4" />
                     Proposta
                 </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-                {/* Uploaded file */}
+            <CardContent className="space-y-4 pt-0">
+                {/* P0-02: Primary action - Open proposal (if exists) */}
+                {hasProposal && (
+                    <Button
+                        onClick={handleOpenProposal}
+                        disabled={loadingUrl}
+                        className="w-full gap-2"
+                    >
+                        <ExternalLink className="h-4 w-4" />
+                        {quote.proposalFile ? "Abrir PDF" : "Abrir link"}
+                    </Button>
+                )}
+
+                {/* Uploaded file info */}
                 {quote.proposalFile && (
-                    <div className="flex items-center justify-between rounded-md border border-[var(--color-border)] p-3">
+                    <div className="flex items-center justify-between rounded-md bg-[var(--color-muted)]/50 px-3 py-2">
                         <div className="min-w-0 flex-1">
-                            <p className="truncate font-medium text-sm">{quote.proposalFile.filename}</p>
+                            <p className="truncate text-sm">{quote.proposalFile.filename}</p>
                             <p className="text-xs text-[var(--color-muted-foreground)]">
-                                {formatFileSize(quote.proposalFile.sizeBytes)} •{" "}
-                                {new Date(quote.proposalFile.createdAt).toLocaleDateString("pt-PT")}
+                                {formatFileSize(quote.proposalFile.sizeBytes)}
                             </p>
                         </div>
-                        <div className="flex gap-1">
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={handleOpenProposal}
-                                disabled={loadingUrl}
-                                className="h-8 w-8 p-0"
-                                title="Abrir proposta"
-                            >
-                                <ExternalLink className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={handleDelete}
-                                disabled={deleting}
-                                className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
-                                title="Remover"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </div>
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={handleDelete}
+                            disabled={deleting}
+                            className="h-7 w-7 p-0 text-[var(--color-muted-foreground)] hover:text-red-500"
+                            title="Remover"
+                        >
+                            <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
                     </div>
                 )}
 
-                {/* External link */}
+                {/* External link info */}
                 {quote.proposalLink && !quote.proposalFile && !showLinkEdit && (
-                    <div className="flex items-center justify-between rounded-md border border-[var(--color-border)] p-3">
+                    <div className="flex items-center justify-between rounded-md bg-[var(--color-muted)]/50 px-3 py-2">
                         <div className="min-w-0 flex-1">
-                            <p className="flex items-center gap-1 text-sm font-medium">
-                                <LinkIcon className="h-3.5 w-3.5" />
-                                Link externo
-                            </p>
                             <p className="truncate text-xs text-[var(--color-muted-foreground)]">
                                 {quote.proposalLink}
                             </p>
                         </div>
-                        <div className="flex gap-1">
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={handleOpenProposal}
-                                className="h-8 w-8 p-0"
-                                title="Abrir proposta"
-                            >
-                                <ExternalLink className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => setShowLinkEdit(true)}
-                                className="h-8 w-8 p-0"
-                                title="Editar"
-                            >
-                                <LinkIcon className="h-4 w-4" />
-                            </Button>
-                        </div>
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setShowLinkEdit(true)}
+                            className="h-7 px-2 text-xs"
+                        >
+                            Editar
+                        </Button>
+                    </div>
+                )}
+
+                {/* No proposal - show add options */}
+                {!hasProposal && !showLinkEdit && (
+                    <div className="space-y-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={uploading}
+                            className="w-full gap-2"
+                        >
+                            <Upload className="h-4 w-4" />
+                            {uploading ? "A carregar..." : "Carregar PDF"}
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            onClick={() => setShowLinkEdit(true)}
+                            className="w-full gap-2 text-[var(--color-muted-foreground)]"
+                        >
+                            <LinkIcon className="h-4 w-4" />
+                            Adicionar link
+                        </Button>
                     </div>
                 )}
 
                 {/* Link editor */}
-                {(showLinkEdit || (!hasProposal && !quote.proposalFile)) && (
+                {showLinkEdit && (
                     <div className="space-y-2">
-                        <Label htmlFor="proposal-link" className="text-xs">
-                            Link da proposta
-                        </Label>
                         <div className="flex gap-2">
                             <Input
-                                id="proposal-link"
                                 type="url"
                                 placeholder="https://..."
                                 value={linkValue}
@@ -267,77 +271,73 @@ export function ProposalSection({ quote }: ProposalSectionProps) {
                                 <Save className="h-4 w-4" />
                             </Button>
                         </div>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setShowLinkEdit(false);
+                                setLinkValue(quote.proposalLink || "");
+                            }}
+                            className="text-xs text-[var(--color-muted-foreground)] hover:underline"
+                        >
+                            Cancelar
+                        </button>
                     </div>
                 )}
 
-                {/* BCC Capture Address */}
+                {/* Hidden file input */}
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="application/pdf"
+                    onChange={handleUpload}
+                    className="hidden"
+                />
+
+                {/* Replace file option (when file exists) */}
+                {quote.proposalFile && (
+                    <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploading}
+                        className="w-full text-center text-xs text-[var(--color-muted-foreground)] hover:underline"
+                    >
+                        {uploading ? "A carregar..." : "Substituir ficheiro"}
+                    </button>
+                )}
+
+                {/* P0-03: Simplified BCC section */}
                 {bccAddress && (
-                    <div className="rounded-md border border-dashed border-[var(--color-border)] bg-[var(--color-muted)]/30 p-3">
+                    <div className="border-t border-[var(--color-border)] pt-4">
                         <div className="flex items-center justify-between gap-2">
                             <div className="min-w-0 flex-1">
-                                <p className="flex items-center gap-1.5 text-xs font-medium text-[var(--color-muted-foreground)]">
-                                    <Mail className="h-3.5 w-3.5" />
-                                    BCC para capturar proposta
+                                <p className="text-xs font-medium text-[var(--color-muted-foreground)]">
+                                    BCC para captura automática
                                 </p>
-                                <p className="mt-1 truncate text-xs font-mono select-all">{bccAddress}</p>
                             </div>
                             <Button
                                 size="sm"
-                                variant="ghost"
+                                variant="outline"
                                 onClick={handleCopyBcc}
-                                className="h-8 shrink-0 gap-1 px-2"
-                                title="Cole em BCC ao enviar pelo Outlook/Gmail"
+                                className="h-7 shrink-0 gap-1.5 px-2"
                             >
                                 {bccCopied ? (
                                     <>
-                                        <Check className="h-3.5 w-3.5 text-green-500" />
-                                        <span className="text-xs text-green-500">Copiado</span>
+                                        <Check className="h-3 w-3 text-green-500" />
+                                        <span className="text-xs">Copiado</span>
                                     </>
                                 ) : (
                                     <>
-                                        <Copy className="h-3.5 w-3.5" />
-                                        <span className="text-xs">Copiar BCC</span>
+                                        <Copy className="h-3 w-3" />
+                                        <span className="text-xs">Copiar</span>
                                     </>
                                 )}
                             </Button>
                         </div>
-                        <div className="mt-2 space-y-1">
-                            <p className="text-xs text-[var(--color-muted-foreground)]">
-                                <strong>Como usar:</strong> Cole este endereço no campo BCC do seu email (Outlook, Gmail, etc.) ao enviar a proposta.
-                            </p>
-                            <p className="text-xs text-[var(--color-muted-foreground)]">
-                                O PDF anexo será automaticamente associado a este orçamento.
-                            </p>
-                        </div>
+                        <p className="mt-2 text-xs text-[var(--color-muted-foreground)]">
+                            Use no Outlook/Gmail ao enviar o orçamento
+                        </p>
                     </div>
                 )}
-
-                {/* Upload button */}
-                <div>
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="application/pdf"
-                        onChange={handleUpload}
-                        className="hidden"
-                    />
-                    <Button
-                        variant="outline"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={uploading}
-                        className="w-full gap-1.5"
-                    >
-                        <Upload className="h-4 w-4" />
-                        {uploading
-                            ? "A carregar..."
-                            : quote.proposalFile
-                                ? "Substituir ficheiro"
-                                : "Carregar PDF"}
-                    </Button>
-                    <p className="mt-1 text-center text-xs text-[var(--color-muted-foreground)]">
-                        Máx. 10MB • Apenas PDF
-                    </p>
-                </div>
             </CardContent>
         </Card>
     );

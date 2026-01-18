@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Button, Badge, Card, CardContent, toast } from "@/components/ui";
+import { Button, Badge, Card, CardContent, toast, Textarea } from "@/components/ui";
 import {
     Mail,
     Phone,
@@ -16,8 +16,13 @@ import {
     CheckCircle2,
     Plus,
     ClipboardCopy,
+    AlertTriangle,
+    Calendar,
+    Zap,
+    XCircle,
+    Loader2,
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
 
 export interface ActionCardProps {
@@ -27,6 +32,8 @@ export interface ActionCardProps {
     title: string;
     priority?: "HIGH" | "LOW" | null;
     scheduledFor: Date;
+    processedAt?: Date | null;
+    autoSent?: boolean;
     quote: {
         id: string;
         title: string;
@@ -49,8 +56,9 @@ export interface ActionCardProps {
     } | null;
     isTask?: boolean;
     taskId?: string;
-    onComplete?: (id: string) => Promise<void>;
+    onComplete?: (id: string, notes?: string) => Promise<void>;
     onCopyTemplate?: (template: string) => void;
+    onStatusChange?: (quoteId: string, status: string) => Promise<void>;
 }
 
 export function ActionCard({
@@ -60,6 +68,8 @@ export function ActionCard({
     title,
     priority,
     scheduledFor,
+    processedAt,
+    autoSent,
     quote,
     contact,
     template,
@@ -67,18 +77,28 @@ export function ActionCard({
     taskId,
     onComplete,
     onCopyTemplate,
+    onStatusChange,
 }: ActionCardProps) {
     const [copied, setCopied] = useState(false);
     const [completing, setCompleting] = useState(false);
     const [loadingProposal, setLoadingProposal] = useState(false);
+    const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+    const [callNotes, setCallNotes] = useState("");
+    const [showNotesField, setShowNotesField] = useState(false);
 
     const isHigh = priority === "HIGH";
-    const Icon = type === "email" ? Mail : Phone;
+    const isCall = type === "call";
+    const Icon = isCall ? Phone : Mail;
     const hasProposal = quote.proposalLink || quote.hasProposalFile;
 
     // Format value
     const formattedValue = quote.value
         ? `€${typeof quote.value === "number" ? quote.value.toLocaleString("pt-PT") : quote.value}`
+        : null;
+
+    // Format sent date
+    const sentDateFormatted = quote.sentAt
+        ? format(new Date(quote.sentAt), "d MMM", { locale: pt })
         : null;
 
     // Get stage label
@@ -94,6 +114,20 @@ export function ActionCard({
               quote_value: formattedValue || "",
           })
         : null;
+
+    // Preview template (first 3-4 lines, ~150 chars)
+    const templatePreview = processedTemplate
+        ? processedTemplate.length > 150
+            ? processedTemplate.substring(0, 150).trim() + "..."
+            : processedTemplate
+        : null;
+
+    // Call script bullets
+    const callScriptBullets = [
+        `Confirmar se recebeu o orçamento`,
+        `Perguntar se tem dúvidas`,
+        `Propor próximo passo`,
+    ];
 
     const handleCopyTemplate = async () => {
         if (!processedTemplate) return;
@@ -123,7 +157,7 @@ export function ActionCard({
             `Enviado: ${sentDate}`,
             "",
             "---",
-            type === "call"
+            isCall
                 ? `Script: "Bom dia/boa tarde, ${contact?.name || "cliente"}. Daqui fala [Nome] da [Empresa]. Estou a ligar relativamente ao orçamento que enviei há cerca de uma semana para ${quote.title}. Teve oportunidade de analisar? Há alguma questão que possa esclarecer?"`
                 : `Objetivo: Follow-up ${stageLabel} para ${quote.title}`,
         ]
@@ -143,14 +177,13 @@ export function ActionCard({
         if (!onComplete) return;
         setCompleting(true);
         try {
-            await onComplete(taskId || id);
+            await onComplete(taskId || id, callNotes || undefined);
         } finally {
             setCompleting(false);
         }
     };
 
     const handleOpenProposal = async () => {
-        // If there's an uploaded file, get signed URL
         if (quote.hasProposalFile) {
             setLoadingProposal(true);
             try {
@@ -165,153 +198,201 @@ export function ActionCard({
                 setLoadingProposal(false);
             }
         } else if (quote.proposalLink) {
-            // External link - open directly
             window.open(quote.proposalLink, "_blank", "noopener,noreferrer");
         }
     };
 
+    // P1-02: Handle status change
+    const handleStatusChange = async (status: string) => {
+        if (!onStatusChange) return;
+        setUpdatingStatus(status);
+        try {
+            await onStatusChange(quote.id, status);
+        } catch (error) {
+            console.error("Failed to update status:", error);
+            toast.error("Erro ao atualizar", "Tente novamente");
+        } finally {
+            setUpdatingStatus(null);
+        }
+    };
+
+    // P0-07: Priority HIGH styling - amber accent, subtle but noticeable
+    const cardClasses = isHigh
+        ? "border-amber-500/50 bg-gradient-to-r from-amber-500/5 to-transparent shadow-[inset_0_0_0_1px_rgba(245,158,11,0.1)]"
+        : "hover:border-[var(--color-border-hover)]";
+
     return (
-        <Card
-            className={`transition-all ${
-                isHigh
-                    ? "border-orange-500/40 bg-orange-500/5 hover:border-orange-500/60"
-                    : "hover:border-[var(--color-border-hover)]"
-            }`}
-        >
+        <Card className={`transition-all ${cardClasses}`}>
             <CardContent className="p-4">
-                {/* Header */}
-                <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3">
-                        {/* Icon */}
+                {/* P0-07: High priority indicator bar */}
+                {isHigh && (
+                    <div className="mb-3 flex items-center gap-2 text-amber-600">
+                        <AlertTriangle className="h-4 w-4" />
+                        <span className="text-xs font-medium">Prioritário — requer atenção</span>
+                    </div>
+                )}
+
+                {/* Header with context */}
+                <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3 min-w-0 flex-1">
+                        {/* Icon - larger for calls */}
                         <div
-                            className={`mt-0.5 rounded-lg p-2.5 ${
-                                type === "email"
-                                    ? "bg-blue-500/10 text-blue-500"
-                                    : "bg-green-500/10 text-green-500"
+                            className={`shrink-0 rounded-lg p-2.5 ${
+                                isCall
+                                    ? isHigh
+                                        ? "bg-amber-500/15 text-amber-600"
+                                        : "bg-green-500/10 text-green-500"
+                                    : "bg-blue-500/10 text-blue-500"
                             }`}
                         >
-                            <Icon className="h-5 w-5" />
+                            <Icon className={isCall ? "h-6 w-6" : "h-5 w-5"} />
                         </div>
 
                         {/* Content */}
                         <div className="min-w-0 flex-1">
-                            {/* Title + Priority */}
-                            <div className="flex items-center gap-2">
-                                <h4 className="truncate font-medium">{title}</h4>
-                                {isHigh && (
-                                    <Badge variant="high" className="shrink-0">
-                                        Prioritário
-                                    </Badge>
-                                )}
-                            </div>
+                            {/* Title */}
+                            <h4 className="font-semibold">{title}</h4>
 
-                            {/* Contact info */}
-                            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[var(--color-muted-foreground)]">
-                                {contact?.name && <span>{contact.name}</span>}
+                            {/* Context row: client, company, value, sent date */}
+                            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+                                {contact?.name && (
+                                    <span className="font-medium">{contact.name}</span>
+                                )}
                                 {contact?.company && (
-                                    <span className="flex items-center gap-1">
+                                    <span className="flex items-center gap-1 text-[var(--color-muted-foreground)]">
                                         <Building2 className="h-3 w-3" />
                                         {contact.company}
                                     </span>
                                 )}
                                 {formattedValue && (
-                                    <span className="flex items-center gap-1 font-medium text-[var(--color-foreground)]">
-                                        <Euro className="h-3 w-3" />
+                                    <span className="flex items-center gap-1 font-semibold">
                                         {formattedValue}
+                                    </span>
+                                )}
+                                {sentDateFormatted && (
+                                    <span className="flex items-center gap-1 text-[var(--color-muted-foreground)]">
+                                        <Calendar className="h-3 w-3" />
+                                        Enviado {sentDateFormatted}
                                     </span>
                                 )}
                             </div>
 
-                            {/* Quote + Stage + Proposal indicator */}
+                            {/* Stage badge */}
                             <div className="mt-2 flex flex-wrap items-center gap-2">
-                                <Badge variant="outline" className="gap-1">
-                                    <FileText className="h-3 w-3" />
-                                    {quote.reference || quote.title}
-                                </Badge>
                                 <Badge variant="secondary" className="gap-1">
                                     <Clock className="h-3 w-3" />
                                     {stageLabel}
                                 </Badge>
-                                {hasProposal && (
-                                    <button
-                                        type="button"
-                                        onClick={handleOpenProposal}
-                                        disabled={loadingProposal}
-                                        className="inline-flex"
-                                    >
-                                        <Badge
-                                            variant="success"
-                                            className="gap-1 cursor-pointer hover:opacity-80 transition-opacity"
-                                        >
-                                            <FileText className="h-3 w-3" />
-                                            {loadingProposal ? "A abrir..." : "Proposta"}
-                                        </Badge>
-                                    </button>
+                                {isTask && (
+                                    <Badge variant="outline" className="gap-1 text-orange-600 border-orange-300">
+                                        Ação manual
+                                    </Badge>
+                                )}
+                                {autoSent && processedAt && (
+                                    <Badge variant="success" className="gap-1">
+                                        <Zap className="h-3 w-3" />
+                                        Enviado {format(new Date(processedAt), "HH:mm", { locale: pt })}
+                                    </Badge>
                                 )}
                             </div>
                         </div>
                     </div>
+
+                    {/* Right side: Value highlight for calls */}
+                    {isCall && formattedValue && (
+                        <div className="text-right shrink-0">
+                            <p className="text-xl font-bold">{formattedValue}</p>
+                        </div>
+                    )}
                 </div>
 
-                {/* Actions */}
+                {/* P0-05: Email template preview */}
+                {type === "email" && templatePreview && (
+                    <div className="mt-3 rounded-md bg-[var(--color-muted)]/50 p-3">
+                        <pre className="whitespace-pre-wrap font-sans text-xs text-[var(--color-muted-foreground)] leading-relaxed">
+                            {templatePreview}
+                        </pre>
+                    </div>
+                )}
+
+                {/* P0-06: Call script bullets */}
+                {isCall && (
+                    <div className="mt-3 rounded-md bg-[var(--color-muted)]/50 p-3">
+                        <p className="text-xs font-medium text-[var(--color-muted-foreground)] mb-2">Script rápido:</p>
+                        <ul className="space-y-1">
+                            {callScriptBullets.map((bullet, i) => (
+                                <li key={i} className="flex items-start gap-2 text-sm">
+                                    <span className="text-[var(--color-primary)]">•</span>
+                                    {bullet}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
+                {/* P0-06: Call notes field */}
+                {isCall && showNotesField && (
+                    <div className="mt-3">
+                        <Textarea
+                            placeholder="Notas da chamada (opcional)..."
+                            value={callNotes}
+                            onChange={(e) => setCallNotes(e.target.value)}
+                            rows={2}
+                            className="text-sm"
+                        />
+                    </div>
+                )}
+
+                {/* Actions - reorganized for quick execution */}
                 <div className="mt-4 flex flex-wrap items-center gap-2">
-                    {/* Email-specific actions */}
+                    {/* Primary actions first */}
                     {type === "email" && (
                         <>
                             {processedTemplate && (
                                 <Button
-                                    variant="outline"
+                                    variant={isHigh ? "default" : "outline"}
                                     size="sm"
                                     onClick={handleCopyTemplate}
                                     className="gap-1.5"
                                 >
                                     {copied ? (
-                                        <Check className="h-3.5 w-3.5 text-green-500" />
+                                        <Check className="h-3.5 w-3.5" />
                                     ) : (
                                         <Copy className="h-3.5 w-3.5" />
                                     )}
                                     {copied ? "Copiado!" : "Copiar template"}
                                 </Button>
                             )}
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={handleCopySummary}
-                                className="gap-1.5"
-                            >
-                                <ClipboardCopy className="h-3.5 w-3.5" />
-                                Resumo
-                            </Button>
-                            {contact?.email && (
-                                <a
-                                    href={buildMailtoLink(
-                                        contact.email,
-                                        template?.subject,
-                                        processedTemplate
-                                    )}
-                                    className="inline-flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 text-xs font-medium transition-colors hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-foreground)]"
-                                >
-                                    <Mail className="h-3.5 w-3.5" />
-                                    Abrir email
-                                </a>
-                            )}
                             {hasProposal && (
-                                <button
-                                    type="button"
+                                <Button
+                                    variant="outline"
+                                    size="sm"
                                     onClick={handleOpenProposal}
                                     disabled={loadingProposal}
-                                    className="inline-flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 text-xs font-medium transition-colors hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-foreground)] disabled:opacity-50"
+                                    className="gap-1.5"
                                 >
                                     <ExternalLink className="h-3.5 w-3.5" />
                                     {loadingProposal ? "A abrir..." : "Abrir proposta"}
-                                </button>
+                                </Button>
                             )}
                         </>
                     )}
 
-                    {/* Call-specific actions */}
-                    {type === "call" && (
+                    {/* P0-06: Call primary actions */}
+                    {isCall && (
                         <>
+                            {hasProposal && (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleOpenProposal}
+                                    disabled={loadingProposal}
+                                    className="gap-1.5"
+                                >
+                                    <ExternalLink className="h-3.5 w-3.5" />
+                                    {loadingProposal ? "A abrir..." : "Abrir proposta"}
+                                </Button>
+                            )}
                             <Button
                                 variant="outline"
                                 size="sm"
@@ -324,23 +405,17 @@ export function ActionCard({
                             {contact?.phone && (
                                 <a
                                     href={`tel:${contact.phone}`}
-                                    className="inline-flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-[var(--color-border)] bg-transparent px-3 text-xs font-medium transition-colors hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-foreground)]"
+                                    className={`inline-flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 text-xs font-medium transition-colors ${
+                                        isHigh
+                                            ? "bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:bg-[var(--color-primary-hover)]"
+                                            : "border border-[var(--color-border)] bg-transparent hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-foreground)]"
+                                    }`}
                                 >
                                     <Phone className="h-3.5 w-3.5" />
-                                    Ligar
+                                    Ligar {contact.phone}
                                 </a>
                             )}
-                            {hasProposal ? (
-                                <button
-                                    type="button"
-                                    onClick={handleOpenProposal}
-                                    disabled={loadingProposal}
-                                    className="inline-flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 text-xs font-medium transition-colors hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-foreground)] disabled:opacity-50"
-                                >
-                                    <ExternalLink className="h-3.5 w-3.5" />
-                                    {loadingProposal ? "A abrir..." : "Abrir proposta"}
-                                </button>
-                            ) : (
+                            {!hasProposal && (
                                 <Link
                                     href={`/quotes/${quote.id}#proposal`}
                                     className="inline-flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-dashed border-orange-400 bg-orange-500/5 px-3 text-xs font-medium text-orange-600 transition-colors hover:bg-orange-500/10"
@@ -352,7 +427,7 @@ export function ActionCard({
                         </>
                     )}
 
-                    {/* Common actions */}
+                    {/* Secondary actions */}
                     <Link href={`/quotes/${quote.id}`}>
                         <Button variant="ghost" size="sm" className="gap-1.5">
                             <FileText className="h-3.5 w-3.5" />
@@ -361,7 +436,16 @@ export function ActionCard({
                     </Link>
 
                     {/* Complete action - pushed to the right */}
-                    <div className="ml-auto">
+                    <div className="ml-auto flex items-center gap-2">
+                        {isCall && !showNotesField && (
+                            <button
+                                type="button"
+                                onClick={() => setShowNotesField(true)}
+                                className="text-xs text-[var(--color-muted-foreground)] hover:underline"
+                            >
+                                + Notas
+                            </button>
+                        )}
                         <Button
                             variant={isHigh ? "default" : "secondary"}
                             size="sm"
@@ -374,6 +458,39 @@ export function ActionCard({
                         </Button>
                     </div>
                 </div>
+
+                {/* P1-02: One-click status update buttons */}
+                {onStatusChange && (
+                    <div className="mt-3 flex items-center gap-2 border-t border-[var(--color-border)] pt-3">
+                        <span className="text-xs text-[var(--color-muted-foreground)]">Status:</span>
+                        <button
+                            type="button"
+                            onClick={() => handleStatusChange("won")}
+                            disabled={updatingStatus !== null}
+                            className="inline-flex h-6 items-center gap-1 rounded border border-green-500/30 bg-green-500/10 px-2 text-xs font-medium text-green-600 transition-colors hover:bg-green-500/20 disabled:opacity-50"
+                        >
+                            {updatingStatus === "won" ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                                <CheckCircle2 className="h-3 w-3" />
+                            )}
+                            Ganho
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleStatusChange("lost")}
+                            disabled={updatingStatus !== null}
+                            className="inline-flex h-6 items-center gap-1 rounded border border-red-500/30 bg-red-500/10 px-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/20 disabled:opacity-50"
+                        >
+                            {updatingStatus === "lost" ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                                <XCircle className="h-3 w-3" />
+                            )}
+                            Perdido
+                        </button>
+                    </div>
+                )}
             </CardContent>
         </Card>
     );

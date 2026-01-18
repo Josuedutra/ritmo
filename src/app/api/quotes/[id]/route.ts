@@ -21,6 +21,7 @@ const updateQuoteSchema = z.object({
     validUntil: z.string().datetime().optional().nullable(),
     proposalLink: z.string().url().optional().nullable(),
     notes: z.string().optional().nullable(),
+    tags: z.array(z.string()).optional(),  // P1-03: Quick tags
 });
 
 interface RouteParams {

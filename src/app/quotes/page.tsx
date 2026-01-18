@@ -145,7 +145,7 @@ export default async function QuotesPage({ searchParams }: PageProps) {
             <main className="container-app py-6">
                 <PageHeader
                     title="Orçamentos"
-                    description="Gerir todos os seus orçamentos"
+                    description="Acompanhe orçamentos e follow-ups num só lugar"
                 >
                     <Link href="/quotes/new">
                         <Button>
@@ -155,57 +155,66 @@ export default async function QuotesPage({ searchParams }: PageProps) {
                     </Link>
                 </PageHeader>
 
-                {/* Filters */}
-                <div className="mb-6 flex flex-wrap gap-2">
-                    {FILTERS.map((f) => {
-                        const count = counts[f.id as keyof typeof counts] ?? 0;
-                        const isActive = filter === f.id;
-                        const isNoResponse = f.id === "no_response";
+                {/* Filters - only show when there are quotes */}
+                {counts.all > 0 && (
+                    <div className="mb-6 flex flex-wrap gap-2">
+                        {FILTERS.map((f) => {
+                            const count = counts[f.id as keyof typeof counts] ?? 0;
+                            const isActive = filter === f.id;
+                            const isNoResponse = f.id === "no_response";
 
-                        return (
-                            <Link
-                                key={f.id}
-                                href={f.id === "all" ? "/quotes" : `/quotes?filter=${f.id}`}
-                            >
-                                <Button
-                                    variant={isActive ? "default" : "outline"}
-                                    size="sm"
-                                    className={`gap-2 ${isNoResponse && count > 0 ? "border-orange-500/50" : ""}`}
+                            return (
+                                <Link
+                                    key={f.id}
+                                    href={f.id === "all" ? "/quotes" : `/quotes?filter=${f.id}`}
                                 >
-                                    {isNoResponse && count > 0 && (
-                                        <AlertCircle className="h-3.5 w-3.5 text-orange-500" />
-                                    )}
-                                    {f.label}
-                                    <span className={`rounded-full px-1.5 py-0.5 text-xs ${
-                                        isActive
-                                            ? "bg-white/20"
-                                            : "bg-[var(--color-muted)]"
-                                    }`}>
-                                        {count}
-                                    </span>
-                                </Button>
-                            </Link>
-                        );
-                    })}
-                </div>
+                                    <Button
+                                        variant={isActive ? "default" : "outline"}
+                                        size="sm"
+                                        className={`gap-2 ${isNoResponse && count > 0 ? "border-orange-500/50" : ""}`}
+                                    >
+                                        {isNoResponse && count > 0 && (
+                                            <AlertCircle className="h-3.5 w-3.5 text-orange-500" />
+                                        )}
+                                        {f.label}
+                                        <span className={`rounded-full px-1.5 py-0.5 text-xs ${
+                                            isActive
+                                                ? "bg-white/20"
+                                                : "bg-[var(--color-muted)]"
+                                        }`}>
+                                            {count}
+                                        </span>
+                                    </Button>
+                                </Link>
+                            );
+                        })}
+                    </div>
+                )}
 
                 {/* Quotes list */}
                 {quotes.length === 0 ? (
                     <Card className="flex flex-col items-center justify-center p-12 text-center">
                         <FileText className="mb-4 h-12 w-12 text-[var(--color-muted-foreground)]" />
                         <h3 className="mb-2 text-lg font-medium">Sem orçamentos</h3>
-                        <p className="mb-4 text-sm text-[var(--color-muted-foreground)]">
+                        <p className="mb-2 text-sm text-[var(--color-muted-foreground)]">
                             {filter === "no_response"
                                 ? "Nenhum orçamento sem resposta há mais de 24h."
                                 : "Comece por criar o seu primeiro orçamento."}
                         </p>
                         {filter === "all" && (
-                            <Link href="/quotes/new">
-                                <Button>
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    Criar orçamento
-                                </Button>
-                            </Link>
+                            <>
+                                <p className="mb-6 text-xs text-[var(--color-muted-foreground)]">
+                                    Crie → Marque como enviado → Ritmo gera D+1/D+3/D+7/D+14
+                                </p>
+                                <div className="flex gap-3">
+                                    <Link href="/quotes/new">
+                                        <Button>
+                                            <Plus className="mr-2 h-4 w-4" />
+                                            Criar orçamento
+                                        </Button>
+                                    </Link>
+                                </div>
+                            </>
                         )}
                     </Card>
                 ) : (

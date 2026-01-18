@@ -55,6 +55,7 @@ export function OnboardingWizard({
     const [currentStep, setCurrentStep] = useState(0);
     const [bccCopied, setBccCopied] = useState(false);
     const [completing, setCompleting] = useState(false);
+    const [smtpChoice, setSmtpChoice] = useState<"own" | "ritmo">(hasSmtp ? "own" : "ritmo");
 
     const handleCopyBcc = async () => {
         try {
@@ -235,19 +236,22 @@ export function OnboardingWizard({
                                         Templates disponíveis:
                                     </h3>
                                     <div className="space-y-2">
-                                        {["T2 - Follow-up D+1", "T3 - Follow-up D+3", "T5 - Follow-up D+14"].map(
-                                            (name) => (
-                                                <div
-                                                    key={name}
-                                                    className="flex items-center justify-between rounded-md border border-[var(--color-border)] p-3"
-                                                >
-                                                    <span className="text-sm">{name}</span>
-                                                    <span className="text-xs text-[var(--color-muted-foreground)]">
-                                                        Email automático
-                                                    </span>
-                                                </div>
-                                            )
-                                        )}
+                                        {[
+                                            { code: "T2", name: "Follow-up D+1", type: "Email" },
+                                            { code: "T3", name: "Follow-up D+3", type: "Email" },
+                                            { code: "CALL_SCRIPT", name: "Script Chamada D+7", type: "Chamada" },
+                                            { code: "T5", name: "Follow-up D+14", type: "Email" },
+                                        ].map((t) => (
+                                            <div
+                                                key={t.code}
+                                                className="flex items-center justify-between rounded-md border border-[var(--color-border)] p-3"
+                                            >
+                                                <span className="text-sm">{t.code} - {t.name}</span>
+                                                <span className="text-xs text-[var(--color-muted-foreground)]">
+                                                    {t.type}
+                                                </span>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
 
@@ -280,50 +284,85 @@ export function OnboardingWizard({
                                     <div>
                                         <h2 className="text-xl font-bold">Configuração de Email</h2>
                                         <p className="text-sm text-[var(--color-muted-foreground)]">
-                                            Configure o envio de emails (opcional)
+                                            Como pretende enviar os follow-ups?
                                         </p>
                                     </div>
                                 </div>
 
-                                {hasSmtp ? (
-                                    <div className="mb-6 rounded-lg border border-green-500/30 bg-green-500/10 p-4">
-                                        <div className="flex items-center gap-2 text-green-600">
-                                            <Check className="h-5 w-5" />
-                                            <span className="font-medium">SMTP configurado</span>
+                                <div className="mb-6 space-y-3">
+                                    {/* Option 1: Own SMTP */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setSmtpChoice("own")}
+                                        className={`w-full rounded-lg border-2 p-4 text-left transition-colors ${
+                                            smtpChoice === "own"
+                                                ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5"
+                                                : "border-[var(--color-border)] hover:border-[var(--color-muted-foreground)]"
+                                        }`}
+                                    >
+                                        <div className="flex items-start gap-3">
+                                            <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
+                                                smtpChoice === "own"
+                                                    ? "border-[var(--color-primary)] bg-[var(--color-primary)]"
+                                                    : "border-[var(--color-muted-foreground)]"
+                                            }`}>
+                                                {smtpChoice === "own" && (
+                                                    <Check className="h-3 w-3 text-white" />
+                                                )}
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-medium">SMTP próprio</span>
+                                                    {hasSmtp && (
+                                                        <span className="rounded bg-green-500/10 px-1.5 py-0.5 text-xs font-medium text-green-600">
+                                                            Configurado
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">
+                                                    Emails enviados do seu domínio (ex: voce@suaempresa.pt)
+                                                </p>
+                                                {smtpChoice === "own" && !hasSmtp && (
+                                                    <Link href="/settings" className="mt-3 inline-block">
+                                                        <Button variant="outline" size="sm" className="gap-2">
+                                                            <Settings className="h-4 w-4" />
+                                                            Configurar SMTP
+                                                        </Button>
+                                                    </Link>
+                                                )}
+                                            </div>
                                         </div>
-                                        <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">
-                                            Os emails serão enviados a partir do seu servidor.
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <div className="mb-6 space-y-4">
-                                        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-muted)]/50 p-4">
-                                            <h3 className="mb-2 font-medium">
-                                                Opção 1: Usar SMTP próprio
-                                            </h3>
-                                            <p className="mb-3 text-sm text-[var(--color-muted-foreground)]">
-                                                Configure o seu servidor de email para enviar emails
-                                                diretamente.
-                                            </p>
-                                            <Link href="/settings">
-                                                <Button variant="outline" size="sm" className="gap-2">
-                                                    <Settings className="h-4 w-4" />
-                                                    Configurar SMTP
-                                                </Button>
-                                            </Link>
-                                        </div>
+                                    </button>
 
-                                        <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-4">
-                                            <h3 className="mb-2 font-medium text-blue-600">
-                                                Opção 2: Usar fallback Ritmo
-                                            </h3>
-                                            <p className="text-sm text-[var(--color-muted-foreground)]">
-                                                Se não configurar SMTP, usaremos o nosso serviço de
-                                                email. Os emails terão o remetente &quot;via Ritmo&quot;.
-                                            </p>
+                                    {/* Option 2: Ritmo fallback */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setSmtpChoice("ritmo")}
+                                        className={`w-full rounded-lg border-2 p-4 text-left transition-colors ${
+                                            smtpChoice === "ritmo"
+                                                ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5"
+                                                : "border-[var(--color-border)] hover:border-[var(--color-muted-foreground)]"
+                                        }`}
+                                    >
+                                        <div className="flex items-start gap-3">
+                                            <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
+                                                smtpChoice === "ritmo"
+                                                    ? "border-[var(--color-primary)] bg-[var(--color-primary)]"
+                                                    : "border-[var(--color-muted-foreground)]"
+                                            }`}>
+                                                {smtpChoice === "ritmo" && (
+                                                    <Check className="h-3 w-3 text-white" />
+                                                )}
+                                            </div>
+                                            <div className="flex-1">
+                                                <span className="font-medium">Serviço Ritmo</span>
+                                                <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">
+                                                    Emails enviados pelo nosso servidor (pode configurar SMTP mais tarde)
+                                                </p>
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    </button>
+                                </div>
 
                                 <div className="flex gap-3">
                                     <Button variant="outline" onClick={prevStep}>
@@ -348,16 +387,15 @@ export function OnboardingWizard({
                                     <div>
                                         <h2 className="text-xl font-bold">Email BCC</h2>
                                         <p className="text-sm text-[var(--color-muted-foreground)]">
-                                            Detete respostas automaticamente
+                                            Capture propostas automaticamente
                                         </p>
                                     </div>
                                 </div>
 
                                 <div className="mb-6 space-y-4">
                                     <p className="text-sm text-[var(--color-muted-foreground)]">
-                                        Adicione este email em BCC quando enviar orçamentos. O Ritmo
-                                        vai detetar automaticamente quando o cliente responde e
-                                        pausar os follow-ups.
+                                        O Ritmo captura automaticamente a proposta (PDF/link) enviada
+                                        por email e associa ao orçamento, para acelerar chamadas D+7.
                                     </p>
 
                                     <div className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-muted)]/50 p-3">
@@ -388,8 +426,8 @@ export function OnboardingWizard({
                                         </h3>
                                         <ol className="space-y-1 text-sm text-[var(--color-muted-foreground)]">
                                             <li>1. Ao enviar um orçamento, adicione o email acima em BCC</li>
-                                            <li>2. O Ritmo associa o email ao orçamento</li>
-                                            <li>3. Quando o cliente responde, pausamos os follow-ups</li>
+                                            <li>2. O Ritmo extrai o PDF/link da proposta do email</li>
+                                            <li>3. Na chamada D+7, a proposta fica disponível com um clique</li>
                                         </ol>
                                     </div>
                                 </div>
@@ -433,7 +471,7 @@ export function OnboardingWizard({
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between rounded-md border border-[var(--color-border)] p-3">
-                                        <span className="text-sm">Deteção de respostas</span>
+                                        <span className="text-sm">Captura de propostas</span>
                                         <span className="text-green-500">BCC configurado</span>
                                     </div>
                                 </div>
@@ -465,14 +503,13 @@ export function OnboardingWizard({
                 {/* Skip link */}
                 {currentStep > 0 && currentStep < STEPS.length - 1 && (
                     <div className="mt-4 text-center">
-                        <Button
-                            variant="link"
+                        <button
                             onClick={handleSkip}
                             disabled={completing}
-                            className="text-[var(--color-muted-foreground)]"
+                            className="text-xs text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] disabled:opacity-50"
                         >
                             Saltar configuração
-                        </Button>
+                        </button>
                     </div>
                 )}
             </div>

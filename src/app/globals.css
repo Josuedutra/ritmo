@@ -7,10 +7,13 @@
 
   /* Neutral palette - subtle grays, not pure black */
   --color-background: oklch(0.13 0.005 260);
-  --color-foreground: oklch(0.95 0 0);
+  --color-foreground: oklch(0.92 0 0);
 
   --color-card: oklch(0.17 0.005 260);
-  --color-card-foreground: oklch(0.95 0 0);
+  --color-card-foreground: oklch(0.92 0 0);
+
+  /* Headings - brighter for hierarchy */
+  --color-heading: oklch(0.98 0 0);
 
   --color-popover: oklch(0.17 0.005 260);
   --color-popover-foreground: oklch(0.95 0 0);
@@ -26,7 +29,7 @@
 
   /* Muted - For less important text */
   --color-muted: oklch(0.25 0.005 260);
-  --color-muted-foreground: oklch(0.65 0 0);
+  --color-muted-foreground: oklch(0.55 0 0);
 
   /* Accent - Hover states */
   --color-accent: oklch(0.22 0.01 245);
@@ -99,6 +102,7 @@ h5,
 h6 {
   font-weight: 600;
   letter-spacing: -0.02em;
+  color: var(--color-heading);
 }
 
 h1 {
@@ -178,4 +182,9 @@ h4 {
 .card-interactive:hover {
   background-color: var(--color-accent);
   border-color: var(--color-border);
+}
+
+/* Card shadow for depth */
+.card-elevated {
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
 }

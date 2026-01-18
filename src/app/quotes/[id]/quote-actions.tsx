@@ -206,6 +206,7 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
                 </div>
             )}
 
+            {/* P1-02: Primary actions row */}
             <div className="flex flex-wrap gap-2">
                 {/* Mark as sent (draft only) */}
                 {isDraft && (
@@ -252,55 +253,6 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
                     </Button>
                 )}
 
-                {/* Move to negotiation */}
-                {isSent && (
-                    <Button
-                        variant="outline"
-                        onClick={() => handleStatusChange("negotiation")}
-                        disabled={loading !== null}
-                        className="gap-1.5"
-                    >
-                        {loading === "negotiation" ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                            <Handshake className="h-4 w-4" />
-                        )}
-                        {loading === "negotiation" ? "A atualizar..." : "Em negociação"}
-                    </Button>
-                )}
-
-                {/* Mark as won/lost */}
-                {(isSent || isNegotiation) && (
-                    <>
-                        <Button
-                            variant="outline"
-                            onClick={() => handleStatusChange("won")}
-                            disabled={loading !== null}
-                            className="gap-1.5 border-green-500/30 text-green-600 hover:bg-green-500/10"
-                        >
-                            {loading === "won" ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                                <CheckCircle className="h-4 w-4" />
-                            )}
-                            Ganho
-                        </Button>
-                        <Button
-                            variant="outline"
-                            onClick={() => handleStatusChange("lost")}
-                            disabled={loading !== null}
-                            className="gap-1.5 border-red-500/30 text-red-600 hover:bg-red-500/10"
-                        >
-                            {loading === "lost" ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                                <XCircle className="h-4 w-4" />
-                            )}
-                            Perdido
-                        </Button>
-                    </>
-                )}
-
                 {/* Reopen if finished */}
                 {isFinished && (
                     <Button
@@ -318,6 +270,54 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
                     </Button>
                 )}
             </div>
+
+            {/* P1-02: One-click status update buttons - prominent section */}
+            {(isSent || isNegotiation) && (
+                <div className="flex flex-wrap items-center gap-2 rounded-lg bg-[var(--color-muted)]/30 p-2">
+                    <span className="text-xs font-medium text-[var(--color-muted-foreground)] mr-1">Atualizar status:</span>
+                    {isSent && (
+                        <button
+                            type="button"
+                            onClick={() => handleStatusChange("negotiation")}
+                            disabled={loading !== null}
+                            className="inline-flex h-7 items-center gap-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 text-xs font-medium text-amber-600 transition-colors hover:bg-amber-500/20 disabled:opacity-50"
+                        >
+                            {loading === "negotiation" ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                                <Handshake className="h-3.5 w-3.5" />
+                            )}
+                            Em negociação
+                        </button>
+                    )}
+                    <button
+                        type="button"
+                        onClick={() => handleStatusChange("won")}
+                        disabled={loading !== null}
+                        className="inline-flex h-7 items-center gap-1.5 rounded-md border border-green-500/30 bg-green-500/10 px-2.5 text-xs font-medium text-green-600 transition-colors hover:bg-green-500/20 disabled:opacity-50"
+                    >
+                        {loading === "won" ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                            <CheckCircle className="h-3.5 w-3.5" />
+                        )}
+                        Ganho
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => handleStatusChange("lost")}
+                        disabled={loading !== null}
+                        className="inline-flex h-7 items-center gap-1.5 rounded-md border border-red-500/30 bg-red-500/10 px-2.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/20 disabled:opacity-50"
+                    >
+                        {loading === "lost" ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                            <XCircle className="h-3.5 w-3.5" />
+                        )}
+                        Perdido
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

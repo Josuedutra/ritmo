@@ -2,12 +2,15 @@ import { auth } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { AppHeader, PageHeader } from "@/components/layout";
-import { Button, Card, CardHeader, CardTitle, CardContent, Badge } from "@/components/ui";
-import { ArrowLeft, Mail, Phone, Building2, Euro, Calendar, FileText, ExternalLink } from "lucide-react";
+import { AppHeader } from "@/components/layout";
+import { Card, CardHeader, CardTitle, CardContent, Badge } from "@/components/ui";
+import { ArrowLeft, Mail, Phone, Building2, Euro, Calendar, FileText, Clock, CheckCircle2, MessageSquare, Zap } from "lucide-react";
 import { QuoteTimeline } from "./quote-timeline";
 import { QuoteActions } from "./quote-actions";
 import { ProposalSection } from "./proposal-section";
+import { QuoteTagsNotes } from "./quote-tags-notes";
+import { formatDistanceToNow, format, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
+import { pt } from "date-fns/locale";
 
 interface PageProps {
     params: Promise<{ id: string }>;
@@ -55,6 +58,18 @@ async function getQuote(id: string, organizationId: string) {
                     email: true,
                 },
             },
+            // P1-03: Include timestamped notes
+            quoteNotes: {
+                orderBy: { createdAt: "desc" },
+                include: {
+                    author: {
+                        select: {
+                            id: true,
+                            name: true,
+                        },
+                    },
+                },
+            },
         },
     });
 }
@@ -79,6 +94,118 @@ const STAGE_CONFIG: Record<string, { label: string; color: string }> = {
     stopped: { label: "Parado", color: "text-red-500" },
 };
 
+// Helper to calculate next action for the quote
+function getNextAction(quote: {
+    businessStatus: string;
+    cadenceEvents: Array<{
+        eventType: string;
+        status: string;
+        scheduledFor: Date;
+    }>;
+}): { label: string; timing: string; variant: "default" | "warning" | "success" } | null {
+    // If draft, the action is to mark as sent
+    if (quote.businessStatus === "draft") {
+        return { label: "Marcar como enviado", timing: "pendente", variant: "default" };
+    }
+
+    // If won/lost, no next action
+    if (quote.businessStatus === "won" || quote.businessStatus === "lost") {
+        return null;
+    }
+
+    // Find next scheduled cadence event
+    const nextEvent = quote.cadenceEvents
+        .filter((e) => e.status === "scheduled")
+        .sort((a, b) => new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime())[0];
+
+    if (!nextEvent) {
+        return { label: "Cadência concluída", timing: "aguarda resposta", variant: "default" };
+    }
+
+    const eventLabels: Record<string, string> = {
+        email_d1: "Email D+1",
+        email_d3: "Email D+3",
+        call_d7: "Chamada D+7",
+        email_d14: "Email D+14",
+    };
+
+    const scheduledDate = new Date(nextEvent.scheduledFor);
+    let timing: string;
+    let variant: "default" | "warning" | "success" = "default";
+
+    if (isPast(scheduledDate)) {
+        timing = "a processar";
+        variant = "warning";
+    } else if (isToday(scheduledDate)) {
+        timing = "hoje";
+        variant = "warning";
+    } else if (isTomorrow(scheduledDate)) {
+        timing = "amanhã";
+    } else {
+        timing = format(scheduledDate, "d MMM", { locale: pt });
+    }
+
+    return {
+        label: eventLabels[nextEvent.eventType] || nextEvent.eventType,
+        timing,
+        variant,
+    };
+}
+
+// Helper to calculate quick outcomes for the quote
+function getQuickOutcomes(quote: {
+    businessStatus: string;
+    sentAt: Date | null;
+    firstSentAt: Date | null;
+    cadenceEvents: Array<{
+        eventType: string;
+        status: string;
+        scheduledFor: Date;
+    }>;
+}): {
+    daysSinceSent: number | null;
+    followUpsDone: number;
+    nextActionLabel: string | null;
+} {
+    const now = new Date();
+
+    // Days since sent (use firstSentAt if available, otherwise sentAt)
+    const sentDate = quote.firstSentAt || quote.sentAt;
+    const daysSinceSent = sentDate ? differenceInDays(now, new Date(sentDate)) : null;
+
+    // Count completed follow-ups
+    const followUpsDone = quote.cadenceEvents.filter(
+        (e) => e.status === "completed" || e.status === "sent"
+    ).length;
+
+    // Next action timing
+    let nextActionLabel: string | null = null;
+    if (quote.businessStatus === "draft") {
+        nextActionLabel = "Marcar como enviado";
+    } else if (quote.businessStatus !== "won" && quote.businessStatus !== "lost") {
+        const nextEvent = quote.cadenceEvents
+            .filter((e) => e.status === "scheduled")
+            .sort((a, b) => new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime())[0];
+
+        if (nextEvent) {
+            const scheduledDate = new Date(nextEvent.scheduledFor);
+            if (isPast(scheduledDate)) {
+                nextActionLabel = "agora";
+            } else if (isToday(scheduledDate)) {
+                nextActionLabel = "hoje";
+            } else if (isTomorrow(scheduledDate)) {
+                nextActionLabel = "amanhã";
+            } else {
+                nextActionLabel = format(scheduledDate, "d MMM", { locale: pt });
+            }
+        } else {
+            nextActionLabel = "aguarda resposta";
+        }
+    }
+
+    return { daysSinceSent, followUpsDone, nextActionLabel };
+}
+
 export default async function QuoteDetailPage({ params }: PageProps) {
     const session = await auth();
 
@@ -98,6 +225,8 @@ export default async function QuoteDetailPage({ params }: PageProps) {
 
     const statusConfig = STATUS_CONFIG[quote.businessStatus] || STATUS_CONFIG.draft;
     const stageConfig = STAGE_CONFIG[quote.ritmoStage] || STAGE_CONFIG.idle;
+    const nextAction = getNextAction(quote);
+    const quickOutcomes = getQuickOutcomes(quote);
 
     // Serialize data for client components
     const serializedQuote = {
@@ -115,6 +244,7 @@ export default async function QuoteDetailPage({ params }: PageProps) {
         validUntil: quote.validUntil?.toISOString() ?? null,
         proposalLink: quote.proposalLink,
         notes: quote.notes,
+        tags: quote.tags,  // P1-03: Quick tags
         cadenceRunId: quote.cadenceRunId,
         orgShortId: orgShortId,
         contact: quote.contact ? {
@@ -170,6 +300,19 @@ export default async function QuoteDetailPage({ params }: PageProps) {
         })),
     ];
 
+    // P1-03: Serialize quote notes
+    const serializedNotes = quote.quoteNotes.map((n) => ({
+        id: n.id,
+        content: n.content,
+        createdAt: n.createdAt.toISOString(),
+        author: n.author ? { id: n.author.id, name: n.author.name } : null,
+    }));
+
+    // Format value for display
+    const formattedValue = quote.value
+        ? `€${quote.value.toNumber().toLocaleString("pt-PT")}`
+        : null;
+
     return (
         <div className="min-h-screen bg-[var(--color-background)]">
             <AppHeader user={session.user} />
@@ -177,89 +320,143 @@ export default async function QuoteDetailPage({ params }: PageProps) {
             <main className="container-app py-6">
                 {/* Back link */}
                 <Link
-                    href="/dashboard"
+                    href="/quotes"
                     className="mb-4 inline-flex items-center gap-1 text-sm text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
                 >
                     <ArrowLeft className="h-4 w-4" />
-                    Voltar ao dashboard
+                    Orçamentos
                 </Link>
 
-                {/* Header */}
-                <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                        <div className="flex items-center gap-3">
-                            <h1 className="text-2xl font-semibold">{quote.title}</h1>
-                            <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+                {/* P0-01: Compact Hero Header Card */}
+                <Card className="mb-6">
+                    <CardContent className="p-5">
+                        {/* Row 1: Title + Status + Value */}
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="min-w-0 flex-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <h1 className="text-xl font-semibold">{quote.title}</h1>
+                                    <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+                                    {nextAction && (
+                                        <Badge
+                                            variant={nextAction.variant === "warning" ? "warning" : "outline"}
+                                            className="gap-1"
+                                        >
+                                            <Clock className="h-3 w-3" />
+                                            {nextAction.label} · {nextAction.timing}
+                                        </Badge>
+                                    )}
+                                    {/* P1-03: Display quick tags */}
+                                    {quote.tags.length > 0 && quote.tags.map((tag) => (
+                                        <Badge key={tag} variant="outline" className="text-xs">
+                                            {tag === "urgente" ? "Urgente" :
+                                             tag === "obra" ? "Obra" :
+                                             tag === "manutencao" ? "Manutenção" :
+                                             tag === "it" ? "IT" :
+                                             tag === "residencial" ? "Residencial" :
+                                             tag === "comercial" ? "Comercial" : tag}
+                                        </Badge>
+                                    ))}
+                                </div>
+                                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[var(--color-muted-foreground)]">
+                                    {quote.reference && (
+                                        <span className="flex items-center gap-1">
+                                            <FileText className="h-3.5 w-3.5" />
+                                            {quote.reference}
+                                        </span>
+                                    )}
+                                    {quote.contact?.company && (
+                                        <span className="flex items-center gap-1">
+                                            <Building2 className="h-3.5 w-3.5" />
+                                            {quote.contact.company}
+                                        </span>
+                                    )}
+                                    {quote.contact?.name && (
+                                        <span>{quote.contact.name}</span>
+                                    )}
+                                    {quote.sentAt && (
+                                        <span className="flex items-center gap-1">
+                                            <Calendar className="h-3.5 w-3.5" />
+                                            Enviado {format(new Date(quote.sentAt), "d MMM yyyy", { locale: pt })}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                            {formattedValue && (
+                                <div className="text-right">
+                                    <p className="text-2xl font-bold">{formattedValue}</p>
+                                    {quote.serviceType && (
+                                        <p className="text-sm text-[var(--color-muted-foreground)]">{quote.serviceType}</p>
+                                    )}
+                                </div>
+                            )}
                         </div>
-                        {quote.reference && (
-                            <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">
-                                Ref: {quote.reference}
-                            </p>
+
+                        {/* P1-01: Quick Outcomes */}
+                        {quote.businessStatus !== "draft" && (
+                            <div className="mt-4 flex flex-wrap items-center gap-4 rounded-lg bg-[var(--color-muted)]/50 px-4 py-3">
+                                {quickOutcomes.daysSinceSent !== null && quickOutcomes.daysSinceSent > 0 && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                        <MessageSquare className="h-4 w-4 text-[var(--color-muted-foreground)]" />
+                                        <span>
+                                            Sem resposta há{" "}
+                                            <span className={quickOutcomes.daysSinceSent >= 7 ? "font-semibold text-amber-600" : "font-medium"}>
+                                                {quickOutcomes.daysSinceSent} {quickOutcomes.daysSinceSent === 1 ? "dia" : "dias"}
+                                            </span>
+                                        </span>
+                                    </div>
+                                )}
+                                {quickOutcomes.followUpsDone > 0 && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                        <span>
+                                            <span className="font-medium">{quickOutcomes.followUpsDone}</span>{" "}
+                                            {quickOutcomes.followUpsDone === 1 ? "follow-up feito" : "follow-ups feitos"}
+                                        </span>
+                                    </div>
+                                )}
+                                {quickOutcomes.nextActionLabel && quote.businessStatus !== "won" && quote.businessStatus !== "lost" && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                        <Zap className={`h-4 w-4 ${quickOutcomes.nextActionLabel === "agora" || quickOutcomes.nextActionLabel === "hoje" ? "text-amber-500" : "text-blue-500"}`} />
+                                        <span>
+                                            Próxima ação:{" "}
+                                            <span className={`font-medium ${quickOutcomes.nextActionLabel === "agora" || quickOutcomes.nextActionLabel === "hoje" ? "text-amber-600" : ""}`}>
+                                                {quickOutcomes.nextActionLabel}
+                                            </span>
+                                        </span>
+                                    </div>
+                                )}
+                                {quote.businessStatus === "won" && (
+                                    <div className="flex items-center gap-2 text-sm text-green-600">
+                                        <CheckCircle2 className="h-4 w-4" />
+                                        <span className="font-medium">Negócio ganho</span>
+                                    </div>
+                                )}
+                                {quote.businessStatus === "lost" && (
+                                    <div className="flex items-center gap-2 text-sm text-[var(--color-muted-foreground)]">
+                                        <span>Negócio perdido</span>
+                                    </div>
+                                )}
+                            </div>
                         )}
-                    </div>
-                    <QuoteActions quote={serializedQuote} />
-                </div>
+
+                        {/* Row 2: Actions */}
+                        <div className="mt-4 border-t border-[var(--color-border)] pt-4">
+                            <QuoteActions quote={serializedQuote} />
+                        </div>
+                    </CardContent>
+                </Card>
 
                 {/* Content grid */}
                 <div className="grid gap-6 lg:grid-cols-3">
                     {/* Main content */}
                     <div className="space-y-6 lg:col-span-2">
-                        {/* Quote info */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Detalhes do orçamento</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <dl className="grid gap-4 sm:grid-cols-2">
-                                    {quote.value && (
-                                        <div>
-                                            <dt className="flex items-center gap-1 text-sm text-[var(--color-muted-foreground)]">
-                                                <Euro className="h-3.5 w-3.5" />
-                                                Valor
-                                            </dt>
-                                            <dd className="mt-1 text-lg font-semibold">
-                                                €{quote.value.toNumber().toLocaleString("pt-PT")}
-                                            </dd>
-                                        </div>
-                                    )}
-                                    {quote.serviceType && (
-                                        <div>
-                                            <dt className="flex items-center gap-1 text-sm text-[var(--color-muted-foreground)]">
-                                                <FileText className="h-3.5 w-3.5" />
-                                                Serviço
-                                            </dt>
-                                            <dd className="mt-1 font-medium">{quote.serviceType}</dd>
-                                        </div>
-                                    )}
-                                    {quote.sentAt && (
-                                        <div>
-                                            <dt className="flex items-center gap-1 text-sm text-[var(--color-muted-foreground)]">
-                                                <Calendar className="h-3.5 w-3.5" />
-                                                Enviado em
-                                            </dt>
-                                            <dd className="mt-1 font-medium">
-                                                {new Date(quote.sentAt).toLocaleDateString("pt-PT")}
-                                            </dd>
-                                        </div>
-                                    )}
-                                    <div>
-                                        <dt className="text-sm text-[var(--color-muted-foreground)]">
-                                            Etapa Ritmo
-                                        </dt>
-                                        <dd className={`mt-1 font-medium ${stageConfig.color}`}>
-                                            {stageConfig.label}
-                                        </dd>
-                                    </div>
-                                </dl>
-
-                                {quote.notes && (
-                                    <div className="mt-4 border-t border-[var(--color-border)] pt-4">
-                                        <dt className="text-sm text-[var(--color-muted-foreground)]">Notas</dt>
-                                        <dd className="mt-1 whitespace-pre-wrap text-sm">{quote.notes}</dd>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
+                        {/* P1-03: Tags and Notes section */}
+                        <QuoteTagsNotes
+                            quoteId={quote.id}
+                            tags={quote.tags}
+                            notes={serializedNotes}
+                            legacyNotes={quote.notes}
+                        />
 
                         {/* Timeline */}
                         <Card>
@@ -270,6 +467,8 @@ export default async function QuoteDetailPage({ params }: PageProps) {
                                 <QuoteTimeline
                                     events={timelineEvents}
                                     currentRunId={quote.cadenceRunId}
+                                    quoteCreatedAt={quote.createdAt.toISOString()}
+                                    quoteSentAt={quote.sentAt?.toISOString() ?? null}
                                 />
                             </CardContent>
                         </Card>
@@ -280,10 +479,10 @@ export default async function QuoteDetailPage({ params }: PageProps) {
                         {/* Contact info */}
                         {quote.contact && (
                             <Card>
-                                <CardHeader>
+                                <CardHeader className="pb-3">
                                     <CardTitle className="text-base">Contacto</CardTitle>
                                 </CardHeader>
-                                <CardContent className="space-y-3">
+                                <CardContent className="space-y-3 pt-0">
                                     <div className="flex items-start gap-3">
                                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
                                             {quote.contact.name?.charAt(0).toUpperCase() || "?"}

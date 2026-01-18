@@ -107,6 +107,21 @@ export function ActionsList({ emails, calls, tasks }: ActionsListProps) {
         }
     }, [router]);
 
+    // P1-02: Handle status change for quotes
+    const handleStatusChange = useCallback(async (quoteId: string, status: string) => {
+        const response = await fetch(`/api/quotes/${quoteId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ businessStatus: status }),
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to update status");
+        }
+
+        router.refresh();
+    }, [router]);
+
     // Filter out completed items
     const visibleEmails = emails.filter((e) => !completedIds.has(e.id));
     const visibleCalls = calls.filter((c) => !completedIds.has(c.id));
@@ -231,6 +246,7 @@ export function ActionsList({ emails, calls, tasks }: ActionsListProps) {
                         contact={action.quote.contact}
                         template={action.template}
                         onComplete={handleComplete}
+                        onStatusChange={handleStatusChange}
                     />
                 ))}
                 {visibleTasks.map((task) => (
@@ -252,6 +268,7 @@ export function ActionsList({ emails, calls, tasks }: ActionsListProps) {
                         isTask
                         taskId={task.id}
                         onComplete={handleCompleteTask}
+                        onStatusChange={handleStatusChange}
                     />
                 ))}
             </TabsContent>
@@ -278,6 +295,7 @@ export function ActionsList({ emails, calls, tasks }: ActionsListProps) {
                         contact={email.quote.contact}
                         template={email.template}
                         onComplete={handleComplete}
+                        onStatusChange={handleStatusChange}
                     />
                 ))}
             </TabsContent>
@@ -303,6 +321,7 @@ export function ActionsList({ emails, calls, tasks }: ActionsListProps) {
                         contact={call.quote.contact}
                         template={call.template}
                         onComplete={handleComplete}
+                        onStatusChange={handleStatusChange}
                     />
                 ))}
             </TabsContent>
@@ -327,6 +346,7 @@ export function ActionsList({ emails, calls, tasks }: ActionsListProps) {
                         isTask
                         taskId={task.id}
                         onComplete={handleCompleteTask}
+                        onStatusChange={handleStatusChange}
                     />
                 ))}
             </TabsContent>

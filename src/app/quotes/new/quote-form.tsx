@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card, CardHeader, CardTitle, CardContent, Input, Label, Textarea, toast } from "@/components/ui";
-import { Send, Save, Plus, Loader2 } from "lucide-react";
+import { Send, Save, Plus, Loader2, AlertTriangle } from "lucide-react";
 
 interface Contact {
     id: string;
@@ -33,6 +33,14 @@ export function QuoteForm({ contacts }: QuoteFormProps) {
     const [proposalLink, setProposalLink] = useState("");
     const [notes, setNotes] = useState("");
     const [showNewContact, setShowNewContact] = useState(false);
+
+    // Check if selected contact has email or phone
+    const selectedContact = contacts.find((c) => c.id === contactId);
+    const hasContactInfo = showNewContact
+        ? !!newContactEmail
+        : selectedContact
+            ? !!(selectedContact.email || (selectedContact as any).phone)
+            : false;
 
     const handleSubmit = async (action: "save" | "send") => {
         setLoading(action);
@@ -171,8 +179,13 @@ export function QuoteForm({ contacts }: QuoteFormProps) {
                                     min="0"
                                     value={value}
                                     onChange={(e) => setValue(e.target.value)}
-                                    placeholder="0.00"
+                                    placeholder="0"
                                 />
+                                {value && (
+                                    <p className="mt-1 text-xs text-[var(--color-muted-foreground)]">
+                                        {parseFloat(value).toLocaleString("pt-PT", { style: "currency", currency: "EUR" })}
+                                    </p>
+                                )}
                             </div>
 
                             <div>
@@ -184,6 +197,9 @@ export function QuoteForm({ contacts }: QuoteFormProps) {
                                     onChange={(e) => setProposalLink(e.target.value)}
                                     placeholder="https://..."
                                 />
+                                <p className="mt-1 text-xs text-[var(--color-muted-foreground)]">
+                                    Cole o link do PDF/Drive/OneDrive
+                                </p>
                             </div>
                         </div>
 
@@ -193,7 +209,7 @@ export function QuoteForm({ contacts }: QuoteFormProps) {
                                 id="notes"
                                 value={notes}
                                 onChange={(e) => setNotes(e.target.value)}
-                                placeholder="Notas internas sobre o orçamento..."
+                                placeholder="Ex: Obra na Rua X / Prazo 30 dias / Aguarda validação técnica"
                                 rows={3}
                             />
                         </div>
@@ -290,7 +306,7 @@ export function QuoteForm({ contacts }: QuoteFormProps) {
 
                 {/* Actions */}
                 <Card>
-                    <CardContent className="space-y-2 pt-6">
+                    <CardContent className="space-y-3 pt-6">
                         <Button
                             onClick={() => handleSubmit("send")}
                             disabled={loading !== null || !title}
@@ -303,6 +319,20 @@ export function QuoteForm({ contacts }: QuoteFormProps) {
                             )}
                             {loading === "send" ? "A criar..." : "Criar e marcar como enviado"}
                         </Button>
+                        <p className="text-center text-xs text-[var(--color-muted-foreground)]">
+                            Isto inicia a cadência (D+1, D+3, D+7, D+14)
+                        </p>
+
+                        {/* Warning when no contact email/phone */}
+                        {!hasContactInfo && !contactId && !showNewContact && (
+                            <div className="flex items-start gap-2 rounded-md border border-orange-500/30 bg-orange-500/10 px-3 py-2">
+                                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-orange-500" />
+                                <p className="text-xs text-orange-600">
+                                    Sem email/telefone → vamos criar tarefas manuais em vez de emails automáticos.
+                                </p>
+                            </div>
+                        )}
+
                         <Button
                             variant="outline"
                             onClick={() => handleSubmit("save")}

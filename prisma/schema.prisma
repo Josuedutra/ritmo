@@ -163,6 +163,7 @@ model User {
   quotesCreated   Quote[]      @relation("CreatedBy")
   tasksAssigned   Task[]       @relation("AssignedTo")
   attachments     Attachment[] @relation("UploadedBy")
+  quoteNotes      QuoteNote[]  @relation("NoteAuthor")
   accounts        Account[]
   sessions        Session[]
 
@@ -269,6 +270,7 @@ model Quote {
   proposalFileId  String?        @map("proposal_file_id")
   
   notes           String?
+  tags            String[]       @default([])           // P1-03: Quick tags
   lastActivityAt  DateTime?      @map("last_activity_at")
   createdById     String?        @map("created_by")
 
@@ -288,11 +290,31 @@ model Quote {
   tasks           Task[]
   emailLogs       EmailLog[]
   inboundIngestions InboundIngestion[]
+  quoteNotes      QuoteNote[]    // P1-03: Timestamped notes
 
   @@index([organizationId, businessStatus])
   @@index([organizationId, ritmoStage])
   @@index([organizationId, firstSentAt])
   @@map("quotes")
+}
+
+// ============================================================================
+// QUOTE NOTES (P1-03: Timestamped internal notes)
+// ============================================================================
+
+model QuoteNote {
+  id              String         @id @default(uuid())
+  quoteId         String         @map("quote_id")
+  authorId        String?        @map("author_id")
+
+  content         String
+  createdAt       DateTime       @default(now()) @map("created_at")
+
+  quote           Quote          @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  author          User?          @relation("NoteAuthor", fields: [authorId], references: [id])
+
+  @@index([quoteId])
+  @@map("quote_notes")
 }
 
 // ============================================================================

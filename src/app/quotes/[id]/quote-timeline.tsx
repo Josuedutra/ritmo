@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui";
-import { Mail, Phone, CheckCircle2, Clock, XCircle, AlertCircle, ListTodo, Send } from "lucide-react";
+import { Mail, Phone, CheckCircle2, Clock, XCircle, AlertCircle, ListTodo, Send, Plus, FileText } from "lucide-react";
 
 interface CadenceEvent {
     id: string;
@@ -38,11 +38,21 @@ interface EmailEvent {
     createdAt: string;
 }
 
-type TimelineEvent = CadenceEvent | TaskEvent | EmailEvent;
+interface SystemEvent {
+    id: string;
+    type: "system";
+    eventType: "created" | "sent" | "status_change";
+    label: string;
+    date: string;
+}
+
+type TimelineEvent = CadenceEvent | TaskEvent | EmailEvent | SystemEvent;
 
 interface QuoteTimelineProps {
     events: TimelineEvent[];
     currentRunId: number;
+    quoteCreatedAt: string;
+    quoteSentAt: string | null;
 }
 
 // Event type labels
@@ -65,23 +75,47 @@ const STATUS_CONFIG: Record<string, { icon: typeof CheckCircle2; color: string; 
     pending: { icon: Clock, color: "text-blue-500", label: "Pendente" },
 };
 
-export function QuoteTimeline({ events, currentRunId }: QuoteTimelineProps) {
+export function QuoteTimeline({ events, currentRunId, quoteCreatedAt, quoteSentAt }: QuoteTimelineProps) {
+    // Add system events for quote creation and sent
+    const systemEvents: SystemEvent[] = [
+        {
+            id: "system-created",
+            type: "system",
+            eventType: "created",
+            label: "Orçamento criado",
+            date: quoteCreatedAt,
+        },
+    ];
+
+    if (quoteSentAt) {
+        systemEvents.push({
+            id: "system-sent",
+            type: "system",
+            eventType: "sent",
+            label: "Marcado como enviado",
+            date: quoteSentAt,
+        });
+    }
+
+    // Combine all events
+    const allEvents: TimelineEvent[] = [...events, ...systemEvents];
+
     // Sort events by date (most recent first)
-    const sortedEvents = [...events].sort((a, b) => {
+    const sortedEvents = allEvents.sort((a, b) => {
         const dateA = getEventDate(a);
         const dateB = getEventDate(b);
         return new Date(dateB).getTime() - new Date(dateA).getTime();
     });
 
-    // Group by run ID for cadence events
+    // Group by run ID for cadence events (system events always show in current)
     const currentRunEvents = sortedEvents.filter(
-        (e) => e.type !== "cadence" || (e as CadenceEvent).cadenceRunId === currentRunId
+        (e) => e.type === "system" || e.type !== "cadence" || (e as CadenceEvent).cadenceRunId === currentRunId
     );
     const previousRunEvents = sortedEvents.filter(
         (e) => e.type === "cadence" && (e as CadenceEvent).cadenceRunId < currentRunId
     );
 
-    if (events.length === 0) {
+    if (allEvents.length === 0) {
         return (
             <div className="py-8 text-center text-[var(--color-muted-foreground)]">
                 Nenhuma atividade registada
@@ -118,28 +152,31 @@ export function QuoteTimeline({ events, currentRunId }: QuoteTimelineProps) {
 function TimelineItem({ event }: { event: TimelineEvent }) {
     const { icon: Icon, color, label } = getStatusConfig(event);
     const TypeIcon = getTypeIcon(event);
+    const isSystemEvent = event.type === "system";
 
     return (
         <div className="flex gap-3">
             {/* Icon */}
-            <div className={`mt-0.5 rounded-full p-1 ${getTypeBackground(event)}`}>
-                <TypeIcon className="h-4 w-4" />
+            <div className={`mt-0.5 rounded-full p-1.5 ${getTypeBackground(event)}`}>
+                <TypeIcon className="h-3.5 w-3.5" />
             </div>
 
             {/* Content */}
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium">{getEventTitle(event)}</span>
-                    <Badge variant="outline" className={`text-xs ${color}`}>
-                        <Icon className="mr-1 h-3 w-3" />
-                        {label}
-                    </Badge>
+                    <span className={isSystemEvent ? "text-sm" : "font-medium"}>{getEventTitle(event)}</span>
+                    {!isSystemEvent && label && (
+                        <Badge variant="outline" className={`text-xs ${color}`}>
+                            <Icon className="mr-1 h-3 w-3" />
+                            {label}
+                        </Badge>
+                    )}
                     {event.type === "cadence" && (event as CadenceEvent).priority === "HIGH" && (
                         <Badge variant="high" className="text-xs">Prioritário</Badge>
                     )}
                 </div>
 
-                <div className="mt-1 flex flex-wrap gap-x-3 text-xs text-[var(--color-muted-foreground)]">
+                <div className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-[var(--color-muted-foreground)]">
                     <span>{formatDate(getEventDate(event))}</span>
                     {getEventDetail(event) && <span>• {getEventDetail(event)}</span>}
                 </div>
@@ -156,6 +193,8 @@ function getEventDate(event: TimelineEvent): string {
             return event.completedAt || event.dueAt || event.createdAt;
         case "email":
             return event.sentAt || event.createdAt;
+        case "system":
+            return event.date;
     }
 }
 
@@ -167,6 +206,8 @@ function getEventTitle(event: TimelineEvent): string {
             return event.title;
         case "email":
             return event.subject || "Email enviado";
+        case "system":
+            return event.label;
     }
 }
 
@@ -180,10 +221,15 @@ function getEventDetail(event: TimelineEvent): string | null {
             return null;
         case "email":
             return event.recipient;
+        case "system":
+            return null;
     }
 }
 
 function getStatusConfig(event: TimelineEvent) {
+    if (event.type === "system") {
+        return { icon: CheckCircle2, color: "text-[var(--color-muted-foreground)]", label: "" };
+    }
     const status = event.type === "cadence"
         ? event.status
         : event.type === "task"
@@ -200,6 +246,8 @@ function getTypeIcon(event: TimelineEvent): typeof Mail {
             return ListTodo;
         case "email":
             return Send;
+        case "system":
+            return event.eventType === "created" ? Plus : event.eventType === "sent" ? Send : FileText;
     }
 }
 
@@ -213,6 +261,8 @@ function getTypeBackground(event: TimelineEvent): string {
             return "bg-purple-500/10 text-purple-500";
         case "email":
             return "bg-blue-500/10 text-blue-500";
+        case "system":
+            return "bg-[var(--color-muted)] text-[var(--color-muted-foreground)]";
     }
 }
 
