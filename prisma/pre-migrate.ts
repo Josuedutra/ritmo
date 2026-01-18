@@ -203,7 +203,7 @@ async function main() {
             await prisma.$executeRaw`
                 INSERT INTO plans (id, name, monthly_quote_limit, price_monthly, is_active, created_at, updated_at)
                 VALUES
-                    ('free', 'Gratuito', 10, 0, true, NOW(), NOW()),
+                    ('free', 'Gratuito', 5, 0, true, NOW(), NOW()),
                     ('starter', 'Starter', 50, 2900, true, NOW(), NOW()),
                     ('pro', 'Pro', 150, 7900, true, NOW(), NOW()),
                     ('enterprise', 'Enterprise', 500, 19900, true, NOW(), NOW())
