@@ -8,13 +8,31 @@
  * curl -X POST https://ritmo.app/api/admin/seed \
  *   -H "Authorization: Bearer YOUR_ADMIN_SEED_SECRET"
  *
- * IMPORTANT: Remove this file after seeding production!
+ * SECURITY:
+ * - Set ADMIN_SEED_ENABLED=true to enable (disabled by default in production)
+ * - Requires ADMIN_SEED_SECRET header
+ * - After seeding, set ADMIN_SEED_ENABLED=false or remove the env var
+ *
+ * IMPORTANT: Remove this file or disable after seeding production!
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
+    // Check if endpoint is enabled (disabled by default in production)
+    const isEnabled = process.env.ADMIN_SEED_ENABLED === "true";
+    const isProduction = process.env.NODE_ENV === "production";
+
+    if (isProduction && !isEnabled) {
+        logger.warn({ endpoint: "/api/admin/seed" }, "Seed endpoint disabled in production");
+        return NextResponse.json(
+            { error: "Endpoint disabled. Set ADMIN_SEED_ENABLED=true to enable." },
+            { status: 403 }
+        );
+    }
+
     // Verify secret
     const authHeader = request.headers.get("authorization");
     const secret = process.env.ADMIN_SEED_SECRET;
@@ -27,8 +45,11 @@ export async function POST(request: NextRequest) {
     }
 
     if (authHeader !== `Bearer ${secret}`) {
+        logger.warn({ endpoint: "/api/admin/seed" }, "Unauthorized seed attempt");
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    logger.info({ endpoint: "/api/admin/seed" }, "Seed endpoint called (authorized)");
 
     try {
         console.log("🌱 Seeding database...");

@@ -111,6 +111,10 @@ model Organization {
   smtpPassEncrypted   String?  @map("smtp_pass_encrypted")
   smtpFrom            String?  @map("smtp_from")
 
+  // Onboarding state (JSON with completed steps)
+  onboardingCompleted Boolean  @default(false) @map("onboarding_completed")
+  onboardingState     Json?    @map("onboarding_state") // { templates: bool, smtp: bool, bcc: bool, firstQuote: bool }
+
   createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @updatedAt @map("updated_at")
 
@@ -557,4 +561,26 @@ model InboundIngestion {
   @@index([providerMessageId])
   @@index([bodyChecksum])
   @@map("inbound_ingestions")
+}
+
+// ============================================================================
+// FEEDBACK
+// ============================================================================
+
+model FeedbackItem {
+  id              String   @id @default(uuid())
+  organizationId  String?  @map("organization_id")
+  userId          String?  @map("user_id")
+
+  type            String   // bug | feature | other
+  message         String   @db.Text
+  page            String?  // Current page path when submitted
+  userAgent       String?  @map("user_agent")
+
+  status          String   @default("new") // new | reviewed | resolved
+
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([organizationId, createdAt])
+  @@map("feedback_items")
 }

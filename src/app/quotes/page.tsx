@@ -4,6 +4,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { AppHeader, PageHeader } from "@/components/layout";
 import { Button, Card, Badge } from "@/components/ui";
+import { GenerateActionButton } from "@/components/quotes";
 import { Plus, FileText, Clock, Euro, Building2, AlertCircle } from "lucide-react";
 
 interface PageProps {
@@ -214,44 +215,48 @@ export default async function QuotesPage({ searchParams }: PageProps) {
                             const formattedValue = quote.value
                                 ? `€${quote.value.toNumber().toLocaleString("pt-PT")}`
                                 : null;
+                            const isNoResponseFilter = filter === "no_response";
 
                             return (
-                                <Link key={quote.id} href={`/quotes/${quote.id}`}>
-                                    <Card className="p-4 transition-colors hover:border-[var(--color-border-hover)]">
-                                        <div className="flex items-start justify-between gap-4">
-                                            <div className="min-w-0 flex-1">
-                                                <div className="flex items-center gap-2">
-                                                    <h3 className="truncate font-medium">
-                                                        {quote.title}
-                                                    </h3>
-                                                    <Badge variant={statusConfig.variant}>
-                                                        {statusConfig.label}
-                                                    </Badge>
-                                                </div>
-                                                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[var(--color-muted-foreground)]">
-                                                    {quote.reference && (
-                                                        <span className="flex items-center gap-1">
-                                                            <FileText className="h-3 w-3" />
-                                                            {quote.reference}
-                                                        </span>
-                                                    )}
-                                                    {quote.contact?.company && (
-                                                        <span className="flex items-center gap-1">
-                                                            <Building2 className="h-3 w-3" />
-                                                            {quote.contact.company}
-                                                        </span>
-                                                    )}
-                                                    {quote.contact?.name && (
-                                                        <span>{quote.contact.name}</span>
-                                                    )}
-                                                    {quote.sentAt && (
-                                                        <span className="flex items-center gap-1">
-                                                            <Clock className="h-3 w-3" />
-                                                            Enviado {new Date(quote.sentAt).toLocaleDateString("pt-PT")}
-                                                        </span>
-                                                    )}
-                                                </div>
+                                <Card key={quote.id} className="p-4 transition-colors hover:border-[var(--color-border-hover)]">
+                                    <div className="flex items-start justify-between gap-4">
+                                        <Link href={`/quotes/${quote.id}`} className="min-w-0 flex-1">
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="truncate font-medium">
+                                                    {quote.title}
+                                                </h3>
+                                                <Badge variant={statusConfig.variant}>
+                                                    {statusConfig.label}
+                                                </Badge>
                                             </div>
+                                            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[var(--color-muted-foreground)]">
+                                                {quote.reference && (
+                                                    <span className="flex items-center gap-1">
+                                                        <FileText className="h-3 w-3" />
+                                                        {quote.reference}
+                                                    </span>
+                                                )}
+                                                {quote.contact?.company && (
+                                                    <span className="flex items-center gap-1">
+                                                        <Building2 className="h-3 w-3" />
+                                                        {quote.contact.company}
+                                                    </span>
+                                                )}
+                                                {quote.contact?.name && (
+                                                    <span>{quote.contact.name}</span>
+                                                )}
+                                                {quote.sentAt && (
+                                                    <span className="flex items-center gap-1">
+                                                        <Clock className="h-3 w-3" />
+                                                        Enviado {new Date(quote.sentAt).toLocaleDateString("pt-PT")}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </Link>
+                                        <div className="flex items-center gap-3">
+                                            {isNoResponseFilter && (
+                                                <GenerateActionButton quoteId={quote.id} />
+                                            )}
                                             {formattedValue && (
                                                 <div className="flex items-center gap-1 text-lg font-semibold">
                                                     <Euro className="h-4 w-4 text-[var(--color-muted-foreground)]" />
@@ -259,8 +264,8 @@ export default async function QuotesPage({ searchParams }: PageProps) {
                                                 </div>
                                             )}
                                         </div>
-                                    </Card>
-                                </Link>
+                                    </div>
+                                </Card>
                             );
                         })}
                     </div>
