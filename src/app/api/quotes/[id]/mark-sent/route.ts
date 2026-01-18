@@ -9,103 +9,14 @@ import {
     serverError,
     success,
 } from "@/lib/api-utils";
+import {
+    getEntitlements,
+    incrementTrialUsage,
+    MAX_RESENDS_PER_MONTH,
+} from "@/lib/entitlements";
 
 interface RouteParams {
     params: Promise<{ id: string }>;
-}
-
-type UsageCheckResult =
-    | { allowed: true; limit: number; used: number }
-    | {
-          allowed: false;
-          reason: "LIMIT_EXCEEDED" | "PAYMENT_REQUIRED" | "SUBSCRIPTION_CANCELLED";
-          limit: number;
-          used: number;
-          message: string;
-      };
-
-/**
- * Check if organization can send quotes based on subscription status and limits.
- *
- * Rules:
- * - cancelled: Block with SUBSCRIPTION_CANCELLED
- * - past_due: Block with PAYMENT_REQUIRED (give grace period via webhook)
- * - active/trialing: Check against plan's monthly_quote_limit
- * - No subscription: Use free tier defaults (10 quotes)
- */
-async function checkUsageLimit(organizationId: string): Promise<UsageCheckResult> {
-    const now = new Date();
-
-    const [subscription, usage] = await Promise.all([
-        prisma.subscription.findUnique({
-            where: { organizationId },
-            include: {
-                plan: {
-                    select: {
-                        monthlyQuoteLimit: true,
-                        name: true,
-                    },
-                },
-            },
-        }),
-        prisma.usageCounter.findFirst({
-            where: {
-                organizationId,
-                periodStart: { lte: now },
-                periodEnd: { gte: now },
-            },
-            select: { quotesSent: true },
-        }),
-    ]);
-
-    // Get limit from plan (via subscription) or use free tier default
-    const limit = subscription?.plan?.monthlyQuoteLimit ?? subscription?.quotesLimit ?? 10;
-    const used = usage?.quotesSent ?? 0;
-
-    // Check subscription status first
-    if (subscription) {
-        // Cancelled subscriptions cannot send quotes
-        if (subscription.status === "cancelled") {
-            return {
-                allowed: false,
-                reason: "SUBSCRIPTION_CANCELLED",
-                limit,
-                used,
-                message:
-                    "A sua subscrição foi cancelada. Reative o plano para continuar a enviar orçamentos.",
-            };
-        }
-
-        // Past due subscriptions are blocked until payment is updated
-        if (subscription.status === "past_due") {
-            return {
-                allowed: false,
-                reason: "PAYMENT_REQUIRED",
-                limit,
-                used,
-                message:
-                    "O seu pagamento está em atraso. Atualize o método de pagamento para continuar.",
-            };
-        }
-    }
-
-    // Check quota limit for active/trialing subscriptions
-    if (used >= limit) {
-        const planName = subscription?.plan?.name || "Gratuito";
-        return {
-            allowed: false,
-            reason: "LIMIT_EXCEEDED",
-            limit,
-            used,
-            message: `Atingiu o limite de ${limit} orçamentos do plano ${planName}. Atualize o seu plano para continuar.`,
-        };
-    }
-
-    return {
-        allowed: true,
-        limit,
-        used,
-    };
 }
 
 /**
@@ -120,6 +31,11 @@ async function checkUsageLimit(organizationId: string): Promise<UsageCheckResult
  * - Increments cadenceRunId
  * - Creates 4 cadence events (D+1, D+3, D+7, D+14)
  * - If resending: cancels previous pending events
+ *
+ * Usage counting:
+ * - First send: counts against quota (trial or plan limit)
+ * - Resend: does NOT count against quota
+ * - Resends limited to 2 per quote per month (anti-abuse)
  *
  * Query params:
  * - force=true: Allow resending even if already sent
@@ -173,33 +89,47 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
         const now = new Date();
         const isFirstSend = !quote.firstSentAt;
+        const isResend = !isFirstSend;
 
-        // Check usage limit only on first send (resends don't count)
+        // Get entitlements (single source of truth)
+        const entitlements = await getEntitlements(session.user.organizationId);
+
+        // Check usage limit only on first send (resends don't count against quota)
         if (isFirstSend) {
-            const usageCheck = await checkUsageLimit(session.user.organizationId);
-            if (!usageCheck.allowed) {
-                // Determine appropriate status code and action based on reason
-                const statusCode = usageCheck.reason === "SUBSCRIPTION_CANCELLED" ? 403 : 402;
-                const action =
-                    usageCheck.reason === "PAYMENT_REQUIRED"
-                        ? "update_payment"
-                        : usageCheck.reason === "SUBSCRIPTION_CANCELLED"
-                          ? "reactivate_subscription"
-                          : "upgrade_plan";
+            if (!entitlements.canMarkSent.allowed) {
+                const statusCode =
+                    entitlements.canMarkSent.reason === "SUBSCRIPTION_CANCELLED" ? 403 : 402;
 
                 return NextResponse.json(
                     {
-                        error: usageCheck.reason,
-                        message: usageCheck.message,
-                        limit: usageCheck.limit,
-                        used: usageCheck.used,
-                        action,
-                        redirectUrl: "/settings/billing",
+                        error: entitlements.canMarkSent.reason,
+                        message: entitlements.canMarkSent.message,
+                        limit: entitlements.effectivePlanLimit,
+                        used: entitlements.quotesUsed,
+                        action: entitlements.canMarkSent.ctaAction,
+                        redirectUrl: entitlements.canMarkSent.ctaUrl || "/settings/billing",
                     },
                     { status: statusCode }
                 );
             }
         }
+
+        // P1: Check resend limit (2 per quote per month)
+        if (isResend) {
+            const resendCheck = checkResendLimit(quote, now);
+            if (!resendCheck.allowed) {
+                return NextResponse.json(
+                    {
+                        error: "RESEND_LIMIT_EXCEEDED",
+                        message: resendCheck.message,
+                        resendsUsed: resendCheck.resendsUsed,
+                        resendsLimit: MAX_RESENDS_PER_MONTH,
+                    },
+                    { status: 429 }
+                );
+            }
+        }
+
         const timezone = quote.organization.timezone;
 
         // Update quote status
@@ -211,6 +141,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 // Only set firstSentAt on first send (immutable for billing)
                 ...(isFirstSend && { firstSentAt: now }),
                 lastActivityAt: now,
+                // Update resend tracking
+                ...(isResend && {
+                    resendCount: getUpdatedResendCount(quote, now),
+                    resendResetAt: getResendResetAt(quote, now),
+                }),
             },
         });
 
@@ -225,13 +160,22 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
         // Increment usage counter if first send
         if (isFirstSend) {
+            // For trial, increment trial counter
+            if (entitlements.tier === "trial") {
+                await incrementTrialUsage(session.user.organizationId);
+            }
+            // Always increment period usage counter (for billing tracking)
             await incrementQuotesSent(session.user.organizationId);
         }
 
         return success({
             quote: updatedQuote,
             cadence: cadenceResult,
-            isResend: !isFirstSend,
+            isResend,
+            tier: entitlements.tier,
+            quotesRemaining: isFirstSend
+                ? entitlements.quotesRemaining - 1
+                : entitlements.quotesRemaining,
             message: isFirstSend
                 ? "Quote marked as sent. Cadence started."
                 : "Quote resent. Previous cadence cancelled, new cadence started.",
@@ -239,6 +183,59 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     } catch (error) {
         return serverError(error, "POST /api/quotes/:id/mark-sent");
     }
+}
+
+/**
+ * Check if resend is allowed (max 2 per quote per month)
+ */
+function checkResendLimit(
+    quote: { resendCount: number; resendResetAt: Date | null },
+    now: Date
+): { allowed: boolean; message?: string; resendsUsed: number } {
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    // Check if counter should be reset (new month)
+    const shouldReset = !quote.resendResetAt || quote.resendResetAt < monthStart;
+    const currentResendCount = shouldReset ? 0 : quote.resendCount;
+
+    if (currentResendCount >= MAX_RESENDS_PER_MONTH) {
+        return {
+            allowed: false,
+            message: `Atingiu o limite de ${MAX_RESENDS_PER_MONTH} reenvios por mês para este orçamento. Aguarde até ao próximo mês.`,
+            resendsUsed: currentResendCount,
+        };
+    }
+
+    return {
+        allowed: true,
+        resendsUsed: currentResendCount,
+    };
+}
+
+/**
+ * Calculate updated resend count (reset if new month)
+ */
+function getUpdatedResendCount(
+    quote: { resendCount: number; resendResetAt: Date | null },
+    now: Date
+): number {
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const shouldReset = !quote.resendResetAt || quote.resendResetAt < monthStart;
+
+    return shouldReset ? 1 : quote.resendCount + 1;
+}
+
+/**
+ * Get reset timestamp (set to now when resending)
+ */
+function getResendResetAt(
+    quote: { resendResetAt: Date | null },
+    now: Date
+): Date {
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const shouldReset = !quote.resendResetAt || quote.resendResetAt < monthStart;
+
+    return shouldReset ? now : quote.resendResetAt!;
 }
 
 /**

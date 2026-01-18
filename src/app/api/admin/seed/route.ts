@@ -62,7 +62,10 @@ export async function POST(request: NextRequest) {
             WHERE short_id IS NULL
         `;
 
-        // Create demo organization
+        // Create demo organization with trial
+        const trialEndsAt = new Date();
+        trialEndsAt.setDate(trialEndsAt.getDate() + 14); // 14-day trial
+
         const org = await prisma.organization.upsert({
             where: { slug: "demo" },
             update: {},
@@ -75,6 +78,12 @@ export async function POST(request: NextRequest) {
                 sendWindowEnd: "18:00",
                 emailCooldownHours: 48,
                 bccAddress: "bcc+demo@inbound.ritmo.app",
+                // Trial setup (P0)
+                trialEndsAt,
+                trialSentLimit: 30,
+                trialSentUsed: 0,
+                autoEmailEnabled: true,
+                bccInboundEnabled: true,
             },
         });
 

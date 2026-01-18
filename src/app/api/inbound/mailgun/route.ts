@@ -25,9 +25,9 @@ import {
     generateBodyChecksum,
     sanitizeForLog,
     maskEmail,
-    MAX_ATTACHMENT_SIZE,
 } from "@/lib/inbound";
 import { createClient } from "@supabase/supabase-js";
+import { canUseBccInbound } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
@@ -146,6 +146,34 @@ export async function POST(request: NextRequest) {
 
             log.warn({ id: ingestion.id, orgShortId }, "Unmatched inbound - org not found");
             return NextResponse.json({ status: "unmatched", id: ingestion.id });
+        }
+
+        // P0-04: Check if org has BCC inbound feature enabled (paid/trial only)
+        const bccEnabled = await canUseBccInbound(org.id);
+        if (!bccEnabled) {
+            // Accept webhook but reject processing - feature disabled for free tier
+            const ingestion = await prisma.inboundIngestion.create({
+                data: {
+                    organizationId: org.id,
+                    provider: "mailgun",
+                    providerMessageId: idempotencyKey,
+                    bodyChecksum: generateBodyChecksum(bodyPlain, bodyHtml),
+                    rawFrom: from,
+                    rawTo: to || recipient,
+                    rawSubject: subject,
+                    rawBodyText: bodyPlain?.substring(0, 10000),
+                    status: "rejected_feature_disabled",
+                    errorMessage: "BCC inbound feature not enabled for this organization (free tier)",
+                },
+            });
+
+            log.info({ id: ingestion.id, orgShortId }, "Inbound rejected - BCC feature disabled (free tier)");
+            return NextResponse.json({
+                status: "rejected",
+                id: ingestion.id,
+                reason: "feature_disabled",
+                message: "BCC auto-attachment is only available on paid plans.",
+            });
         }
 
         // Find quote by publicId within organization

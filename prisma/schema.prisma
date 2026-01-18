@@ -86,6 +86,7 @@ enum IngestStatus {
   processed
   failed
   unmatched
+  rejected_feature_disabled
 }
 
 // ============================================================================
@@ -114,6 +115,15 @@ model Organization {
   // Onboarding state (JSON with completed steps)
   onboardingCompleted Boolean  @default(false) @map("onboarding_completed")
   onboardingState     Json?    @map("onboarding_state") // { templates: bool, smtp: bool, bcc: bool, firstQuote: bool }
+
+  // Trial system (P0)
+  trialEndsAt         DateTime? @map("trial_ends_at")     // null = no trial or trial expired
+  trialSentLimit      Int       @default(30) @map("trial_sent_limit")  // Max quotes during trial
+  trialSentUsed       Int       @default(0) @map("trial_sent_used")    // Quotes sent during trial
+
+  // Feature flags (determines automation capabilities)
+  autoEmailEnabled    Boolean   @default(false) @map("auto_email_enabled")  // Can use AUTO_EMAIL mode in cron
+  bccInboundEnabled   Boolean   @default(false) @map("bcc_inbound_enabled") // Can process BCC proposals automatically
 
   createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @updatedAt @map("updated_at")
@@ -261,6 +271,10 @@ model Quote {
   notes           String?
   lastActivityAt  DateTime?      @map("last_activity_at")
   createdById     String?        @map("created_by")
+
+  // Resend tracking (P1 - anti-abuse)
+  resendCount     Int            @default(0) @map("resend_count")      // Resends this month
+  resendResetAt   DateTime?      @map("resend_reset_at")               // When counter was last reset
 
   createdAt       DateTime       @default(now()) @map("created_at")
   updatedAt       DateTime       @updatedAt @map("updated_at")

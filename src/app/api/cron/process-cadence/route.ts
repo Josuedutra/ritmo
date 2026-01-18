@@ -5,6 +5,7 @@ import { isBusinessDay, isWithinSendWindow } from "@/lib/business-days";
 import { toZonedTime } from "date-fns-tz";
 import { endOfDay, startOfDay } from "date-fns";
 import { sendCadenceEmail, hasEmailCapability, isEmailSuppressed } from "@/lib/email";
+import { canUseAutoEmail } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60; // Vercel Pro: 60s max
@@ -13,9 +14,9 @@ export const maxDuration = 60; // Vercel Pro: 60s max
 const CLAIM_TIMEOUT_MINUTES = 5;
 const BATCH_SIZE = 50;
 
-// Feature flag: AUTO-EMAIL mode (Sprint 3)
-// When true, emails are sent automatically instead of creating tasks
-const AUTO_EMAIL_MODE = process.env.AUTO_EMAIL_MODE === "true";
+// Global feature flag: AUTO-EMAIL mode (Sprint 3)
+// When true AND org has autoEmailEnabled entitlement, emails are sent automatically
+const AUTO_EMAIL_MODE_GLOBAL = process.env.AUTO_EMAIL_MODE === "true";
 
 // Map event types to template codes
 const EVENT_TO_TEMPLATE: Record<string, string> = {
@@ -289,7 +290,10 @@ async function processOrganization(
                 }
 
                 // AUTO-EMAIL mode: try to send email automatically
-                if (AUTO_EMAIL_MODE) {
+                // Requires BOTH global flag AND org-level entitlement (paid/trial)
+                const orgCanAutoEmail = AUTO_EMAIL_MODE_GLOBAL && await canUseAutoEmail(org.id);
+
+                if (orgCanAutoEmail) {
                     const emailResult = await processAutoEmail(org.id, event, log);
 
                     if (emailResult.sent) {
@@ -306,7 +310,7 @@ async function processOrganization(
                     continue;
                 }
 
-                // TASK-EMAIL mode (default): create task for manual sending
+                // TASK-EMAIL mode (default for free tier or when AUTO_EMAIL disabled): create task for manual sending
                 await createTask(org.id, event, "email",
                     getTaskTitle(event.eventType, contactName),
                     getTaskDescription(event.eventType, event.quote)

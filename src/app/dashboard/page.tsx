@@ -15,6 +15,7 @@ import {
 import { Plus, FileText, Clock, TrendingUp } from "lucide-react";
 import { ActionsList } from "@/components/actions";
 import { OnboardingBanner } from "@/components/onboarding";
+import { LifecycleBanner } from "@/components/lifecycle";
 
 // Map event types to template codes
 const EVENT_TO_TEMPLATE: Record<string, string> = {
@@ -280,6 +281,9 @@ export default async function DashboardPage() {
 
                 {/* Onboarding Banner */}
                 <OnboardingBanner isAdmin={session.user.role === "admin"} />
+
+                {/* Lifecycle Banner (Trial/Free tier messaging) */}
+                <LifecycleBanner />
 
                 {/* Stats Grid */}
                 <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
