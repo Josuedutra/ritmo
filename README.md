@@ -1,13 +1,25 @@
 # RITMO MVP
 
-> Follow-up Inteligente para Orçamentos B2B
+> **Follow-up Inteligente para Orçamentos B2B**
 
-Cadência automática + painel + envio para follow-up de orçamentos.
+Cadência automática, dashboard de vendas e gestão de propostas.
+
+## 📚 Documentação
+
+A documentação completa do projeto encontra-se na pasta [`docs/`](docs/index.md).
+
+- **[Visão Geral](docs/index.md)**
+- **[Arquitetura](docs/architecture.md)**
+- **[Base de Dados](docs/database.md)**
+- **[API & Endpoints](docs/api.md)**
+- **[Fluxos de Negócio](docs/workflows.md)**
+- **[Roadmap](docs/roadmap.md)**
+
+---
 
 ## 🚀 Quick Start
 
 ### Pré-requisitos
-
 - Node.js 20+
 - pnpm 8+
 - PostgreSQL (Neon ou Supabase)
@@ -20,135 +32,43 @@ pnpm install
 
 # 2. Configurar variáveis de ambiente
 cp .env.example .env.local
-# Editar .env.local com as credenciais
+# (Edite o .env.local com as suas credenciais)
 
 # 3. Gerar Prisma Client
 pnpm db:generate
 
-# 4. Aplicar migrations (dev)
+# 4. Enviar schema para DB (Dev)
 pnpm db:push
 
-# 5. Seed da base de dados
-pnpm db:seed
-
-# 6. Iniciar servidor dev
+# 5. Iniciar servidor
 pnpm dev
 ```
 
-### Aceder à Aplicação
+Aceda à aplicação em [http://localhost:3000](http://localhost:3000).
 
-- **App:** http://localhost:3000
-- **Health:** http://localhost:3000/health
-- **API Health:** http://localhost:3000/api/health
-
-### Credenciais Demo
-
-```
-Email: admin@demo.ritmo.app
-Password: demo123
-```
-
-## 📁 Estrutura do Projeto
-
-```
-ritmo-mvp/
-├── prisma/
-│   ├── schema.prisma     # Schema da base de dados
-│   └── seed.ts           # Dados de seed
-├── src/
-│   ├── app/
-│   │   ├── api/          # API routes
-│   │   │   ├── auth/     # NextAuth endpoints
-│   │   │   ├── cron/     # Cron jobs
-│   │   │   ├── health/   # Health check
-│   │   │   └── webhooks/ # Inbound email, Stripe
-│   │   ├── dashboard/    # Dashboard page
-│   │   ├── health/       # Health page
-│   │   └── login/        # Login page
-│   └── lib/
-│       ├── auth.ts       # NextAuth config
-│       ├── business-days.ts # Dias úteis + timezone
-│       ├── email.ts      # Resend client
-│       ├── logger.ts     # Logging estruturado
-│       ├── prisma.ts     # Prisma client
-│       ├── storage.ts    # Supabase Storage
-│       └── stripe.ts     # Stripe client
-├── docs/
-│   └── PLANO_DESENVOLVIMENTO.md
-└── package.json
-```
-
-## 🔑 Variáveis de Ambiente
-
-| Variável | Descrição |
-|----------|-----------|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `NEXTAUTH_SECRET` | Secret para JWT |
-| `NEXTAUTH_URL` | URL base da app |
-| `CRON_SECRET` | Token para proteger cron endpoints |
-| `RESEND_API_KEY` | API key do Resend |
-| `STRIPE_SECRET_KEY` | Stripe secret key |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook secret |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role |
-
-## 📋 Scripts Disponíveis
+### Scripts Úteis
 
 | Script | Descrição |
 |--------|-----------|
-| `pnpm dev` | Servidor de desenvolvimento |
-| `pnpm build` | Build de produção |
-| `pnpm start` | Servidor de produção |
-| `pnpm lint` | Linting |
-| `pnpm format` | Formatar código |
-| `pnpm db:generate` | Gerar Prisma Client |
-| `pnpm db:push` | Push schema para DB |
-| `pnpm db:migrate` | Criar migration |
-| `pnpm db:seed` | Seed da base de dados |
-| `pnpm db:studio` | Prisma Studio GUI |
+| `pnpm dev` | Inicia o servidor de desenvolvimento. |
+| `pnpm build` | Compila para produção. |
+| `pnpm db:push` | Atualiza o schema da base de dados (prototipagem). |
+| `pnpm db:studio` | Abre o Prisma Studio para visualizar dados. |
 
-## 🧪 Testar Endpoints
+## 🧪 Estrutura do Projeto
 
-### Health Check
-
-```bash
-curl http://localhost:3000/api/health
+```
+ritmo/
+├── docs/             # Documentação do projeto
+├── prisma/           # Schema e Seeds da BD
+├── src/
+│   ├── app/          # Next.js App Router (Páginas e API)
+│   ├── lib/          # Utilitários e configurações (Auth, DB, etc)
+│   ├── components/   # Componentes React
+│   └── ...
+└── ...
 ```
 
-### Cron (requires token)
+## 🔐 Licença
 
-```bash
-curl -X POST http://localhost:3000/api/cron/process-cadence \
-  -H "Authorization: Bearer YOUR_CRON_SECRET"
-```
-
-### Inbound Email Webhook
-
-```bash
-curl -X POST http://localhost:3000/api/webhooks/inbound-email \
-  -H "Content-Type: application/json" \
-  -d '{"from":"test@example.com","to":["bcc+demo+123@inbound.ritmo.app"],"subject":"Test"}'
-```
-
-## 📊 Sprint Status
-
-- [x] Sprint 0: Setup & Skeleton
-  - [x] Next.js 15 + TypeScript + Tailwind
-  - [x] Prisma schema
-  - [x] NextAuth v5
-  - [x] Health endpoints
-  - [x] Cron stub
-  - [x] Webhook stubs
-  - [x] Seed data
-- [ ] Sprint 1: Core (quotes, cadence, dashboard)
-- [ ] Sprint 2: Email & Billing
-- [ ] Sprint 3: Inbound & UX
-- [ ] Sprint 4: Hardening
-
-## 📄 Documentação
-
-- [Plano de Desenvolvimento](docs/PLANO_DESENVOLVIMENTO.md)
-
-## 📝 License
-
-Private - All rights reserved
+Privado - Todos os direitos reservados.
