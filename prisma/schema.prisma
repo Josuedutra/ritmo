@@ -429,22 +429,51 @@ model SuppressionGlobal {
 // BILLING
 // ============================================================================
 
+model Plan {
+  id                String   @id // free | starter | pro | enterprise
+  name              String
+  monthlyQuoteLimit Int      @map("monthly_quote_limit")
+  priceMonthly      Int      @default(0) @map("price_monthly") // In cents (EUR)
+  stripePriceId     String?  @map("stripe_price_id")
+  isActive          Boolean  @default(true) @map("is_active")
+
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  subscriptions     Subscription[]
+
+  @@map("plans")
+}
+
+model StripeEvent {
+  id              String   @id @default(uuid())
+  stripeEventId   String   @unique @map("stripe_event_id") // Stripe event ID for idempotency
+  eventType       String   @map("event_type")
+  processedAt     DateTime @default(now()) @map("processed_at")
+  payload         Json?    // Store non-PII event data for debugging
+
+  @@map("stripe_events")
+}
+
 model Subscription {
   id                    String             @id @default(uuid())
   organizationId        String             @unique @map("organization_id")
   stripeCustomerId      String?            @map("stripe_customer_id")
-  stripeSubscriptionId  String?            @map("stripe_subscription_id")
-  planId                String             @default("free") @map("plan_id") // free | starter | pro | enterprise
+  stripeSubscriptionId  String?            @unique @map("stripe_subscription_id") // Unique for lookup
+  planId                String             @default("free") @map("plan_id")
   status                SubscriptionStatus @default(active)
   quotesLimit           Int                @default(10) @map("quotes_limit")
   currentPeriodStart    DateTime?          @map("current_period_start")
   currentPeriodEnd      DateTime?          @map("current_period_end")
+  cancelAtPeriodEnd     Boolean            @default(false) @map("cancel_at_period_end")
 
   createdAt             DateTime           @default(now()) @map("created_at")
   updatedAt             DateTime           @updatedAt @map("updated_at")
 
   // Relations
   organization          Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan                  Plan         @relation(fields: [planId], references: [id])
 
   @@map("subscriptions")
 }

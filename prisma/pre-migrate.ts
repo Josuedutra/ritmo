@@ -190,6 +190,32 @@ async function main() {
         `;
     }
 
+    // Seed default plans if plans table exists but is empty
+    if (await tableExists("plans")) {
+        const planCount = await prisma.$queryRaw<{ count: bigint }[]>`
+            SELECT COUNT(*) as count FROM plans
+        `;
+
+        if (Number(planCount[0]?.count) === 0) {
+            console.log("📝 Seeding default plans...");
+
+            // Insert default plans
+            await prisma.$executeRaw`
+                INSERT INTO plans (id, name, monthly_quote_limit, price_monthly, is_active, created_at, updated_at)
+                VALUES
+                    ('free', 'Gratuito', 10, 0, true, NOW(), NOW()),
+                    ('starter', 'Starter', 50, 2900, true, NOW(), NOW()),
+                    ('pro', 'Pro', 150, 7900, true, NOW(), NOW()),
+                    ('enterprise', 'Enterprise', 500, 19900, true, NOW(), NOW())
+                ON CONFLICT (id) DO NOTHING
+            `;
+
+            console.log("✅ Default plans seeded");
+        } else {
+            console.log("✅ Plans table already populated");
+        }
+    }
+
     console.log("✅ Pre-migration complete");
 }
 
