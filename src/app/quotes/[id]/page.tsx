@@ -4,7 +4,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { AppHeader } from "@/components/layout";
 import { Card, CardHeader, CardTitle, CardContent, Badge } from "@/components/ui";
-import { ArrowLeft, Mail, Phone, Building2, Euro, Calendar, FileText, Clock, CheckCircle2, MessageSquare, Zap } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Building2, Calendar, FileText, Clock, CheckCircle2, MessageSquare } from "lucide-react";
 import { QuoteTimeline } from "./quote-timeline";
 import { QuoteActions } from "./quote-actions";
 import { ProposalSection } from "./proposal-section";
@@ -391,7 +391,7 @@ export default async function QuoteDetailPage({ params }: PageProps) {
                             )}
                         </div>
 
-                        {/* P1-01: Quick Outcomes */}
+                        {/* P1-01: Quick Outcomes - simplified, removed redundant "Próxima ação" (already in badge) */}
                         {quote.businessStatus !== "draft" && (
                             <div className="mt-4 flex flex-wrap items-center gap-4 rounded-lg bg-[var(--color-muted)]/50 px-4 py-3">
                                 {quickOutcomes.daysSinceSent !== null && quickOutcomes.daysSinceSent > 0 && (
@@ -411,17 +411,6 @@ export default async function QuoteDetailPage({ params }: PageProps) {
                                         <span>
                                             <span className="font-medium">{quickOutcomes.followUpsDone}</span>{" "}
                                             {quickOutcomes.followUpsDone === 1 ? "follow-up feito" : "follow-ups feitos"}
-                                        </span>
-                                    </div>
-                                )}
-                                {quickOutcomes.nextActionLabel && quote.businessStatus !== "won" && quote.businessStatus !== "lost" && (
-                                    <div className="flex items-center gap-2 text-sm">
-                                        <Zap className={`h-4 w-4 ${quickOutcomes.nextActionLabel === "agora" || quickOutcomes.nextActionLabel === "hoje" ? "text-amber-500" : "text-blue-500"}`} />
-                                        <span>
-                                            Próxima ação:{" "}
-                                            <span className={`font-medium ${quickOutcomes.nextActionLabel === "agora" || quickOutcomes.nextActionLabel === "hoje" ? "text-amber-600" : ""}`}>
-                                                {quickOutcomes.nextActionLabel}
-                                            </span>
                                         </span>
                                     </div>
                                 )}

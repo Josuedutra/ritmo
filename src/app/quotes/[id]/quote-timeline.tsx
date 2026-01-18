@@ -63,9 +63,9 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
     email_d14: "Follow-up D+14",
 };
 
-// Status config
+// Status config - P0-03: Changed "Agendado" to "Previsto" for future events
 const STATUS_CONFIG: Record<string, { icon: typeof CheckCircle2; color: string; label: string }> = {
-    scheduled: { icon: Clock, color: "text-blue-500", label: "Agendado" },
+    scheduled: { icon: Clock, color: "text-blue-500", label: "Previsto" },
     claimed: { icon: Clock, color: "text-yellow-500", label: "Em processamento" },
     completed: { icon: CheckCircle2, color: "text-green-500", label: "Concluído" },
     sent: { icon: Send, color: "text-green-500", label: "Enviado" },
@@ -100,18 +100,56 @@ export function QuoteTimeline({ events, currentRunId, quoteCreatedAt, quoteSentA
     // Combine all events
     const allEvents: TimelineEvent[] = [...events, ...systemEvents];
 
-    // Sort events by date (most recent first)
-    const sortedEvents = allEvents.sort((a, b) => {
+    const now = new Date();
+
+    // P0-03: Split into "Próximas ações" (scheduled future) and "Histórico" (past/completed)
+    const upcomingActions = allEvents.filter((e) => {
+        if (e.type === "system") return false;
+        if (e.type === "cadence") {
+            // Only scheduled events in current run that are in the future
+            const event = e as CadenceEvent;
+            return event.status === "scheduled" &&
+                   event.cadenceRunId === currentRunId &&
+                   new Date(event.scheduledFor) > now;
+        }
+        if (e.type === "task") {
+            // Pending tasks
+            return (e as TaskEvent).status === "pending";
+        }
+        return false;
+    }).sort((a, b) => {
         const dateA = getEventDate(a);
         const dateB = getEventDate(b);
-        return new Date(dateB).getTime() - new Date(dateA).getTime();
+        return new Date(dateA).getTime() - new Date(dateB).getTime(); // Ascending for upcoming
     });
 
-    // Group by run ID for cadence events (system events always show in current)
-    const currentRunEvents = sortedEvents.filter(
+    const historyEvents = allEvents.filter((e) => {
+        if (e.type === "system") return true;
+        if (e.type === "cadence") {
+            const event = e as CadenceEvent;
+            // Past events or completed/sent/skipped/cancelled
+            return event.status !== "scheduled" ||
+                   event.cadenceRunId < currentRunId ||
+                   new Date(event.scheduledFor) <= now;
+        }
+        if (e.type === "task") {
+            return (e as TaskEvent).status !== "pending";
+        }
+        if (e.type === "email") {
+            return true; // All emails are history
+        }
+        return true;
+    }).sort((a, b) => {
+        const dateA = getEventDate(a);
+        const dateB = getEventDate(b);
+        return new Date(dateB).getTime() - new Date(dateA).getTime(); // Descending for history
+    });
+
+    // Filter out old cadence runs from history for cleaner view
+    const currentRunHistory = historyEvents.filter(
         (e) => e.type === "system" || e.type !== "cadence" || (e as CadenceEvent).cadenceRunId === currentRunId
     );
-    const previousRunEvents = sortedEvents.filter(
+    const previousRunEvents = historyEvents.filter(
         (e) => e.type === "cadence" && (e as CadenceEvent).cadenceRunId < currentRunId
     );
 
@@ -125,11 +163,28 @@ export function QuoteTimeline({ events, currentRunId, quoteCreatedAt, quoteSentA
 
     return (
         <div className="space-y-6">
-            {/* Current run */}
-            <div className="space-y-4">
-                {currentRunEvents.map((event) => (
-                    <TimelineItem key={`${event.type}-${event.id}`} event={event} />
-                ))}
+            {/* P0-03: Próximas ações section */}
+            {upcomingActions.length > 0 && (
+                <div>
+                    <h4 className="mb-3 text-sm font-medium">Próximas ações</h4>
+                    <div className="space-y-3 rounded-lg bg-blue-500/5 p-3">
+                        {upcomingActions.map((event) => (
+                            <TimelineItem key={`${event.type}-${event.id}`} event={event} isUpcoming />
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* P0-03: Histórico section */}
+            <div>
+                {upcomingActions.length > 0 && (
+                    <h4 className="mb-3 text-sm font-medium text-[var(--color-muted-foreground)]">Histórico</h4>
+                )}
+                <div className="space-y-4">
+                    {currentRunHistory.map((event) => (
+                        <TimelineItem key={`${event.type}-${event.id}`} event={event} />
+                    ))}
+                </div>
             </div>
 
             {/* Previous runs */}
@@ -149,7 +204,7 @@ export function QuoteTimeline({ events, currentRunId, quoteCreatedAt, quoteSentA
     );
 }
 
-function TimelineItem({ event }: { event: TimelineEvent }) {
+function TimelineItem({ event, isUpcoming = false }: { event: TimelineEvent; isUpcoming?: boolean }) {
     const { icon: Icon, color, label } = getStatusConfig(event);
     const TypeIcon = getTypeIcon(event);
     const isSystemEvent = event.type === "system";
@@ -177,7 +232,7 @@ function TimelineItem({ event }: { event: TimelineEvent }) {
                 </div>
 
                 <div className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-[var(--color-muted-foreground)]">
-                    <span>{formatDate(getEventDate(event))}</span>
+                    <span>{formatDate(getEventDate(event), isUpcoming)}</span>
                     {getEventDetail(event) && <span>• {getEventDetail(event)}</span>}
                 </div>
             </div>
@@ -266,17 +321,40 @@ function getTypeBackground(event: TimelineEvent): string {
     }
 }
 
-function formatDate(dateStr: string): string {
+// P0-04: Fixed date formatting - handles both past and future dates correctly
+function formatDate(dateStr: string, isUpcoming: boolean = false): string {
     const date = new Date(dateStr);
     const now = new Date();
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
 
+    // Reset time portion for day comparison
+    const dateDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const diffMs = dateDay.getTime() - nowDay.getTime();
+    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+    // Future dates (for upcoming actions)
+    if (diffDays > 0) {
+        if (diffDays === 1) {
+            return "Amanhã";
+        } else if (diffDays < 7) {
+            return `Daqui a ${diffDays} dias`;
+        } else {
+            return date.toLocaleDateString("pt-PT", { day: "numeric", month: "short" });
+        }
+    }
+
+    // Today
     if (diffDays === 0) {
         return `Hoje às ${date.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}`;
-    } else if (diffDays === 1) {
+    }
+
+    // Past dates (for history)
+    const absDiffDays = Math.abs(diffDays);
+    if (absDiffDays === 1) {
         return "Ontem";
-    } else if (diffDays < 7) {
-        return `Há ${diffDays} dias`;
+    } else if (absDiffDays < 7) {
+        return `Há ${absDiffDays} dias`;
     } else {
         return date.toLocaleDateString("pt-PT");
     }

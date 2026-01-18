@@ -2,8 +2,10 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardHeader, CardTitle, CardContent, Button, Input, Label, toast } from "@/components/ui";
-import { FileText, Upload, ExternalLink, Trash2, Link as LinkIcon, Save, Copy, Check, Mail, Plus } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent, Button, Input, Badge, toast } from "@/components/ui";
+import { formatDistanceToNow } from "date-fns";
+import { pt } from "date-fns/locale";
+import { FileText, Upload, ExternalLink, Trash2, Link as LinkIcon, Save, Copy, Check, CheckCircle2 } from "lucide-react";
 
 // Inbound domain for BCC addresses
 const INBOUND_DOMAIN = process.env.NEXT_PUBLIC_INBOUND_DOMAIN || "inbound.ritmo.app";
@@ -167,35 +169,56 @@ export function ProposalSection({ quote }: ProposalSectionProps) {
 
     const hasProposal = quote.proposalFile || quote.proposalLink;
 
+    // Determine proposal source for display
+    const getProposalSource = () => {
+        if (quote.proposalFile) return "PDF carregado";
+        if (quote.proposalLink) return "Link externo";
+        return null;
+    };
+
     return (
         <Card>
             <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                    <FileText className="h-4 w-4" />
-                    Proposta
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                        <FileText className="h-4 w-4" />
+                        Proposta
+                    </CardTitle>
+                    {/* P0-02: Status badge when proposal exists */}
+                    {hasProposal && (
+                        <Badge variant="success" className="gap-1">
+                            <CheckCircle2 className="h-3 w-3" />
+                            Disponível
+                        </Badge>
+                    )}
+                </div>
             </CardHeader>
             <CardContent className="space-y-4 pt-0">
-                {/* P0-02: Primary action - Open proposal (if exists) */}
+                {/* P0-02: Primary action - Open proposal (if exists) - more prominent */}
                 {hasProposal && (
-                    <Button
-                        onClick={handleOpenProposal}
-                        disabled={loadingUrl}
-                        className="w-full gap-2"
-                    >
-                        <ExternalLink className="h-4 w-4" />
-                        {quote.proposalFile ? "Abrir PDF" : "Abrir link"}
-                    </Button>
+                    <div className="space-y-2">
+                        <Button
+                            onClick={handleOpenProposal}
+                            disabled={loadingUrl}
+                            className="w-full gap-2"
+                        >
+                            <ExternalLink className="h-4 w-4" />
+                            {loadingUrl ? "A abrir..." : "Abrir proposta"}
+                        </Button>
+                        {/* P0-02: Show source info */}
+                        <p className="text-center text-xs text-[var(--color-muted-foreground)]">
+                            {getProposalSource()}
+                            {quote.proposalFile && ` · ${formatFileSize(quote.proposalFile.sizeBytes)}`}
+                            {quote.proposalFile && ` · ${formatDistanceToNow(new Date(quote.proposalFile.createdAt), { addSuffix: true, locale: pt })}`}
+                        </p>
+                    </div>
                 )}
 
-                {/* Uploaded file info */}
+                {/* Uploaded file info - simplified when proposal exists */}
                 {quote.proposalFile && (
                     <div className="flex items-center justify-between rounded-md bg-[var(--color-muted)]/50 px-3 py-2">
                         <div className="min-w-0 flex-1">
                             <p className="truncate text-sm">{quote.proposalFile.filename}</p>
-                            <p className="text-xs text-[var(--color-muted-foreground)]">
-                                {formatFileSize(quote.proposalFile.sizeBytes)}
-                            </p>
                         </div>
                         <Button
                             size="sm"
