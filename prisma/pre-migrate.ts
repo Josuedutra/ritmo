@@ -77,6 +77,58 @@ async function main() {
         }
     }
 
+    // Clean up duplicate cadence_event_id in email_logs (keep first, delete rest)
+    console.log("🧹 Cleaning up duplicate email_logs for unique constraint...");
+    await prisma.$executeRaw`
+        DELETE FROM email_logs
+        WHERE id IN (
+            SELECT id FROM (
+                SELECT id, ROW_NUMBER() OVER (PARTITION BY cadence_event_id ORDER BY created_at) as rn
+                FROM email_logs
+                WHERE cadence_event_id IS NOT NULL
+            ) t WHERE rn > 1
+        )
+    `;
+
+    // Clean up duplicate cadence_event_id in tasks (keep first, delete rest)
+    console.log("🧹 Cleaning up duplicate tasks for unique constraint...");
+    await prisma.$executeRaw`
+        DELETE FROM tasks
+        WHERE id IN (
+            SELECT id FROM (
+                SELECT id, ROW_NUMBER() OVER (PARTITION BY cadence_event_id ORDER BY created_at) as rn
+                FROM tasks
+                WHERE cadence_event_id IS NOT NULL
+            ) t WHERE rn > 1
+        )
+    `;
+
+    // Clean up duplicate provider_message_id in inbound_ingestions (keep first, delete rest)
+    console.log("🧹 Cleaning up duplicate inbound_ingestions for unique constraint...");
+    await prisma.$executeRaw`
+        DELETE FROM inbound_ingestions
+        WHERE id IN (
+            SELECT id FROM (
+                SELECT id, ROW_NUMBER() OVER (PARTITION BY provider_message_id ORDER BY created_at) as rn
+                FROM inbound_ingestions
+                WHERE provider_message_id IS NOT NULL
+            ) t WHERE rn > 1
+        )
+    `;
+
+    // Ensure unique public_id in quotes (regenerate duplicates)
+    console.log("🧹 Fixing duplicate public_id in quotes...");
+    await prisma.$executeRaw`
+        UPDATE quotes
+        SET public_id = CONCAT('c', SUBSTRING(MD5(RANDOM()::TEXT || id), 1, 24))
+        WHERE id IN (
+            SELECT id FROM (
+                SELECT id, ROW_NUMBER() OVER (PARTITION BY public_id ORDER BY created_at) as rn
+                FROM quotes
+            ) t WHERE rn > 1
+        )
+    `;
+
     console.log("✅ Pre-migration complete");
 }
 
