@@ -5,12 +5,13 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button, Input, Label, Card, CardHeader, CardContent, CardFooter } from "@/components/ui";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Info } from "lucide-react";
 
 export default function LoginPage() {
     const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
@@ -84,26 +85,48 @@ export default function LoginPage() {
 
                             <div className="space-y-2">
                                 <Label htmlFor="password">Password</Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="••••••••"
-                                    autoComplete="current-password"
-                                    required
-                                />
+                                <div className="relative">
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? "text" : "password"}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        placeholder="••••••••"
+                                        autoComplete="current-password"
+                                        className="pr-10"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
+                                        tabIndex={-1}
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff className="h-4 w-4" />
+                                        ) : (
+                                            <Eye className="h-4 w-4" />
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Demo credentials callout */}
+                            <div className="flex items-start gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-muted)]/50 px-3 py-2">
+                                <Info className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-muted-foreground)]" />
+                                <div className="text-xs text-[var(--color-muted-foreground)]">
+                                    <span className="font-medium">Demo:</span>{" "}
+                                    <code className="rounded bg-[var(--color-background)] px-1">admin@demo.ritmo.app</code>
+                                    {" / "}
+                                    <code className="rounded bg-[var(--color-background)] px-1">demo123</code>
+                                </div>
                             </div>
                         </CardContent>
 
-                        <CardFooter className="flex-col gap-3">
+                        <CardFooter>
                             <Button type="submit" className="w-full" disabled={loading}>
                                 {loading ? "A entrar..." : "Entrar"}
                             </Button>
-
-                            <p className="text-center text-xs text-[var(--color-muted-foreground)]">
-                                Demo: admin@demo.ritmo.app / demo123
-                            </p>
                         </CardFooter>
                     </form>
                 </Card>
