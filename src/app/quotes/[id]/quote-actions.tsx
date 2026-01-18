@@ -210,15 +210,19 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
     const isFinished = quote.businessStatus === "won" || quote.businessStatus === "lost";
 
     const getErrorTitle = () => {
-        if (limitError?.action === "update_payment") return "Pagamento em atraso";
-        if (limitError?.action === "reactivate_subscription") return "Subscrição cancelada";
-        return "Limite atingido";
+        if (limitError?.action === "update_payment") return "Pagamento em atraso.";
+        if (limitError?.action === "reactivate_subscription") return "Subscrição cancelada.";
+        return "Limite de envios atingido.";
+    };
+
+    const getErrorDescription = () => {
+        if (limitError?.action === "update_payment") return "Atualize o método de pagamento para continuar.";
+        if (limitError?.action === "reactivate_subscription") return "Reative o plano para continuar.";
+        return "Atualize o plano para continuar a enviar orçamentos.";
     };
 
     const getErrorCTA = () => {
-        if (limitError?.action === "update_payment") return "Atualizar pagamento →";
-        if (limitError?.action === "reactivate_subscription") return "Reativar subscrição →";
-        return "Atualizar plano →";
+        return "Gerir plano →";
     };
 
     return (
@@ -230,7 +234,7 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
                     <div className="flex-1">
                         <p className="text-sm font-medium text-red-500">{getErrorTitle()}</p>
                         <p className="mt-0.5 text-sm text-[var(--color-muted-foreground)]">
-                            {limitError.message}
+                            {getErrorDescription()}
                         </p>
                         <Link
                             href="/settings/billing"

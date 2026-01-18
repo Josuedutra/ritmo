@@ -1,80 +1,67 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { AppHeader, PageHeader } from "@/components/layout";
-import { BillingContent } from "./billing-content";
 import { getEntitlements } from "@/lib/entitlements";
+import { BillingPageClient } from "./billing-page-client";
 
 export default async function BillingPage() {
     const session = await auth();
+    if (!session?.user?.organizationId) redirect("/login");
 
-    if (!session?.user?.organizationId) {
-        redirect("/login");
-    }
+    const organizationId = session.user.organizationId;
 
-    // Only admins can access billing
-    if (session.user.role !== "admin") {
-        redirect("/dashboard");
-    }
-
-    // Get subscription data
-    const subscription = await prisma.subscription.findUnique({
-        where: { organizationId: session.user.organizationId },
+    // Get organization with subscription
+    const organization = await prisma.organization.findUnique({
+        where: { id: organizationId },
         include: {
-            plan: true,
-        },
-    });
-
-    // Get current period usage
-    const now = new Date();
-    const periodStart =
-        subscription?.currentPeriodStart ||
-        new Date(now.getFullYear(), now.getMonth(), 1);
-
-    const usageCounter = await prisma.usageCounter.findFirst({
-        where: {
-            organizationId: session.user.organizationId,
-            periodStart: {
-                gte: periodStart,
+            subscription: {
+                include: {
+                    plan: true,
+                },
             },
         },
-        orderBy: { periodStart: "desc" },
     });
 
-    // Get all active plans and entitlements
-    const [plans, entitlements] = await Promise.all([
-        prisma.plan.findMany({
-            where: { isActive: true },
-            orderBy: { priceMonthly: "asc" },
-        }),
-        getEntitlements(session.user.organizationId),
-    ]);
+    if (!organization) redirect("/login");
 
-    const billingData = {
+    // Get entitlements (single source of truth)
+    const entitlements = await getEntitlements(organizationId);
+
+    // Get all plans
+    const plans = await prisma.plan.findMany({
+        where: { isActive: true },
+        orderBy: { priceMonthly: "asc" },
+    });
+
+    // Transform data for client
+    const subscription = organization.subscription;
+
+    const data = {
+        organization: {
+            id: organization.id,
+            trialEndsAt: organization.trialEndsAt?.toISOString() ?? null,
+        },
         subscription: subscription
             ? {
                   planId: subscription.planId,
-                  planName: subscription.plan?.name || subscription.planId,
+                  planName: subscription.plan?.name ?? "Gratuito",
                   status: subscription.status,
                   quotesLimit: subscription.quotesLimit,
-                  currentPeriodStart: subscription.currentPeriodStart?.toISOString() || null,
-                  currentPeriodEnd: subscription.currentPeriodEnd?.toISOString() || null,
+                  currentPeriodEnd: subscription.currentPeriodEnd?.toISOString() ?? null,
                   cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
                   hasStripeCustomer: !!subscription.stripeCustomerId,
                   hasStripeSubscription: !!subscription.stripeSubscriptionId,
               }
             : null,
-        usage: {
-            quotesSent: usageCounter?.quotesSent || 0,
-            quotesLimit: subscription?.quotesLimit || 10,
-        },
-        // P0-05: Pass entitlements for correct tier-based display
         entitlements: {
             tier: entitlements.tier,
+            planName: entitlements.planName,
             quotesUsed: entitlements.quotesUsed,
             effectivePlanLimit: entitlements.effectivePlanLimit,
             trialDaysRemaining: entitlements.trialDaysRemaining,
-            planName: entitlements.planName,
+            autoEmailEnabled: entitlements.autoEmailEnabled,
+            bccInboundEnabled: entitlements.bccInboundEnabled,
+            subscriptionStatus: entitlements.subscriptionStatus,
         },
         plans: plans.map((p) => ({
             id: p.id,
@@ -82,21 +69,13 @@ export default async function BillingPage() {
             quotesLimit: p.monthlyQuoteLimit,
             priceMonthly: p.priceMonthly,
             hasStripePrice: !!p.stripePriceId,
+            // Features based on plan
+            features:
+                p.id === "free"
+                    ? []
+                    : ["Emails automáticos", "Captura de proposta por BCC"],
         })),
     };
 
-    return (
-        <div className="min-h-screen bg-[var(--color-background)]">
-            <AppHeader user={session.user} />
-
-            <main className="container-app py-6">
-                <PageHeader
-                    title="Faturação"
-                    description="Gerir o seu plano e pagamentos"
-                />
-
-                <BillingContent data={billingData} />
-            </main>
-        </div>
-    );
+    return <BillingPageClient data={data} />;
 }

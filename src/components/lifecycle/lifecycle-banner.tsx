@@ -50,65 +50,37 @@ export function LifecycleBanner() {
         return null;
     }
 
-    // Trial ending soon (less than 3 days)
-    if (
-        entitlements.tier === "trial" &&
-        entitlements.trialDaysRemaining !== null &&
-        entitlements.trialDaysRemaining <= 3
-    ) {
+    // Trial banner (any days remaining)
+    if (entitlements.tier === "trial" && entitlements.trialDaysRemaining !== null) {
+        const isUrgent = entitlements.trialDaysRemaining <= 3;
+        const borderColor = isUrgent ? "border-orange-500/30" : "border-blue-500/30";
+        const bgColor = isUrgent ? "bg-orange-500/10" : "bg-blue-500/10";
+        const iconColor = isUrgent ? "text-orange-500" : "text-blue-400";
+        const textColor = isUrgent ? "text-orange-200" : "text-blue-200";
+        const subtextColor = isUrgent ? "text-orange-300/80" : "text-blue-300/80";
+        const linkColor = isUrgent ? "text-orange-400 hover:text-orange-300" : "text-blue-400 hover:text-blue-300";
+        const Icon = isUrgent ? Clock : Zap;
+
         return (
-            <div className="mb-4 rounded-lg border border-orange-500/30 bg-orange-500/10 px-4 py-3">
+            <div className={`mb-4 rounded-lg border ${borderColor} ${bgColor} px-4 py-3`}>
                 <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3">
-                        <Clock className="mt-0.5 h-5 w-5 text-orange-500" />
+                        <Icon className={`mt-0.5 h-5 w-5 ${iconColor}`} />
                         <div>
-                            <p className="text-sm font-medium text-orange-200">
-                                Trial termina em {entitlements.trialDaysRemaining} dia
-                                {entitlements.trialDaysRemaining !== 1 ? "s" : ""}
-                            </p>
-                            <p className="mt-0.5 text-sm text-orange-300/80">
-                                Já enviou {entitlements.quotesUsed} de {entitlements.quotesLimit} envios.
-                                Escolha um plano para continuar com automação.
+                            <p className={`text-sm font-medium ${textColor}`}>
+                                Trial termina em {entitlements.trialDaysRemaining} dia{entitlements.trialDaysRemaining !== 1 ? "s" : ""} · {entitlements.quotesUsed}/{entitlements.quotesLimit} envios
                             </p>
                             <Link
                                 href="/settings/billing"
-                                className="mt-2 inline-flex items-center text-sm font-medium text-orange-400 hover:text-orange-300"
+                                className={`mt-2 inline-flex items-center text-sm font-medium ${linkColor}`}
                             >
-                                Ver planos →
+                                Atualizar plano →
                             </Link>
                         </div>
                     </div>
                     <button
                         onClick={() => setDismissed(true)}
-                        className="text-orange-400 hover:text-orange-300"
-                    >
-                        <X className="h-4 w-4" />
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    // Trial active with more time
-    if (entitlements.tier === "trial" && entitlements.trialDaysRemaining !== null) {
-        return (
-            <div className="mb-4 rounded-lg border border-blue-500/30 bg-blue-500/10 px-4 py-3">
-                <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-3">
-                        <Zap className="mt-0.5 h-5 w-5 text-blue-400" />
-                        <div>
-                            <p className="text-sm font-medium text-blue-200">
-                                Trial ativo · {entitlements.trialDaysRemaining} dia
-                                {entitlements.trialDaysRemaining !== 1 ? "s" : ""} restantes
-                            </p>
-                            <p className="mt-0.5 text-sm text-blue-300/80">
-                                {entitlements.quotesRemaining} envios disponíveis. Automação de emails e BCC ativas.
-                            </p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={() => setDismissed(true)}
-                        className="text-blue-400 hover:text-blue-300"
+                        className={linkColor}
                     >
                         <X className="h-4 w-4" />
                     </button>
@@ -126,17 +98,13 @@ export function LifecycleBanner() {
                         <AlertTriangle className="mt-0.5 h-5 w-5 text-[var(--color-muted-foreground)]" />
                         <div>
                             <p className="text-sm font-medium">
-                                Modo manual (TASK-EMAIL)
-                            </p>
-                            <p className="mt-0.5 text-sm text-[var(--color-muted-foreground)]">
-                                No plano gratuito, emails de follow-up aparecem como tarefas para enviar manualmente.
-                                A automação e BCC estão desativadas.
+                                Modo manual · {entitlements.quotesUsed}/{entitlements.quotesLimit} envios este mês
                             </p>
                             <Link
                                 href="/settings/billing"
                                 className="mt-2 inline-flex items-center text-sm font-medium text-[var(--color-primary)] hover:underline"
                             >
-                                Ativar automação com um plano →
+                                Atualizar plano →
                             </Link>
                         </div>
                     </div>
@@ -160,10 +128,7 @@ export function LifecycleBanner() {
                         <AlertTriangle className="mt-0.5 h-5 w-5 text-red-500" />
                         <div>
                             <p className="text-sm font-medium text-red-200">
-                                Pagamento em atraso
-                            </p>
-                            <p className="mt-0.5 text-sm text-red-300/80">
-                                Atualize o método de pagamento para continuar a enviar.
+                                Pagamento em atraso. Atualize para continuar a enviar.
                             </p>
                             <Link
                                 href="/settings/billing"
@@ -187,16 +152,13 @@ export function LifecycleBanner() {
                         <AlertTriangle className="mt-0.5 h-5 w-5 text-red-500" />
                         <div>
                             <p className="text-sm font-medium text-red-200">
-                                Subscrição cancelada
-                            </p>
-                            <p className="mt-0.5 text-sm text-red-300/80">
-                                Reative o plano para continuar a enviar com automação.
+                                Subscrição cancelada. Reative para continuar.
                             </p>
                             <Link
                                 href="/settings/billing"
                                 className="mt-2 inline-flex items-center text-sm font-medium text-red-400 hover:text-red-300"
                             >
-                                Reativar plano →
+                                Reativar →
                             </Link>
                         </div>
                     </div>
