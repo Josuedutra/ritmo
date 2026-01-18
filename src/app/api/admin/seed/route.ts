@@ -33,6 +33,14 @@ export async function POST(request: NextRequest) {
     try {
         console.log("🌱 Seeding database...");
 
+        // First, update any existing organizations missing shortId
+        // This handles the migration case where shortId was added as required
+        await prisma.$executeRaw`
+            UPDATE organizations
+            SET short_id = CONCAT('org_', gen_random_uuid()::text)
+            WHERE short_id IS NULL
+        `;
+
         // Create demo organization
         const org = await prisma.organization.upsert({
             where: { slug: "demo" },
