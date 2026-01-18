@@ -63,7 +63,7 @@ async function main() {
                 SELECT COUNT(*) as count FROM organizations WHERE short_id IS NULL
             `;
 
-            if (nullCount[0]?.count > 0n) {
+            if (Number(nullCount[0]?.count) > 0) {
                 console.log("📝 Populating NULL short_id values...");
                 await prisma.$executeRaw`
                     UPDATE organizations
