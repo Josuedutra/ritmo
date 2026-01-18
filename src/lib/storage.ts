@@ -1,18 +1,30 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "@/lib/logger";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-
-// Service client for server-side operations (with service role key)
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-    auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-    },
-});
-
 const BUCKET_NAME = "proposals";
+
+// Lazy-initialized Supabase client (avoids build-time errors when env vars are missing)
+let _supabaseAdmin: SupabaseClient | null = null;
+
+function getSupabaseAdmin(): SupabaseClient | null {
+    if (_supabaseAdmin) return _supabaseAdmin;
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+        return null;
+    }
+
+    _supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+        auth: {
+            autoRefreshToken: false,
+            persistSession: false,
+        },
+    });
+
+    return _supabaseAdmin;
+}
 
 interface UploadResult {
     success: boolean;
@@ -39,8 +51,9 @@ export async function uploadFile(
     contentType: string
 ): Promise<UploadResult> {
     const log = logger.child({ service: "storage" });
+    const supabase = getSupabaseAdmin();
 
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!supabase) {
         log.warn("Supabase not configured - storage disabled");
         return { success: false, error: "Storage not configured" };
     }
@@ -48,7 +61,7 @@ export async function uploadFile(
     const path = `${organizationId}/${quoteId}/${filename}`;
 
     try {
-        const { error } = await supabaseAdmin.storage
+        const { error } = await supabase.storage
             .from(BUCKET_NAME)
             .upload(path, file, {
                 contentType,
@@ -79,14 +92,15 @@ export async function getSignedUrl(
     expiresIn: number = 3600
 ): Promise<SignedUrlResult> {
     const log = logger.child({ service: "storage" });
+    const supabase = getSupabaseAdmin();
 
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!supabase) {
         log.warn("Supabase not configured - storage disabled");
         return { success: false, error: "Storage not configured" };
     }
 
     try {
-        const { data, error } = await supabaseAdmin.storage
+        const { data, error } = await supabase.storage
             .from(BUCKET_NAME)
             .createSignedUrl(path, expiresIn);
 
@@ -108,13 +122,14 @@ export async function getSignedUrl(
  */
 export async function deleteFile(path: string): Promise<{ success: boolean; error?: string }> {
     const log = logger.child({ service: "storage" });
+    const supabase = getSupabaseAdmin();
 
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!supabase) {
         return { success: false, error: "Storage not configured" };
     }
 
     try {
-        const { error } = await supabaseAdmin.storage
+        const { error } = await supabase.storage
             .from(BUCKET_NAME)
             .remove([path]);
 
