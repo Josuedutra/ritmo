@@ -42,12 +42,25 @@ const FEEDBACK_TYPES = [
     },
 ];
 
+// Pages where feedback button should appear (authenticated app pages)
+const SHOW_FEEDBACK_PATHS = [
+    "/dashboard",
+    "/quotes",
+    "/settings",
+    "/templates",
+    "/onboarding",
+];
+
 export function FeedbackModal() {
     const pathname = usePathname();
     const [open, setOpen] = useState(false);
     const [type, setType] = useState<FeedbackType | null>(null);
     const [message, setMessage] = useState("");
     const [submitting, setSubmitting] = useState(false);
+
+    // Only show on authenticated app pages
+    const shouldShow = SHOW_FEEDBACK_PATHS.some((path) => pathname?.startsWith(path));
+    if (!shouldShow) return null;
 
     const handleSubmit = async () => {
         if (!type || !message.trim()) return;

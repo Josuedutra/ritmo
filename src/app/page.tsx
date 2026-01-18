@@ -19,7 +19,7 @@ export default function HomePage() {
 
             {/* Hero */}
             <main className="flex flex-1 flex-col">
-                <section className="flex flex-1 items-center justify-center px-6 py-16">
+                <section className="px-6 py-12 sm:py-16">
                     <div className="mx-auto max-w-2xl text-center">
                         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
                             Follow-up inteligente
@@ -31,19 +31,18 @@ export default function HomePage() {
                             Cadência automática + painel + envio. Nunca mais perca uma oportunidade por falta de acompanhamento.
                         </p>
 
-                        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+                        <div className="mt-8">
                             <Link href="/login">
-                                <Button size="lg" className="w-full sm:w-auto">
+                                <Button size="lg">
                                     Começar agora
                                     <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
                             </Link>
-                            <Link href="/health">
-                                <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                                    Ver status
-                                </Button>
-                            </Link>
                         </div>
+
+                        <p className="mt-4 text-sm text-[var(--color-muted-foreground)]">
+                            14 dias grátis · 20 envios · sem cartão
+                        </p>
                     </div>
                 </section>
 
@@ -87,8 +86,11 @@ export default function HomePage() {
 
             {/* Footer */}
             <footer className="border-t border-[var(--color-border)] py-4">
-                <div className="container-app text-center text-sm text-[var(--color-muted-foreground)]">
-                    © 2026 Ritmo · MVP v0.1.0
+                <div className="container-app flex items-center justify-between text-sm text-[var(--color-muted-foreground)]">
+                    <span>© 2026 Ritmo</span>
+                    <Link href="/health" className="hover:text-[var(--color-foreground)]">
+                        Status
+                    </Link>
                 </div>
             </footer>
         </div>
