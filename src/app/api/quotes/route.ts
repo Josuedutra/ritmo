@@ -11,8 +11,7 @@ import {
 
 // Validation schemas
 // Helper to convert empty strings to null before validation
-const emptyToNull = (v: string | null | undefined) =>
-    v === "" ? null : v;
+const emptyToNull = (v: unknown) => (v === "" ? null : v);
 
 const createQuoteSchema = z.object({
     contactId: z.preprocess(
