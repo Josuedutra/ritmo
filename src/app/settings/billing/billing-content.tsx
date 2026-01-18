@@ -44,6 +44,14 @@ interface BillingData {
         quotesSent: number;
         quotesLimit: number;
     };
+    // P0-05: Entitlements for tier-based display
+    entitlements: {
+        tier: "trial" | "free" | "paid";
+        quotesUsed: number;
+        effectivePlanLimit: number;
+        trialDaysRemaining: number | null;
+        planName: string;
+    };
     plans: Plan[];
 }
 
@@ -58,12 +66,26 @@ export function BillingContent({ data }: BillingContentProps) {
     const success = searchParams.get("success") === "true";
     const canceled = searchParams.get("canceled") === "true";
 
-    const { subscription, usage, plans } = data;
+    const { subscription, usage, entitlements, plans } = data;
 
-    const usagePercentage = Math.min(
-        (usage.quotesSent / usage.quotesLimit) * 100,
-        100
-    );
+    // P0-05: Use entitlements for accurate usage display
+    const usagePercentage = entitlements.effectivePlanLimit > 0
+        ? Math.min((entitlements.quotesUsed / entitlements.effectivePlanLimit) * 100, 100)
+        : 0;
+
+    // P0-05: Tier label for display
+    const tierLabel = entitlements.tier === "trial"
+        ? "Trial"
+        : entitlements.tier === "paid"
+            ? entitlements.planName
+            : "Gratuito";
+
+    // P0-05: Subtitle with context
+    const tierSubtitle = entitlements.tier === "trial" && entitlements.trialDaysRemaining
+        ? `${entitlements.trialDaysRemaining} dias restantes`
+        : entitlements.tier === "free"
+            ? "modo manual"
+            : null;
 
     const formatDate = (dateStr: string | null) => {
         if (!dateStr) return "-";
@@ -280,13 +302,23 @@ export function BillingContent({ data }: BillingContentProps) {
                     </CardContent>
                 </Card>
 
-                {/* Usage Card */}
+                {/* Usage Card - P0-05: Updated to use entitlements */}
                 <Card>
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <TrendingUp className="h-5 w-5" />
-                            Utilização este mês
-                        </CardTitle>
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="flex items-center gap-2">
+                                <TrendingUp className="h-5 w-5" />
+                                Utilização este mês
+                            </CardTitle>
+                            <div className="flex items-center gap-2">
+                                <Badge variant="outline">{tierLabel}</Badge>
+                                {tierSubtitle && (
+                                    <span className="text-xs text-[var(--color-muted-foreground)]">
+                                        {tierSubtitle}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
                         <CardDescription>
                             Orçamentos enviados no período atual
                         </CardDescription>
@@ -295,11 +327,11 @@ export function BillingContent({ data }: BillingContentProps) {
                         <div className="flex items-end justify-between">
                             <div>
                                 <span className="text-4xl font-bold">
-                                    {usage.quotesSent}
+                                    {entitlements.quotesUsed}
                                 </span>
                                 <span className="text-lg text-[var(--color-muted-foreground)]">
                                     {" "}
-                                    / {usage.quotesLimit}
+                                    / {entitlements.effectivePlanLimit}
                                 </span>
                             </div>
                             <span className="text-sm text-[var(--color-muted-foreground)]">

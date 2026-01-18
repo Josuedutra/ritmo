@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { AppHeader, PageHeader } from "@/components/layout";
 import { BillingContent } from "./billing-content";
+import { getEntitlements } from "@/lib/entitlements";
 
 export default async function BillingPage() {
     const session = await auth();
@@ -40,11 +41,14 @@ export default async function BillingPage() {
         orderBy: { periodStart: "desc" },
     });
 
-    // Get all active plans
-    const plans = await prisma.plan.findMany({
-        where: { isActive: true },
-        orderBy: { priceMonthly: "asc" },
-    });
+    // Get all active plans and entitlements
+    const [plans, entitlements] = await Promise.all([
+        prisma.plan.findMany({
+            where: { isActive: true },
+            orderBy: { priceMonthly: "asc" },
+        }),
+        getEntitlements(session.user.organizationId),
+    ]);
 
     const billingData = {
         subscription: subscription
@@ -63,6 +67,14 @@ export default async function BillingPage() {
         usage: {
             quotesSent: usageCounter?.quotesSent || 0,
             quotesLimit: subscription?.quotesLimit || 10,
+        },
+        // P0-05: Pass entitlements for correct tier-based display
+        entitlements: {
+            tier: entitlements.tier,
+            quotesUsed: entitlements.quotesUsed,
+            effectivePlanLimit: entitlements.effectivePlanLimit,
+            trialDaysRemaining: entitlements.trialDaysRemaining,
+            planName: entitlements.planName,
         },
         plans: plans.map((p) => ({
             id: p.id,
