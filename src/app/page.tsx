@@ -129,10 +129,10 @@ export default function LandingPage() {
                                         src="/landing_step1_dark.png"
                                         alt="Register Quote"
                                         fill
-                                        className="object-cover object-top opacity-90 transition-transform duration-500 group-hover:scale-105"
+                                        className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-                                    <div className="absolute top-4 left-4 w-8 h-8 rounded-full bg-white text-black font-bold flex items-center justify-center text-sm shadow-lg">1</div>
+                                    <div className="hidden absolute top-4 left-4 w-8 h-8 rounded-full bg-black/50 backdrop-blur-md border border-white/20 text-white font-bold flex items-center justify-center text-sm shadow-lg">1</div>
                                 </div>
                                 <h3 className="text-xl font-bold mb-2 text-zinc-900">Registe o orçamento</h3>
                                 <p className="text-zinc-600 bg-white p-4 rounded-xl border border-zinc-100 shadow-sm leading-relaxed">
@@ -147,10 +147,10 @@ export default function LandingPage() {
                                         src="/landing_step2_dark.png"
                                         alt="Send as Usual"
                                         fill
-                                        className="object-cover object-top opacity-90 transition-transform duration-500 group-hover:scale-105"
+                                        className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-                                    <div className="absolute top-4 left-4 w-8 h-8 rounded-full bg-white text-black font-bold flex items-center justify-center text-sm shadow-lg">2</div>
+                                    <div className="hidden absolute top-4 left-4 w-8 h-8 rounded-full bg-black/50 backdrop-blur-md border border-white/20 text-white font-bold flex items-center justify-center text-sm shadow-lg">2</div>
                                 </div>
                                 <h3 className="text-xl font-bold mb-2 text-zinc-900">Envie como sempre</h3>
                                 <p className="text-zinc-600 bg-white p-4 rounded-xl border border-zinc-100 shadow-sm leading-relaxed">
@@ -165,10 +165,10 @@ export default function LandingPage() {
                                         src="/landing_step3_dark.png"
                                         alt="Action Today"
                                         fill
-                                        className="object-cover object-top opacity-90 transition-transform duration-500 group-hover:scale-105"
+                                        className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-                                    <div className="absolute top-4 left-4 w-8 h-8 rounded-full bg-white text-black font-bold flex items-center justify-center text-sm shadow-lg">3</div>
+                                    <div className="hidden absolute top-4 left-4 w-8 h-8 rounded-full bg-black/50 backdrop-blur-md border border-white/20 text-white font-bold flex items-center justify-center text-sm shadow-lg">3</div>
                                 </div>
                                 <h3 className="text-xl font-bold mb-2 text-zinc-900">Faça o que aparece hoje</h3>
                                 <p className="text-zinc-600 bg-white p-4 rounded-xl border border-zinc-100 shadow-sm leading-relaxed">
@@ -178,7 +178,7 @@ export default function LandingPage() {
                         </div>
 
                         <div className="mt-12 text-center">
-                            <p className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-50 text-yellow-800 rounded-full text-sm font-medium border border-yellow-100">
+                            <p className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-50 text-zinc-600 rounded-full text-sm font-medium border border-zinc-200 transition-colors hover:bg-zinc-100 hover:text-zinc-900">
                                 <Zap className="w-4 h-4" />
                                 Sem email/telefone? O Ritmo cria tarefas manuais para não travar.
                             </p>
