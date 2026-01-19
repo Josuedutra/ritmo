@@ -261,8 +261,128 @@ export default function LandingPage() {
                     </div>
                 </section>
 
+                {/* PRICING */}
+                <section id="pricing" className="py-24 px-6 bg-zinc-50 border-t border-zinc-100">
+                    <div className="container mx-auto max-w-6xl">
+                        <div className="text-center mb-16">
+                            <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-zinc-900 mb-4">
+                                Preços simples, sem surpresas.
+                            </h2>
+                            <p className="text-xl text-zinc-500 max-w-2xl mx-auto">
+                                Comece grátis. Escale quando precisar.
+                            </p>
+                        </div>
+
+                        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                            {/* Free Plan */}
+                            <div className="relative rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
+                                <h3 className="text-xl font-bold text-zinc-900 mb-2">Gratuito</h3>
+                                <p className="text-zinc-500 text-sm mb-6">Para começar a experimentar</p>
+                                <div className="mb-6">
+                                    <span className="text-4xl font-bold text-zinc-900">€0</span>
+                                    <span className="text-zinc-500">/mês</span>
+                                </div>
+                                <ul className="space-y-3 mb-8">
+                                    <li className="flex items-center gap-2 text-sm text-zinc-600">
+                                        <Check className="w-4 h-4 text-green-500" />
+                                        5 envios por mês
+                                    </li>
+                                    <li className="flex items-center gap-2 text-sm text-zinc-600">
+                                        <Check className="w-4 h-4 text-green-500" />
+                                        Cadência manual
+                                    </li>
+                                    <li className="flex items-center gap-2 text-sm text-zinc-600">
+                                        <Check className="w-4 h-4 text-green-500" />
+                                        Templates básicos
+                                    </li>
+                                </ul>
+                                <Link href="/signup">
+                                    <Button variant="outline" className="w-full rounded-full">
+                                        Começar Grátis
+                                    </Button>
+                                </Link>
+                            </div>
+
+                            {/* Starter Plan - Popular */}
+                            <div className="relative rounded-2xl border-2 border-blue-500 bg-white p-8 shadow-lg scale-105">
+                                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                                    <span className="bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                                        POPULAR
+                                    </span>
+                                </div>
+                                <h3 className="text-xl font-bold text-zinc-900 mb-2">Starter</h3>
+                                <p className="text-zinc-500 text-sm mb-6">Para equipas pequenas</p>
+                                <div className="mb-6">
+                                    <span className="text-4xl font-bold text-zinc-900">€29</span>
+                                    <span className="text-zinc-500">/mês</span>
+                                </div>
+                                <ul className="space-y-3 mb-8">
+                                    <li className="flex items-center gap-2 text-sm text-zinc-600">
+                                        <Check className="w-4 h-4 text-green-500" />
+                                        50 envios por mês
+                                    </li>
+                                    <li className="flex items-center gap-2 text-sm text-zinc-600">
+                                        <Check className="w-4 h-4 text-green-500" />
+                                        Emails automáticos
+                                    </li>
+                                    <li className="flex items-center gap-2 text-sm text-zinc-600">
+                                        <Check className="w-4 h-4 text-green-500" />
+                                        Captura por BCC
+                                    </li>
+                                    <li className="flex items-center gap-2 text-sm text-zinc-600">
+                                        <Check className="w-4 h-4 text-green-500" />
+                                        Templates ilimitados
+                                    </li>
+                                </ul>
+                                <Link href="/signup">
+                                    <Button className="w-full rounded-full bg-blue-500 hover:bg-blue-600">
+                                        Começar Trial
+                                    </Button>
+                                </Link>
+                            </div>
+
+                            {/* Pro Plan */}
+                            <div className="relative rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
+                                <h3 className="text-xl font-bold text-zinc-900 mb-2">Pro</h3>
+                                <p className="text-zinc-500 text-sm mb-6">Para equipas em crescimento</p>
+                                <div className="mb-6">
+                                    <span className="text-4xl font-bold text-zinc-900">€79</span>
+                                    <span className="text-zinc-500">/mês</span>
+                                </div>
+                                <ul className="space-y-3 mb-8">
+                                    <li className="flex items-center gap-2 text-sm text-zinc-600">
+                                        <Check className="w-4 h-4 text-green-500" />
+                                        150 envios por mês
+                                    </li>
+                                    <li className="flex items-center gap-2 text-sm text-zinc-600">
+                                        <Check className="w-4 h-4 text-green-500" />
+                                        Tudo do Starter
+                                    </li>
+                                    <li className="flex items-center gap-2 text-sm text-zinc-600">
+                                        <Check className="w-4 h-4 text-green-500" />
+                                        SMTP personalizado
+                                    </li>
+                                    <li className="flex items-center gap-2 text-sm text-zinc-600">
+                                        <Check className="w-4 h-4 text-green-500" />
+                                        Suporte prioritário
+                                    </li>
+                                </ul>
+                                <Link href="/signup">
+                                    <Button variant="outline" className="w-full rounded-full">
+                                        Começar Trial
+                                    </Button>
+                                </Link>
+                            </div>
+                        </div>
+
+                        <p className="text-center text-sm text-zinc-500 mt-8">
+                            Precisa de mais? <a href="mailto:ola@ritmo.app" className="text-blue-500 hover:underline">Fale connosco</a> sobre o plano Enterprise.
+                        </p>
+                    </div>
+                </section>
+
                 {/* FAQ */}
-                <section id="faq" className="py-24 px-6 bg-zinc-50 border-t border-zinc-100">
+                <section id="faq" className="py-24 px-6 bg-white border-t border-zinc-100">
                     <div className="container mx-auto max-w-3xl">
                         <h2 className="text-3xl font-bold text-center mb-12 text-zinc-900">Perguntas Frequentes</h2>
                         <Accordion type="single" collapsible className="w-full">
