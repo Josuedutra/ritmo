@@ -30,3 +30,4 @@ export {
     SelectItem,
     SelectSeparator,
 } from "./select";
+export { Progress } from "./progress";

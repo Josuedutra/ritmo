@@ -90,7 +90,7 @@ export function EmailSettings({ organization, isFree = false }: EmailSettingsPro
             return true;
         } catch (error) {
             toast({
-                variant: "destructive",
+                variant: "error",
                 title: "Falha no teste",
                 description: error instanceof Error ? error.message : "Erro desconhecido",
             });
@@ -131,7 +131,7 @@ export function EmailSettings({ organization, isFree = false }: EmailSettingsPro
                 });
             } catch (error) {
                 toast({
-                    variant: "destructive",
+                    variant: "error",
                     title: "Erro",
                     description: error instanceof Error ? error.message : "Erro desconhecido",
                 });

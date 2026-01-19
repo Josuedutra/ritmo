@@ -58,7 +58,7 @@ export function GeneralSettings({ organization }: GeneralSettingsProps) {
                 });
             } catch (error) {
                 toast({
-                    variant: "destructive",
+                    variant: "error",
                     title: "Erro",
                     description: error instanceof Error ? error.message : "Erro desconhecido",
                 });
