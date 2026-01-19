@@ -1,70 +1,116 @@
 @import "tailwindcss";
 
 @theme {
-  /* ==========================================================================
-     RITMO DESIGN SYSTEM - Clean & Professional
-     ========================================================================== */
+  /* Register Tailwind colors mapped to CSS variables */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-border: var(--sidebar-border);
 
-  /* Neutral palette - subtle grays, not pure black */
-  --color-background: oklch(0.13 0.005 260);
-  --color-foreground: oklch(0.92 0 0);
-
-  --color-card: oklch(0.17 0.005 260);
-  --color-card-foreground: oklch(0.92 0 0);
-
-  /* Headings - brighter for hierarchy */
-  --color-heading: oklch(0.98 0 0);
-
-  --color-popover: oklch(0.17 0.005 260);
-  --color-popover-foreground: oklch(0.95 0 0);
-
-  /* Primary - Professional blue */
-  --color-primary: oklch(0.65 0.18 245);
-  --color-primary-hover: oklch(0.60 0.18 245);
-  --color-primary-foreground: oklch(0.98 0 0);
-
-  /* Secondary - Subtle */
-  --color-secondary: oklch(0.22 0.005 260);
-  --color-secondary-foreground: oklch(0.85 0 0);
-
-  /* Muted - For less important text */
-  --color-muted: oklch(0.25 0.005 260);
-  --color-muted-foreground: oklch(0.55 0 0);
-
-  /* Accent - Hover states */
-  --color-accent: oklch(0.22 0.01 245);
-  --color-accent-foreground: oklch(0.95 0 0);
-
-  /* Semantic colors */
-  --color-success: oklch(0.65 0.17 155);
-  --color-success-foreground: oklch(0.98 0 0);
-
-  --color-warning: oklch(0.75 0.15 75);
-  --color-warning-foreground: oklch(0.15 0 0);
-
-  --color-destructive: oklch(0.55 0.2 25);
-  --color-destructive-foreground: oklch(0.98 0 0);
-
-  /* Border & Input */
-  --color-border: oklch(0.28 0.005 260);
-  --color-input: oklch(0.20 0.005 260);
-  --color-ring: oklch(0.65 0.18 245);
-
-  /* Priority badges */
-  --color-priority-high: oklch(0.55 0.2 25);
-  --color-priority-low: oklch(0.55 0.12 220);
-
-  /* Sidebar */
-  --color-sidebar: oklch(0.14 0.005 260);
-  --color-sidebar-foreground: oklch(0.85 0 0);
-  --color-sidebar-accent: oklch(0.20 0.01 245);
-  --color-sidebar-border: oklch(0.25 0.005 260);
-
-  /* Border radius - slightly rounded */
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.625rem;
   --radius-xl: 0.75rem;
+}
+
+/* ==========================================================================
+   THEME VARIABLES (Light/Dark)
+   ========================================================================== */
+
+:root {
+  /* Light Mode (Default) - Antigravity Clean White */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.12 0 0);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.12 0 0);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.12 0 0);
+
+  /* Primary: Professional Blue */
+  --primary: oklch(0.45 0.2 260);
+  --primary-foreground: oklch(0.98 0 0);
+
+  --secondary: oklch(0.96 0 0);
+  --secondary-foreground: oklch(0.2 0.05 260);
+
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.55 0 0);
+
+  --accent: oklch(0.96 0 0);
+  --accent-foreground: oklch(0.2 0.05 260);
+
+  --destructive: oklch(0.5 0.22 25);
+  --destructive-foreground: oklch(0.98 0 0);
+
+  --border: oklch(0.90 0 0);
+  --input: oklch(0.90 0 0);
+  --ring: oklch(0.45 0.2 260);
+
+  /* Sidebar (Light) */
+  --sidebar: oklch(0.98 0 0);
+  --sidebar-foreground: oklch(0.25 0.01 260);
+  --sidebar-accent: oklch(0.94 0 0);
+  --sidebar-border: oklch(0.90 0 0);
+}
+
+.dark {
+  /* Dark Mode - Antigravity Deep Black */
+  --background: oklch(0.05 0 0);
+  /* Almost pure black */
+  --foreground: oklch(0.98 0 0);
+
+  --card: oklch(0.05 0 0);
+  --card-foreground: oklch(0.98 0 0);
+
+  --popover: oklch(0.05 0 0);
+  --popover-foreground: oklch(0.98 0 0);
+
+  /* Primary: Professional Blue (slightly lighter for dark mode contrast) */
+  --primary: oklch(0.6 0.18 250);
+  --primary-foreground: oklch(0.98 0 0);
+
+  --secondary: oklch(0.15 0 0);
+  --secondary-foreground: oklch(0.98 0 0);
+
+  --muted: oklch(0.15 0 0);
+  --muted-foreground: oklch(0.65 0 0);
+
+  --accent: oklch(0.15 0 0);
+  --accent-foreground: oklch(0.98 0 0);
+
+  --destructive: oklch(0.4 0.2 25);
+  --destructive-foreground: oklch(0.98 0 0);
+
+  --border: oklch(0.2 0 0);
+  --input: oklch(0.2 0 0);
+  --ring: oklch(0.6 0.18 250);
+
+  /* Sidebar (Dark) */
+  --sidebar: oklch(0.05 0 0);
+  --sidebar-foreground: oklch(0.9 0 0);
+  --sidebar-accent: oklch(0.12 0 0);
+  --sidebar-border: oklch(0.15 0 0);
 }
 
 /* ==========================================================================

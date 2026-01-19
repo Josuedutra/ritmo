@@ -13,6 +13,7 @@ import {
     X,
 } from "lucide-react";
 import { useState } from "react";
+import { ModeToggle } from "@/components/mode-toggle";
 
 interface NavItem {
     href: string;
@@ -70,6 +71,7 @@ export function AppHeader({ user }: AppHeaderProps) {
 
                 {/* User Menu */}
                 <div className="flex items-center gap-3">
+                    <ModeToggle />
                     <span className="hidden text-sm text-[var(--color-muted-foreground)] sm:block">
                         {user.name || user.email}
                     </span>

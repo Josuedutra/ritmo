@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import { FeedbackModal } from "@/components/feedback";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
 const inter = Inter({
@@ -21,11 +22,18 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="pt-PT" className="dark">
+        <html lang="pt-PT" suppressHydrationWarning>
             <body className={`${inter.variable} antialiased`}>
-                {children}
-                <Toaster />
-                <FeedbackModal />
+                <ThemeProvider
+                    attribute="class"
+                    defaultTheme="system"
+                    enableSystem
+                    disableTransitionOnChange
+                >
+                    {children}
+                    <Toaster />
+                    <FeedbackModal />
+                </ThemeProvider>
             </body>
         </html>
     );

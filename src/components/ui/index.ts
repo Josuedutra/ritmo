@@ -9,7 +9,6 @@ export { EmptyState, EmptyStateNoActions, EmptyStateNoQuotes, EmptyStateNoResult
 export { Tabs, TabsList, TabsTrigger, TabsContent } from "./tabs";
 export { useToast, toast } from "./use-toast";
 export { Toaster } from "./toaster";
-// Newly added
 export {
     useFormField,
     Form,
@@ -30,4 +29,20 @@ export {
     SelectItem,
     SelectSeparator,
 } from "./select";
-export { Progress } from "./progress";
+export {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuCheckboxItem,
+    DropdownMenuRadioItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuShortcut,
+    DropdownMenuGroup,
+    DropdownMenuPortal,
+    DropdownMenuSub,
+    DropdownMenuSubContent,
+    DropdownMenuSubTrigger,
+    DropdownMenuRadioGroup,
+} from "./dropdown-menu";
