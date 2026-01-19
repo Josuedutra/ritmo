@@ -10,9 +10,9 @@ setup("authenticate", async ({ page }) => {
     // Navigate to login page
     await page.goto("/login");
 
-    // Fill in credentials (using test user from seed)
-    await page.getByLabel(/email/i).fill(process.env.TEST_USER_EMAIL || "admin@test.com");
-    await page.getByLabel(/password/i).fill(process.env.TEST_USER_PASSWORD || "password123");
+    // Fill in credentials (using demo user)
+    await page.getByLabel(/email/i).fill(process.env.TEST_USER_EMAIL || "admin@demo.ritmo.app");
+    await page.getByLabel(/password/i).fill(process.env.TEST_USER_PASSWORD || "demo123");
 
     // Click login button
     await page.getByRole("button", { name: /entrar|login/i }).click();
