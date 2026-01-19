@@ -2,251 +2,331 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Check, ListChecks, FileText, Zap } from "lucide-react";
+import { ArrowRight, Check, ListChecks, FileText, Zap, ChevronDown, Plus, Mail, Bell } from "lucide-react";
+import { AntigravityParticles } from "@/components/landing/antigravity-particles";
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion";
 
-// Clean, subtle animations
+// Animation variants
 const fadeInUp = {
-    initial: { opacity: 0, y: 20 },
+    initial: { opacity: 0, y: 30 },
     animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.5, ease: "easeOut" }
+    transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
 };
 
 const staggerContainer = {
     animate: {
         transition: {
-            staggerChildren: 0.1
+            staggerChildren: 0.15
         }
     }
 };
 
 export default function LandingPage() {
     return (
-        <div className="flex min-h-screen flex-col bg-background text-foreground selection:bg-primary/10 selection:text-primary">
+        <div className="flex min-h-screen flex-col bg-white text-zinc-950 font-sans selection:bg-blue-100 selection:text-blue-900">
+
+            <AntigravityParticles />
 
             {/* Header */}
-            <header className="fixed top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
+            <header className="fixed top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-transparent">
                 <div className="container mx-auto flex h-16 items-center justify-between px-6">
                     <div className="flex items-center gap-2">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                            <span className="text-xs font-bold">R</span>
+                        {/* Antigravity-like minimalist logo text */}
+                        <div className="flex items-center gap-1">
+                            <div className="w-2 h-2 rounded-full bg-blue-500" />
+                            <div className="w-2 h-2 rounded-full bg-green-500" />
+                            <div className="w-2 h-2 rounded-full bg-red-500" />
                         </div>
-                        <span className="text-lg font-bold tracking-tight">Ritmo</span>
+                        <span className="text-xl font-bold tracking-tight ml-2">Ritmo</span>
                     </div>
 
-                    <nav className="hidden items-center gap-8 text-sm font-medium text-muted-foreground md:flex">
-                        <a href="#how-it-works" className="hover:text-foreground transition-colors">Como funciona</a>
-                        <a href="#features" className="hover:text-foreground transition-colors">Funcionalidades</a>
-                        <a href="#pricing" className="hover:text-foreground transition-colors">Preços</a>
+                    <nav className="hidden items-center gap-10 text-sm font-medium text-zinc-600 md:flex">
+                        <a href="#how-it-works" className="hover:text-black transition-colors">Como funciona</a>
+                        <a href="#cockpit" className="hover:text-black transition-colors">Cockpit</a>
+                        <a href="#pricing" className="hover:text-black transition-colors">Preços</a>
+                        <a href="#faq" className="hover:text-black transition-colors">FAQ</a>
                     </nav>
 
                     <div className="flex items-center gap-4">
-                        <Link href="/login" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                        <Link href="/login" className="text-sm font-medium text-zinc-600 transition-colors hover:text-black">
                             Entrar
                         </Link>
                         <Link href="/signup">
-                            <Button size="sm" className="rounded-full font-semibold">
-                                Começar agora
+                            <Button className="rounded-full bg-black text-white hover:bg-zinc-800 px-6 font-medium">
+                                Começar Trial
                             </Button>
                         </Link>
                     </div>
                 </div>
             </header>
 
-            <main className="flex-1">
+            <main className="flex-1 relative z-10 pt-32">
 
                 {/* HERO SECTION */}
-                <section className="relative px-6 pb-20 pt-32 md:pb-32 md:pt-48">
-                    {/* Background decorations - Subtle gradient blobs */}
-                    <div className="absolute left-[50%] top-0 -z-10 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-primary/5 blur-[100px]" />
-
+                <section className="relative px-6 pb-20 md:pb-32 text-center">
                     <motion.div
                         initial="initial"
                         animate="animate"
                         variants={staggerContainer}
-                        className="container mx-auto max-w-5xl text-center"
+                        className="container mx-auto max-w-5xl"
                     >
-                        <motion.div variants={fadeInUp} className="mb-8 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary backdrop-blur-sm">
+                        {/* Tagline */}
+                        <motion.div variants={fadeInUp} className="mb-6 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium bg-blue-50 text-blue-700 border border-blue-100">
                             <span className="relative flex h-2 w-2">
-                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
-                                <span className="relative inline-flex h-2 w-2 rounded-full bg-primary"></span>
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-500 opacity-75"></span>
+                                <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500"></span>
                             </span>
-                            Novidade: Captura automática por BCC
+                            An AI Co-Pilot for your Sales Team
                         </motion.div>
 
-                        <motion.h1 variants={fadeInUp} className="mb-8 text-5xl font-bold tracking-tight text-foreground md:text-7xl">
-                            Follow-up automático. <br className="hidden md:block" />
-                            <span className="text-muted-foreground">Sem perder o toque humano.</span>
+                        <motion.h1 variants={fadeInUp} className="mb-8 text-6xl md:text-8xl font-bold tracking-tighter text-zinc-900 leading-[0.95]">
+                            Experience liftoff with <br />
+                            automatic follow-ups.
                         </motion.h1>
 
-                        <motion.p variants={fadeInUp} className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
-                            O Ritmo gere a cadência dos seus orçamentos para que nunca perca uma oportunidade. Simples, eficaz e sem configurações complexas.
+                        <motion.p variants={fadeInUp} className="mx-auto mb-10 max-w-2xl text-xl leading-relaxed text-zinc-600 font-light">
+                            Pare de perder negócios por falta de tempo. O Ritmo gere a cadência dos seus orçamentos para que a sua equipa se foque em fechar vendas.
                         </motion.p>
 
-                        <motion.div variants={fadeInUp} className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+                        <motion.div variants={fadeInUp} className="flex flex-col items-center justify-center gap-4 sm:flex-row mb-20">
                             <Link href="/signup">
-                                <Button size="lg" className="h-12 rounded-full px-8 text-base shadow-lg transition-all hover:scale-105">
-                                    Começar Trial Grátis
-                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                <Button size="lg" className="h-14 rounded-full px-10 text-lg bg-black text-white hover:bg-zinc-800 shadow-xl transition-all hover:scale-105">
+                                    Começar Agora
+                                    <ArrowRight className="ml-2 h-5 w-5" />
                                 </Button>
                             </Link>
-                            <Button variant="outline" size="lg" className="h-12 rounded-full px-8 text-neutral-600 dark:text-neutral-300">
-                                Ver demonstração
+                            <Button variant="ghost" size="lg" className="h-14 rounded-full px-8 text-zinc-600 hover:text-black hover:bg-zinc-100">
+                                Ver Demonstração
                             </Button>
-                        </motion.div>
-
-                        <motion.div variants={fadeInUp} className="mt-12 flex items-center justify-center gap-6 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-2">
-                                <Check className="h-4 w-4 text-green-500" /> Sem cartão
-                            </span>
-                            <span className="flex items-center gap-2">
-                                <Check className="h-4 w-4 text-green-500" /> 14 dias trial
-                            </span>
-                            <span className="flex items-center gap-2">
-                                <Check className="h-4 w-4 text-green-500" /> Cancel anytime
-                            </span>
                         </motion.div>
                     </motion.div>
                 </section>
 
-                {/* FEATURES GRID */}
-                <section id="features" className="bg-muted/30 px-6 py-24">
-                    <div className="container mx-auto max-w-6xl">
-                        <div className="mb-16 text-center">
-                            <h2 className="mb-6 text-3xl font-bold md:text-5xl">O seu cockpit de vendas.</h2>
-                            <p className="mx-auto max-w-2xl text-muted-foreground">
-                                Substitua o caos por clareza. Um sistema desenhado para fechar negócios, não para preencher formulários.
+                {/* HOW IT WORKS (3 Steps) */}
+                <section id="how-it-works" className="py-24 px-6 bg-zinc-50 border-y border-zinc-100">
+                    <div className="container mx-auto max-w-7xl">
+                        <div className="text-center mb-16">
+                            <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-zinc-900 mb-4">
+                                Entra no seu processo atual em 3 passos.
+                            </h2>
+                            <p className="text-xl text-zinc-500 max-w-2xl mx-auto">
+                                Sem configurações complexas de CRM. Continua a usar o que já usa, mas com superpoderes.
                             </p>
                         </div>
 
-                        <div className="grid gap-6 md:grid-cols-3">
-                            {[
-                                {
-                                    icon: ListChecks,
-                                    title: "Ações de Hoje",
-                                    desc: "Foque-se no que importa. O Ritmo diz-lhe exatamente quem contactar e quando."
-                                },
-                                {
-                                    icon: Zap,
-                                    title: "Automação Inteligente",
-                                    desc: "Emails personalizados que pausam automaticamente quando o cliente responde."
-                                },
-                                {
-                                    icon: FileText,
-                                    title: "Contexto Total",
-                                    desc: "Centralize propostas, emails e notas. Tudo à mão, sem perder tempo."
-                                }
-                            ].map((feature, i) => (
-                                <div
-                                    key={i}
-                                    className="group rounded-2xl border border-border bg-card p-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
-                                >
-                                    <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary transition-transform group-hover:scale-110">
-                                        <feature.icon className="h-6 w-6" />
+                        <div className="grid gap-12 lg:grid-cols-3">
+                            {/* Step 1 */}
+                            <div className="group">
+                                <div className="relative aspect-[4/3] mb-6 overflow-hidden rounded-2xl border border-zinc-200 shadow-md bg-zinc-900">
+                                    <Image
+                                        src="/landing_step1_dark.png"
+                                        alt="Register Quote"
+                                        fill
+                                        className="object-cover object-top opacity-90 transition-transform duration-500 group-hover:scale-105"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+                                    <div className="absolute top-4 left-4 w-8 h-8 rounded-full bg-white text-black font-bold flex items-center justify-center text-sm shadow-lg">1</div>
+                                </div>
+                                <h3 className="text-xl font-bold mb-2 text-zinc-900">Registe o orçamento</h3>
+                                <p className="text-zinc-600 bg-white p-4 rounded-xl border border-zinc-100 shadow-sm leading-relaxed">
+                                    <strong className="text-zinc-900">Cliente, valor e referência.</strong> Cole um link da proposta (ou anexe o PDF mais tarde).
+                                </p>
+                            </div>
+
+                            {/* Step 2 */}
+                            <div className="group">
+                                <div className="relative aspect-[4/3] mb-6 overflow-hidden rounded-2xl border border-zinc-200 shadow-md bg-zinc-900">
+                                    <Image
+                                        src="/landing_step2_dark.png"
+                                        alt="Send as Usual"
+                                        fill
+                                        className="object-cover object-top opacity-90 transition-transform duration-500 group-hover:scale-105"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+                                    <div className="absolute top-4 left-4 w-8 h-8 rounded-full bg-white text-black font-bold flex items-center justify-center text-sm shadow-lg">2</div>
+                                </div>
+                                <h3 className="text-xl font-bold mb-2 text-zinc-900">Envie como sempre</h3>
+                                <p className="text-zinc-600 bg-white p-4 rounded-xl border border-zinc-100 shadow-sm leading-relaxed">
+                                    <strong className="text-zinc-900">Continue com Excel/Word + Outlook/Gmail.</strong> Marque como enviado no Ritmo (1 clique).
+                                </p>
+                            </div>
+
+                            {/* Step 3 */}
+                            <div className="group">
+                                <div className="relative aspect-[4/3] mb-6 overflow-hidden rounded-2xl border border-zinc-200 shadow-md bg-zinc-900">
+                                    <Image
+                                        src="/landing_step3_dark.png"
+                                        alt="Action Today"
+                                        fill
+                                        className="object-cover object-top opacity-90 transition-transform duration-500 group-hover:scale-105"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+                                    <div className="absolute top-4 left-4 w-8 h-8 rounded-full bg-white text-black font-bold flex items-center justify-center text-sm shadow-lg">3</div>
+                                </div>
+                                <h3 className="text-xl font-bold mb-2 text-zinc-900">Faça o que aparece hoje</h3>
+                                <p className="text-zinc-600 bg-white p-4 rounded-xl border border-zinc-100 shadow-sm leading-relaxed">
+                                    <strong className="text-zinc-900">Emails prontos a enviar.</strong> Chamadas com proposta e resumo — sem procurar ficheiros.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mt-12 text-center">
+                            <p className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-50 text-yellow-800 rounded-full text-sm font-medium border border-yellow-100">
+                                <Zap className="w-4 h-4" />
+                                Sem email/telefone? O Ritmo cria tarefas manuais para não travar.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                {/* COCKPIT SECTION */}
+                <section id="cockpit" className="py-32 px-6">
+                    <div className="container mx-auto max-w-7xl">
+                        <div className="grid lg:grid-cols-2 gap-16 items-center">
+                            <div>
+                                <h2 className="text-4xl md:text-6xl font-bold tracking-tight text-zinc-900 mb-8 leading-tight">
+                                    O cockpit de follow-up que faltava.
+                                </h2>
+                                <div className="space-y-8">
+                                    <div className="flex gap-4">
+                                        <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                            <ListChecks className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-bold text-zinc-900 mb-1">Ações de hoje</h3>
+                                            <p className="text-zinc-600">Lista curta. Prioridade por valor. Um clique para concluir.</p>
+                                        </div>
                                     </div>
-                                    <h3 className="mb-3 text-xl font-semibold">{feature.title}</h3>
-                                    <p className="leading-relaxed text-muted-foreground">
-                                        {feature.desc}
-                                    </p>
+                                    <div className="flex gap-4">
+                                        <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                            <FileText className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-bold text-zinc-900 mb-1">Proposta sempre à mão</h3>
+                                            <p className="text-zinc-600">PDF ou link ligado ao orçamento — perfeito para o D+7.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                            <Bell className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-bold text-zinc-900 mb-1">‘Sem resposta’ vira ação</h3>
+                                            <p className="text-zinc-600">Gere a próxima ação recomendada em 1 clique.</p>
+                                        </div>
+                                    </div>
                                 </div>
-                            ))}
+                            </div>
+
+                            <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-zinc-200 bg-black aspect-[16/10] group">
+                                {/* Video/Animation Loop */}
+                                <img
+                                    src="/workflow_demo.webp"
+                                    alt="Workflow Demo"
+                                    className="object-cover w-full h-full opacity-90"
+                                />
+                                {/* Overlay reflections to match glass style */}
+                                <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-transparent pointer-events-none" />
+                            </div>
                         </div>
                     </div>
                 </section>
 
-                {/* PRICING */}
-                <section id="pricing" className="border-t border-border px-6 py-24">
-                    <div className="container mx-auto max-w-6xl">
-                        <div className="mb-16 text-center">
-                            <h2 className="mb-6 text-3xl font-bold md:text-5xl">Planos simples.</h2>
-                            <p className="text-muted-foreground">Comece gratuitamente. Cresça quando precisar.</p>
-                        </div>
-
-                        <div className="mx-auto grid max-w-5xl items-center gap-8 md:grid-cols-3">
-
-                            {/* Free Plan */}
-                            <div className="rounded-2xl border border-border bg-card p-8 shadow-sm transition-all hover:border-primary/50">
-                                <h3 className="mb-2 text-xl font-medium text-foreground">Gratuito</h3>
-                                <div className="mb-6 text-4xl font-bold text-foreground">€0</div>
-                                <ul className="mb-8 space-y-4 text-sm text-muted-foreground">
-                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> 5 envios / mês</li>
-                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Modo manual</li>
-                                    <li className="flex items-center gap-2 text-muted-foreground/50"><Check className="h-4 w-4" /> Sem automação</li>
-                                </ul>
-                                <Link href="/signup">
-                                    <Button variant="outline" className="w-full rounded-full border-border hover:bg-muted">
-                                        Começar Grátis
-                                    </Button>
-                                </Link>
-                            </div>
-
-                            {/* Pro Plan (Highlighted) */}
-                            <motion.div
-                                whileHover={{ scale: 1.02 }}
-                                className="relative rounded-2xl border border-primary bg-primary/5 p-10 shadow-xl"
-                            >
-                                <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary px-4 py-1 text-xs font-bold uppercase tracking-wider text-primary-foreground">
-                                    Mais Popular
-                                </div>
-                                <h3 className="mb-2 text-xl font-medium text-foreground">Starter / Pro</h3>
-                                <div className="mb-6 text-4xl font-bold text-foreground">€29<span className="text-lg font-normal text-muted-foreground">/mês</span></div>
-                                <ul className="mb-8 space-y-4 text-sm text-foreground">
-                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Até 250 envios / mês</li>
-                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Emails automáticos</li>
-                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Captura por BCC</li>
-                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Suporte prioritário</li>
-                                </ul>
-                                <Link href="/signup">
-                                    <Button className="h-12 w-full rounded-full font-semibold shadow-md">
-                                        Começar Trial (14 dias)
-                                    </Button>
-                                </Link>
-                            </motion.div>
-
-                            {/* Enterprise */}
-                            <div className="rounded-2xl border border-border bg-card p-8 shadow-sm transition-all hover:border-primary/50">
-                                <h3 className="mb-2 text-xl font-medium text-foreground">Enterprise</h3>
-                                <div className="mb-6 text-2xl font-bold text-foreground">Sob consulta</div>
-                                <ul className="mb-8 space-y-4 text-sm text-muted-foreground">
-                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Volume ilimitado</li>
-                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Onboarding dedicado</li>
-                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> API Access</li>
-                                </ul>
-                                <Button variant="outline" className="w-full rounded-full border-border hover:bg-muted">
-                                    Falar com Vendas
-                                </Button>
-                            </div>
-
-                        </div>
+                {/* FAQ */}
+                <section id="faq" className="py-24 px-6 bg-zinc-50 border-t border-zinc-100">
+                    <div className="container mx-auto max-w-3xl">
+                        <h2 className="text-3xl font-bold text-center mb-12 text-zinc-900">Perguntas Frequentes</h2>
+                        <Accordion type="single" collapsible className="w-full">
+                            <AccordionItem value="item-1">
+                                <AccordionTrigger>O que conta como envio?</AccordionTrigger>
+                                <AccordionContent>
+                                    Apenas os orçamentos que você marca ativamente como &quot;Enviado&quot;. Orçamentos em rascunho ou perdidos não contam para o limite do seu plano.
+                                </AccordionContent>
+                            </AccordionItem>
+                            <AccordionItem value="item-2">
+                                <AccordionTrigger>Preciso mudar o meu processo (Excel/Outlook/Gmail)?</AccordionTrigger>
+                                <AccordionContent>
+                                    Não. O Ritmo funciona em paralelo. Você cria a proposta e envia o email como sempre fez. Só precisa de registar no Ritmo para ativar o &quot;piloto automático&quot; do follow-up.
+                                </AccordionContent>
+                            </AccordionItem>
+                            <AccordionItem value="item-3">
+                                <AccordionTrigger>O Ritmo envia emails automaticamente?</AccordionTrigger>
+                                <AccordionContent>
+                                    Sim, nos planos Pagos. O sistema gera e envia os emails de follow-up nos momentos certos (ex: D+2, D+5). Pode sempre rever antes de enviar ou configurar para envio totalmente automático.
+                                </AccordionContent>
+                            </AccordionItem>
+                            <AccordionItem value="item-4">
+                                <AccordionTrigger>Como funciona o BCC?</AccordionTrigger>
+                                <AccordionContent>
+                                    Cada conta tem um endereço único (ex: sua-empresa@ritmo.app). Ao colocar este email em BCC quando envia a proposta, o Ritmo cria automaticamente o orçamento e inicia a cadência.
+                                </AccordionContent>
+                            </AccordionItem>
+                            <AccordionItem value="item-5">
+                                <AccordionTrigger>E se o contacto não tiver email?</AccordionTrigger>
+                                <AccordionContent>
+                                    O Ritmo cria tarefas de chamada telefónica ("Ligar ao Cliente") na data agendada, garantindo que o follow-up acontece mesmo por telefone.
+                                </AccordionContent>
+                            </AccordionItem>
+                            <AccordionItem value="item-6">
+                                <AccordionTrigger>O email parece robô?</AccordionTrigger>
+                                <AccordionContent>
+                                    Não. Os templates são 100% personalizáveis e usam texto simples, parecendo um email escrito manualmente por si. Nada de layouts complexos de marketing.
+                                </AccordionContent>
+                            </AccordionItem>
+                            <AccordionItem value="item-7">
+                                <AccordionTrigger>Posso cancelar?</AccordionTrigger>
+                                <AccordionContent>
+                                    A qualquer momento. Não há fidelização. Se cancelar, a sua conta reverte para o plano Gratuito no final do ciclo de faturação.
+                                </AccordionContent>
+                            </AccordionItem>
+                            <AccordionItem value="item-8">
+                                <AccordionTrigger>É seguro?</AccordionTrigger>
+                                <AccordionContent>
+                                    Sim. Usamos encriptação de nível bancário e servidores seguros na Europa. Os seus dados são seus e nunca serão partilhados.
+                                </AccordionContent>
+                            </AccordionItem>
+                        </Accordion>
                     </div>
                 </section>
 
-                {/* CTA FINAL */}
-                <section className="relative overflow-hidden px-6 py-32 text-center">
-                    <div className="container relative z-10 mx-auto max-w-4xl">
-                        <h2 className="mb-8 text-4xl font-bold tracking-tight text-foreground md:text-6xl">
-                            Pronto para fechar mais negócios?
+                {/* BOTTOM CTA */}
+                <section className="relative py-32 px-6 bg-black text-white overflow-hidden">
+                    <AntigravityParticles />
+                    <div className="relative z-10 container mx-auto text-center max-w-4xl">
+                        <h2 className="mb-8 text-5xl md:text-7xl font-bold tracking-tighter">
+                            Ready to lift off?
                         </h2>
-                        <p className="mx-auto mb-12 max-w-2xl text-xl text-muted-foreground">
-                            Junte-se a empresas que recuperaram o controlo do seu funil de vendas. Simples, rápido e eficaz.
+                        <p className="mb-12 text-xl text-zinc-400 max-w-2xl mx-auto">
+                            Join high-performing sales teams using Ritmo to close more deals with less effort.
                         </p>
-                        <Link href="/signup">
-                            <Button size="lg" className="h-14 rounded-full px-10 text-lg font-semibold shadow-xl">
-                                Criar conta gratuita
-                            </Button>
-                        </Link>
+
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+                            <Link href="/signup">
+                                <Button size="lg" className="h-16 rounded-full px-12 text-lg bg-white text-black hover:bg-zinc-200 font-bold transition-transform hover:scale-105">
+                                    Criar Conta Gratuita
+                                </Button>
+                            </Link>
+                            <span className="text-zinc-500 text-sm">No credit card required</span>
+                        </div>
                     </div>
                 </section>
 
             </main>
 
-            <footer className="border-t border-border bg-muted/30 py-8 text-center text-sm text-muted-foreground">
+            <footer className="py-12 bg-white border-t border-zinc-100 text-center text-sm text-zinc-500">
                 <div className="container mx-auto">
                     <p>© 2026 Ritmo. Todos os direitos reservados.</p>
-                    <div className="mt-4 flex justify-center gap-6">
-                        <a href="#" className="hover:text-foreground">Privacidade</a>
-                        <a href="#" className="hover:text-foreground">Termos</a>
-                        <a href="#" className="hover:text-foreground">Contacto</a>
+                    <div className="mt-6 flex justify-center gap-8">
+                        <a href="#" className="hover:text-black transition-colors">Privacidade</a>
+                        <a href="#" className="hover:text-black transition-colors">Termos</a>
+                        <a href="#" className="hover:text-black transition-colors">Twitter</a>
                     </div>
                 </div>
             </footer>
