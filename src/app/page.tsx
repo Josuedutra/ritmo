@@ -245,10 +245,14 @@ export default function LandingPage() {
 
                             <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-zinc-200 bg-black aspect-[16/10] group">
                                 {/* Video/Animation Loop */}
-                                <img
-                                    src="/workflow_demo.webp"
-                                    alt="Workflow Demo"
+                                <video
+                                    src="/workflow_demo.webm"
+                                    autoPlay
+                                    loop
+                                    muted
+                                    playsInline
                                     className="object-cover w-full h-full opacity-90"
+                                    poster="/workflow_demo.webp"
                                 />
                                 {/* Overlay reflections to match glass style */}
                                 <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-transparent pointer-events-none" />

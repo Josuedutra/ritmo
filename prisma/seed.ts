@@ -5,6 +5,32 @@ const prisma = new PrismaClient();
 async function main() {
     console.log("🌱 Seeding database...");
 
+    // Create Plans (Ensure they exist for subscription foreign keys)
+    const plans = [
+        { id: "free", name: "Gratuito", limit: 5, price: 0, stripeId: null },
+        { id: "starter", name: "Starter", limit: 50, price: 2900, stripeId: "price_mock_starter" },
+        { id: "pro", name: "Pro", limit: 150, price: 7900, stripeId: "price_mock_pro" },
+        { id: "enterprise", name: "Enterprise", limit: 500, price: 19900, stripeId: "price_mock_enterprise" },
+    ];
+
+    for (const p of plans) {
+        await prisma.plan.upsert({
+            where: { id: p.id },
+            update: {
+                stripePriceId: p.stripeId, // Ensure stripe IDs are updated
+            },
+            create: {
+                id: p.id,
+                name: p.name,
+                monthlyQuoteLimit: p.limit,
+                priceMonthly: p.price,
+                stripePriceId: p.stripeId,
+                isActive: true,
+            },
+        });
+    }
+    console.log("✅ Plans seeded/updated");
+
     // Create demo organization
     const org = await prisma.organization.upsert({
         where: { slug: "demo" },
@@ -93,14 +119,14 @@ async function main() {
     const contact = existingContact
         ? existingContact
         : await prisma.contact.create({
-              data: {
-                  organizationId: org.id,
-                  name: "João Silva",
-                  company: "TechCorp Lda",
-                  email: "joao.silva@techcorp.pt",
-                  phone: "+351 912 345 678",
-              },
-          });
+            data: {
+                organizationId: org.id,
+                name: "João Silva",
+                company: "TechCorp Lda",
+                email: "joao.silva@techcorp.pt",
+                phone: "+351 912 345 678",
+            },
+        });
 
     console.log(`✅ Sample contact created: ${contact.name}`);
 
