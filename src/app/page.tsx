@@ -84,8 +84,8 @@ export default function LandingPage() {
                         </motion.div>
 
                         <motion.h1 variants={fadeInUp} className="mb-8 text-5xl md:text-7xl font-bold tracking-tighter text-zinc-900 leading-[1]">
-                            Envie orçamentos como sempre — <br />
-                            o Ritmo faz o follow-up.
+                            Envie orçamentos como sempre. <br />
+                            O Ritmo faz o follow-up.
                         </motion.h1>
 
                         <motion.p variants={fadeInUp} className="mx-auto mb-10 max-w-2xl text-xl leading-relaxed text-zinc-600 font-light">
@@ -111,7 +111,7 @@ export default function LandingPage() {
                                 Entra no seu processo atual em 3 passos.
                             </h2>
                             <p className="text-xl text-zinc-500 max-w-3xl mx-auto">
-                                Sem configurações complexas. Continua a usar Excel/Word/Sistemas e Outlook/Gmail — o Ritmo só organiza o follow-up.
+                                Sem configurações complexas. Continua a usar Excel/Word/Sistemas e Outlook/Gmail – o Ritmo só organiza o follow-up.
                             </p>
                         </div>
 
