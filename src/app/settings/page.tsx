@@ -14,21 +14,6 @@ export default async function SettingsPage() {
     // Get organization data
     const organization = await prisma.organization.findUnique({
         where: { id: organizationId },
-        select: {
-            id: true,
-            name: true,
-            shortId: true,
-            bccAddress: true,
-            smtpHost: true,
-            smtpPort: true,
-            smtpUser: true,
-            smtpFrom: true,
-            autoEmailEnabled: true,
-            bccInboundEnabled: true,
-            timezone: true,
-            sendWindowStart: true,
-            sendWindowEnd: true,
-        },
     });
 
     if (!organization) redirect("/login");
@@ -47,20 +32,13 @@ export default async function SettingsPage() {
 
     // Build settings data for client
     const data = {
-        organization: {
-            id: organization.id,
-            name: organization.name,
-            timezone: organization.timezone,
-            sendWindowStart: organization.sendWindowStart,
-            sendWindowEnd: organization.sendWindowEnd,
-        },
+        organization: organization, // Pass full object
         email: {
             mode: (organization.smtpHost ? "smtp" : "ritmo") as "smtp" | "ritmo",
             smtpHost: organization.smtpHost,
             smtpPort: organization.smtpPort,
             smtpUser: organization.smtpUser,
             smtpFrom: organization.smtpFrom,
-            // Don't send password to client
         },
         bcc: {
             address: bccAddress,
