@@ -121,10 +121,10 @@ export default function LandingPage() {
                             </p>
                         </div>
 
-                        <div className="max-w-6xl mx-auto space-y-32 mt-20">
-                            {/* Step 1: Text Left, Image Right */}
-                            <div className="flex flex-col md:flex-row items-center gap-12 lg:gap-20">
-                                <div className="flex-1 space-y-6 text-left">
+                        <div className="max-w-7xl mx-auto space-y-32 mt-20">
+                            {/* Step 1: Text Left (30%), Image Right (70%) */}
+                            <div className="flex flex-col md:flex-row items-center gap-8 lg:gap-16">
+                                <div className="w-full md:w-[30%] space-y-6 text-left">
                                     <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-zinc-100 text-zinc-900 font-bold text-lg mb-2">1</div>
                                     <h3 className="text-3xl md:text-4xl font-bold text-zinc-900 tracking-tight leading-tight">
                                         Registe o orçamento
@@ -134,7 +134,7 @@ export default function LandingPage() {
                                         Basta colar o link da proposta ou anexar o PDF mais tarde. Simples e rápido.
                                     </p>
                                 </div>
-                                <div className="flex-1 w-full">
+                                <div className="w-full md:w-[70%]">
                                     <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-zinc-200 shadow-2xl bg-zinc-900 transform transition-all duration-700 hover:shadow-3xl hover:-translate-y-1">
                                         <Image
                                             src="/landing_step1_dark.png"
@@ -147,9 +147,9 @@ export default function LandingPage() {
                                 </div>
                             </div>
 
-                            {/* Step 2: Image Left, Text Right */}
-                            <div className="flex flex-col md:flex-row-reverse items-center gap-12 lg:gap-20">
-                                <div className="flex-1 space-y-6 text-left">
+                            {/* Step 2: Image Left (70%), Text Right (30%) */}
+                            <div className="flex flex-col md:flex-row-reverse items-center gap-8 lg:gap-16">
+                                <div className="w-full md:w-[30%] space-y-6 text-left">
                                     <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-zinc-100 text-zinc-900 font-bold text-lg mb-2">2</div>
                                     <h3 className="text-3xl md:text-4xl font-bold text-zinc-900 tracking-tight leading-tight">
                                         Envie como sempre
@@ -159,7 +159,7 @@ export default function LandingPage() {
                                         Excel, Word, Outlook ou Gmail. Quando enviar, marque como "Enviado" no Ritmo com apenas 1 clique.
                                     </p>
                                 </div>
-                                <div className="flex-1 w-full">
+                                <div className="w-full md:w-[70%]">
                                     <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-zinc-200 shadow-2xl bg-zinc-900 transform transition-all duration-700 hover:shadow-3xl hover:-translate-y-1">
                                         <Image
                                             src="/landing_step2_dark.png"
@@ -172,9 +172,9 @@ export default function LandingPage() {
                                 </div>
                             </div>
 
-                            {/* Step 3: Text Left, Image Right */}
-                            <div className="flex flex-col md:flex-row items-center gap-12 lg:gap-20">
-                                <div className="flex-1 space-y-6 text-left">
+                            {/* Step 3: Text Left (30%), Image Right (70%) */}
+                            <div className="flex flex-col md:flex-row items-center gap-8 lg:gap-16">
+                                <div className="w-full md:w-[30%] space-y-6 text-left">
                                     <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-zinc-100 text-zinc-900 font-bold text-lg mb-2">3</div>
                                     <h3 className="text-3xl md:text-4xl font-bold text-zinc-900 tracking-tight leading-tight">
                                         Faça o que aparece hoje
@@ -184,7 +184,7 @@ export default function LandingPage() {
                                         Emails prontos a enviar e chamadas com o contexto certo. Nada de procurar ficheiros perdidos.
                                     </p>
                                 </div>
-                                <div className="flex-1 w-full">
+                                <div className="w-full md:w-[70%]">
                                     <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-zinc-200 shadow-2xl bg-zinc-900 transform transition-all duration-700 hover:shadow-3xl hover:-translate-y-1">
                                         <Image
                                             src="/landing_step3_dark.png"
