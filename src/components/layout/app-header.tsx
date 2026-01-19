@@ -43,8 +43,9 @@ export function AppHeader({ user }: AppHeaderProps) {
         <header className="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-sidebar)]">
             <div className="container-app flex h-14 items-center justify-between">
                 {/* Logo */}
-                <Link href="/dashboard" className="flex items-center gap-2">
-                    <span className="text-xl font-bold text-gradient">Ritmo</span>
+                {/* Logo */}
+                <Link href="/dashboard" className="flex items-center gap-2 transition-opacity hover:opacity-80">
+                    <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent tracking-tight">Ritmo</span>
                 </Link>
 
                 {/* Desktop Navigation */}

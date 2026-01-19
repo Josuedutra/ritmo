@@ -121,62 +121,79 @@ export default function LandingPage() {
                             </p>
                         </div>
 
-                        <div className="max-w-4xl mx-auto space-y-32 mt-20">
-                            {/* Step 1 */}
-                            <div className="group text-center">
-                                <div className="mb-10 space-y-4">
-                                    <h3 className="text-3xl font-bold text-zinc-900 tracking-tight">Registe o orçamento</h3>
-                                    <p className="text-lg text-zinc-600 max-w-xl mx-auto leading-relaxed">
-                                        <strong className="text-zinc-900 font-semibold">Cliente, valor e referência.</strong> Cole um link da proposta (ou anexe o PDF mais tarde).
+                        <div className="max-w-6xl mx-auto space-y-32 mt-20">
+                            {/* Step 1: Text Left, Image Right */}
+                            <div className="flex flex-col md:flex-row items-center gap-12 lg:gap-20">
+                                <div className="flex-1 space-y-6 text-left">
+                                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-zinc-100 text-zinc-900 font-bold text-lg mb-2">1</div>
+                                    <h3 className="text-3xl md:text-4xl font-bold text-zinc-900 tracking-tight leading-tight">
+                                        Registe o orçamento
+                                    </h3>
+                                    <p className="text-lg text-zinc-600 leading-relaxed">
+                                        <strong className="text-zinc-900 font-semibold block mb-2">Cliente, valor e referência.</strong>
+                                        Basta colar o link da proposta ou anexar o PDF mais tarde. Simples e rápido.
                                     </p>
                                 </div>
-                                <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-zinc-200 shadow-2xl bg-zinc-900 mx-auto transform transition-all duration-700 hover:shadow-3xl hover:-translate-y-2">
-                                    <Image
-                                        src="/landing_step1_dark.png"
-                                        alt="Register Quote"
-                                        fill
-                                        className="object-cover object-top"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+                                <div className="flex-1 w-full">
+                                    <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-zinc-200 shadow-2xl bg-zinc-900 transform transition-all duration-700 hover:shadow-3xl hover:-translate-y-1">
+                                        <Image
+                                            src="/landing_step1_dark.png"
+                                            alt="Register Quote"
+                                            fill
+                                            className="object-cover object-top"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Step 2 */}
-                            <div className="group text-center">
-                                <div className="mb-10 space-y-4">
-                                    <h3 className="text-3xl font-bold text-zinc-900 tracking-tight">Envie como sempre</h3>
-                                    <p className="text-lg text-zinc-600 max-w-xl mx-auto leading-relaxed">
-                                        <strong className="text-zinc-900 font-semibold">Continue com Excel/Word + Outlook/Gmail.</strong> <br />
-                                        Marque como enviado no Ritmo (1 clique).
+                            {/* Step 2: Image Left, Text Right */}
+                            <div className="flex flex-col md:flex-row-reverse items-center gap-12 lg:gap-20">
+                                <div className="flex-1 space-y-6 text-left">
+                                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-zinc-100 text-zinc-900 font-bold text-lg mb-2">2</div>
+                                    <h3 className="text-3xl md:text-4xl font-bold text-zinc-900 tracking-tight leading-tight">
+                                        Envie como sempre
+                                    </h3>
+                                    <p className="text-lg text-zinc-600 leading-relaxed">
+                                        <strong className="text-zinc-900 font-semibold block mb-2">Continue com as suas ferramentas.</strong>
+                                        Excel, Word, Outlook ou Gmail. Quando enviar, marque como "Enviado" no Ritmo com apenas 1 clique.
                                     </p>
                                 </div>
-                                <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-zinc-200 shadow-2xl bg-zinc-900 mx-auto transform transition-all duration-700 hover:shadow-3xl hover:-translate-y-2">
-                                    <Image
-                                        src="/landing_step2_dark.png"
-                                        alt="Send as Usual"
-                                        fill
-                                        className="object-cover object-top"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+                                <div className="flex-1 w-full">
+                                    <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-zinc-200 shadow-2xl bg-zinc-900 transform transition-all duration-700 hover:shadow-3xl hover:-translate-y-1">
+                                        <Image
+                                            src="/landing_step2_dark.png"
+                                            alt="Send as Usual"
+                                            fill
+                                            className="object-cover object-top"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Step 3 */}
-                            <div className="group text-center">
-                                <div className="mb-10 space-y-4">
-                                    <h3 className="text-3xl font-bold text-zinc-900 tracking-tight">Faça o que aparece hoje</h3>
-                                    <p className="text-lg text-zinc-600 max-w-xl mx-auto leading-relaxed">
-                                        <strong className="text-zinc-900 font-semibold">Emails prontos a enviar.</strong> Chamadas com proposta e resumo — sem procurar ficheiros.
+                            {/* Step 3: Text Left, Image Right */}
+                            <div className="flex flex-col md:flex-row items-center gap-12 lg:gap-20">
+                                <div className="flex-1 space-y-6 text-left">
+                                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-zinc-100 text-zinc-900 font-bold text-lg mb-2">3</div>
+                                    <h3 className="text-3xl md:text-4xl font-bold text-zinc-900 tracking-tight leading-tight">
+                                        Faça o que aparece hoje
+                                    </h3>
+                                    <p className="text-lg text-zinc-600 leading-relaxed">
+                                        <strong className="text-zinc-900 font-semibold block mb-2">Foco total na ação.</strong>
+                                        Emails prontos a enviar e chamadas com o contexto certo. Nada de procurar ficheiros perdidos.
                                     </p>
                                 </div>
-                                <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-zinc-200 shadow-2xl bg-zinc-900 mx-auto transform transition-all duration-700 hover:shadow-3xl hover:-translate-y-2">
-                                    <Image
-                                        src="/landing_step3_dark.png"
-                                        alt="Action Today"
-                                        fill
-                                        className="object-cover object-top"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+                                <div className="flex-1 w-full">
+                                    <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-zinc-200 shadow-2xl bg-zinc-900 transform transition-all duration-700 hover:shadow-3xl hover:-translate-y-1">
+                                        <Image
+                                            src="/landing_step3_dark.png"
+                                            alt="Action Today"
+                                            fill
+                                            className="object-cover object-top"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+                                    </div>
                                 </div>
                             </div>
                         </div>
