@@ -80,12 +80,12 @@ export default function LandingPage() {
                                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-500 opacity-75"></span>
                                 <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500"></span>
                             </span>
-                            An AI Co-Pilot for your Sales Team
+                            Follow-up de orçamentos, sem CRM pesado
                         </motion.div>
 
-                        <motion.h1 variants={fadeInUp} className="mb-8 text-6xl md:text-8xl font-bold tracking-tighter text-zinc-900 leading-[0.95]">
-                            Experience liftoff with <br />
-                            automatic follow-ups.
+                        <motion.h1 variants={fadeInUp} className="mb-8 text-5xl md:text-7xl font-bold tracking-tighter text-zinc-900 leading-[1]">
+                            Envie orçamentos como sempre — <br />
+                            o Ritmo faz o follow-up.
                         </motion.h1>
 
                         <motion.p variants={fadeInUp} className="mx-auto mb-10 max-w-2xl text-xl leading-relaxed text-zinc-600 font-light">
@@ -95,7 +95,7 @@ export default function LandingPage() {
                         <motion.div variants={fadeInUp} className="flex flex-col items-center justify-center gap-4 sm:flex-row mb-20">
                             <Link href="/signup">
                                 <Button size="lg" className="h-14 rounded-full px-10 text-lg bg-black text-white hover:bg-zinc-800 shadow-xl transition-all hover:scale-105">
-                                    Começar Agora
+                                    Começar trial grátis
                                     <ArrowRight className="ml-2 h-5 w-5" />
                                 </Button>
                             </Link>
@@ -110,8 +110,8 @@ export default function LandingPage() {
                             <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-zinc-900 mb-4">
                                 Entra no seu processo atual em 3 passos.
                             </h2>
-                            <p className="text-xl text-zinc-500 max-w-2xl mx-auto">
-                                Sem configurações complexas de CRM. Continua a usar o que já usa, mas com superpoderes.
+                            <p className="text-xl text-zinc-500 max-w-3xl mx-auto">
+                                Sem configurações complexas. Continua a usar Excel/Word/Sistemas e Outlook/Gmail — o Ritmo só organiza o follow-up.
                             </p>
                         </div>
 
@@ -124,8 +124,7 @@ export default function LandingPage() {
                                         Registe o orçamento
                                     </h3>
                                     <p className="text-lg text-zinc-600 leading-relaxed">
-                                        <strong className="text-zinc-900 font-semibold block mb-2">Cliente, valor e referência.</strong>
-                                        Basta colar o link da proposta ou anexar o PDF mais tarde. Simples e rápido.
+                                        Cliente, valor e referência. Pode colar o link da proposta ou anexar o PDF mais tarde.
                                     </p>
                                 </div>
                                 <div className="w-full md:w-[70%]">
@@ -149,8 +148,7 @@ export default function LandingPage() {
                                         Envie como sempre
                                     </h3>
                                     <p className="text-lg text-zinc-600 leading-relaxed">
-                                        <strong className="text-zinc-900 font-semibold block mb-2">Continue com as suas ferramentas.</strong>
-                                        Excel, Word, Outlook ou Gmail. Quando enviar, marque como "Enviado" no Ritmo com apenas 1 clique.
+                                        Envie por Outlook/Gmail. No Ritmo, marque como &quot;Enviado&quot; com 1 clique.
                                     </p>
                                 </div>
                                 <div className="w-full md:w-[70%]">
@@ -174,8 +172,7 @@ export default function LandingPage() {
                                         Faça o que aparece hoje
                                     </h3>
                                     <p className="text-lg text-zinc-600 leading-relaxed">
-                                        <strong className="text-zinc-900 font-semibold block mb-2">Foco total na ação.</strong>
-                                        Emails prontos a enviar e chamadas com o contexto certo. Nada de procurar ficheiros perdidos.
+                                        Emails prontos a enviar e chamadas D+7 com resumo e proposta num clique.
                                     </p>
                                 </div>
                                 <div className="w-full md:w-[70%]">
@@ -274,7 +271,7 @@ export default function LandingPage() {
                             {/* Free Plan */}
                             <div className="relative rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
                                 <h3 className="text-xl font-bold text-zinc-900 mb-2">Gratuito</h3>
-                                <p className="text-zinc-500 text-sm mb-6">Para começar a experimentar</p>
+                                <p className="text-zinc-500 text-sm mb-6">5 envios/mês</p>
                                 <div className="mb-6">
                                     <span className="text-4xl font-bold text-zinc-900">€0</span>
                                     <span className="text-zinc-500">/mês</span>
@@ -282,20 +279,20 @@ export default function LandingPage() {
                                 <ul className="space-y-3 mb-8">
                                     <li className="flex items-center gap-2 text-sm text-zinc-600">
                                         <Check className="w-4 h-4 text-green-500" />
-                                        5 envios por mês
+                                        Modo manual (tarefas + copiar templates)
                                     </li>
-                                    <li className="flex items-center gap-2 text-sm text-zinc-600">
-                                        <Check className="w-4 h-4 text-green-500" />
-                                        Cadência manual
+                                    <li className="flex items-center gap-2 text-sm text-zinc-400">
+                                        <span className="w-4 h-4 flex items-center justify-center">✕</span>
+                                        Sem emails automáticos
                                     </li>
-                                    <li className="flex items-center gap-2 text-sm text-zinc-600">
-                                        <Check className="w-4 h-4 text-green-500" />
-                                        Templates básicos
+                                    <li className="flex items-center gap-2 text-sm text-zinc-400">
+                                        <span className="w-4 h-4 flex items-center justify-center">✕</span>
+                                        Sem captura por BCC
                                     </li>
                                 </ul>
                                 <Link href="/signup">
                                     <Button variant="outline" className="w-full rounded-full">
-                                        Começar Grátis
+                                        Experimentar modo manual
                                     </Button>
                                 </Link>
                             </div>
@@ -308,16 +305,12 @@ export default function LandingPage() {
                                     </span>
                                 </div>
                                 <h3 className="text-xl font-bold text-zinc-900 mb-2">Starter</h3>
-                                <p className="text-zinc-500 text-sm mb-6">Para equipas pequenas</p>
+                                <p className="text-zinc-500 text-sm mb-6">50 envios/mês</p>
                                 <div className="mb-6">
                                     <span className="text-4xl font-bold text-zinc-900">€29</span>
                                     <span className="text-zinc-500">/mês</span>
                                 </div>
                                 <ul className="space-y-3 mb-8">
-                                    <li className="flex items-center gap-2 text-sm text-zinc-600">
-                                        <Check className="w-4 h-4 text-green-500" />
-                                        50 envios por mês
-                                    </li>
                                     <li className="flex items-center gap-2 text-sm text-zinc-600">
                                         <Check className="w-4 h-4 text-green-500" />
                                         Emails automáticos
@@ -328,12 +321,12 @@ export default function LandingPage() {
                                     </li>
                                     <li className="flex items-center gap-2 text-sm text-zinc-600">
                                         <Check className="w-4 h-4 text-green-500" />
-                                        Templates ilimitados
+                                        Templates editáveis
                                     </li>
                                 </ul>
                                 <Link href="/signup">
                                     <Button className="w-full rounded-full bg-blue-500 hover:bg-blue-600">
-                                        Começar Trial
+                                        Escolher Starter
                                     </Button>
                                 </Link>
                             </div>
@@ -341,7 +334,7 @@ export default function LandingPage() {
                             {/* Pro Plan */}
                             <div className="relative rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
                                 <h3 className="text-xl font-bold text-zinc-900 mb-2">Pro</h3>
-                                <p className="text-zinc-500 text-sm mb-6">Para equipas em crescimento</p>
+                                <p className="text-zinc-500 text-sm mb-6">150 envios/mês</p>
                                 <div className="mb-6">
                                     <span className="text-4xl font-bold text-zinc-900">€79</span>
                                     <span className="text-zinc-500">/mês</span>
@@ -349,24 +342,20 @@ export default function LandingPage() {
                                 <ul className="space-y-3 mb-8">
                                     <li className="flex items-center gap-2 text-sm text-zinc-600">
                                         <Check className="w-4 h-4 text-green-500" />
-                                        150 envios por mês
-                                    </li>
-                                    <li className="flex items-center gap-2 text-sm text-zinc-600">
-                                        <Check className="w-4 h-4 text-green-500" />
                                         Tudo do Starter
                                     </li>
                                     <li className="flex items-center gap-2 text-sm text-zinc-600">
                                         <Check className="w-4 h-4 text-green-500" />
-                                        SMTP personalizado
+                                        Limites mais altos
                                     </li>
                                     <li className="flex items-center gap-2 text-sm text-zinc-600">
                                         <Check className="w-4 h-4 text-green-500" />
-                                        Suporte prioritário
+                                        Prioridade no suporte
                                     </li>
                                 </ul>
                                 <Link href="/signup">
                                     <Button variant="outline" className="w-full rounded-full">
-                                        Começar Trial
+                                        Escolher Pro
                                     </Button>
                                 </Link>
                             </div>
@@ -384,51 +373,51 @@ export default function LandingPage() {
                         <h2 className="text-3xl font-bold text-center mb-12 text-zinc-900">Perguntas Frequentes</h2>
                         <Accordion type="single" collapsible className="w-full">
                             <AccordionItem value="item-1">
-                                <AccordionTrigger>O que conta como envio?</AccordionTrigger>
+                                <AccordionTrigger>O que conta como &quot;envio&quot;?</AccordionTrigger>
                                 <AccordionContent>
-                                    Apenas os orçamentos que você marca ativamente como &quot;Enviado&quot;. Orçamentos em rascunho ou perdidos não contam para o limite do seu plano.
+                                    Só o primeiro envio do orçamento. Reenvios não contam (com limite anti-abuso).
                                 </AccordionContent>
                             </AccordionItem>
                             <AccordionItem value="item-2">
                                 <AccordionTrigger>Preciso mudar o meu processo (Excel/Outlook/Gmail)?</AccordionTrigger>
                                 <AccordionContent>
-                                    Não. O Ritmo funciona em paralelo. Você cria a proposta e envia o email como sempre fez. Só precisa de registar no Ritmo para ativar o &quot;piloto automático&quot; do follow-up.
+                                    Não. O Ritmo encaixa: regista, marca como enviado e executa as ações.
                                 </AccordionContent>
                             </AccordionItem>
                             <AccordionItem value="item-3">
                                 <AccordionTrigger>O Ritmo envia emails automaticamente?</AccordionTrigger>
                                 <AccordionContent>
-                                    Sim, nos planos Pagos. O sistema gera e envia os emails de follow-up nos momentos certos (ex: D+2, D+5). Pode sempre rever antes de enviar ou configurar para envio totalmente automático.
+                                    No trial e nos planos pagos, sim. No gratuito funciona em modo manual (tarefas + copiar template).
                                 </AccordionContent>
                             </AccordionItem>
                             <AccordionItem value="item-4">
                                 <AccordionTrigger>Como funciona o BCC?</AccordionTrigger>
                                 <AccordionContent>
-                                    Cada conta tem um endereço único (ex: sua-empresa@ritmo.app). Ao colocar este email em BCC quando envia a proposta, o Ritmo cria automaticamente o orçamento e inicia a cadência.
+                                    Cola o email BCC no envio. Quando o cliente responde, o Ritmo deteta e ajusta o follow-up.
                                 </AccordionContent>
                             </AccordionItem>
                             <AccordionItem value="item-5">
                                 <AccordionTrigger>E se o contacto não tiver email?</AccordionTrigger>
                                 <AccordionContent>
-                                    O Ritmo cria tarefas de chamada telefónica ("Ligar ao Cliente") na data agendada, garantindo que o follow-up acontece mesmo por telefone.
+                                    O Ritmo cria tarefa de chamada (ou tarefa manual) para não bloquear.
                                 </AccordionContent>
                             </AccordionItem>
                             <AccordionItem value="item-6">
-                                <AccordionTrigger>O email parece robô?</AccordionTrigger>
+                                <AccordionTrigger>O email vai parecer robô?</AccordionTrigger>
                                 <AccordionContent>
-                                    Não. Os templates são 100% personalizáveis e usam texto simples, parecendo um email escrito manualmente por si. Nada de layouts complexos de marketing.
+                                    Não. Templates editáveis + linguagem natural. E a cadência é curta e respeitosa.
                                 </AccordionContent>
                             </AccordionItem>
                             <AccordionItem value="item-7">
                                 <AccordionTrigger>Posso cancelar?</AccordionTrigger>
                                 <AccordionContent>
-                                    A qualquer momento. Não há fidelização. Se cancelar, a sua conta reverte para o plano Gratuito no final do ciclo de faturação.
+                                    Sim, a qualquer momento.
                                 </AccordionContent>
                             </AccordionItem>
                             <AccordionItem value="item-8">
                                 <AccordionTrigger>É seguro?</AccordionTrigger>
                                 <AccordionContent>
-                                    Sim. Usamos encriptação de nível bancário e servidores seguros na Europa. Os seus dados são seus e nunca serão partilhados.
+                                    Credenciais encriptadas, opt-out e logs com dados mascarados.
                                 </AccordionContent>
                             </AccordionItem>
                         </Accordion>
@@ -440,19 +429,19 @@ export default function LandingPage() {
                     <AntigravityParticles />
                     <div className="relative z-10 container mx-auto text-center max-w-4xl">
                         <h2 className="mb-8 text-5xl md:text-7xl font-bold tracking-tighter">
-                            Ready to lift off?
+                            Comece hoje.
                         </h2>
                         <p className="mb-12 text-xl text-zinc-400 max-w-2xl mx-auto">
-                            Join high-performing sales teams using Ritmo to close more deals with less effort.
+                            Em 10 minutos está a enviar e acompanhar follow-ups.
                         </p>
 
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
                             <Link href="/signup">
                                 <Button size="lg" className="h-16 rounded-full px-12 text-lg bg-white text-black hover:bg-zinc-200 font-bold transition-transform hover:scale-105">
-                                    Criar Conta Gratuita
+                                    Começar trial grátis
                                 </Button>
                             </Link>
-                            <span className="text-zinc-500 text-sm">No credit card required</span>
+                            <span className="text-zinc-500 text-sm">Sem cartão</span>
                         </div>
                     </div>
                 </section>
@@ -463,9 +452,10 @@ export default function LandingPage() {
                 <div className="container mx-auto">
                     <p>© 2026 Ritmo. Todos os direitos reservados.</p>
                     <div className="mt-6 flex justify-center gap-8">
-                        <a href="#" className="hover:text-black transition-colors">Privacidade</a>
-                        <a href="#" className="hover:text-black transition-colors">Termos</a>
-                        <a href="#" className="hover:text-black transition-colors">Twitter</a>
+                        <Link href="/privacidade" className="hover:text-black transition-colors">Privacidade</Link>
+                        <Link href="/termos" className="hover:text-black transition-colors">Termos</Link>
+                        <a href="https://linkedin.com/company/ritmo" target="_blank" rel="noopener noreferrer" className="hover:text-black transition-colors">LinkedIn</a>
+                        <a href="mailto:ola@ritmo.app" className="hover:text-black transition-colors">Contacto</a>
                     </div>
                 </div>
             </footer>
