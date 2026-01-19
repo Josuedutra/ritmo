@@ -99,9 +99,6 @@ export default function LandingPage() {
                                     <ArrowRight className="ml-2 h-5 w-5" />
                                 </Button>
                             </Link>
-                            <Button variant="ghost" size="lg" className="h-14 rounded-full px-8 text-zinc-600 hover:text-black hover:bg-zinc-100">
-                                Ver Demonstração
-                            </Button>
                         </motion.div>
                     </motion.div>
                 </section>
