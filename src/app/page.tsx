@@ -39,12 +39,9 @@ export default function LandingPage() {
                 <div className="container mx-auto flex h-16 items-center justify-between px-6">
                     <div className="flex items-center gap-2">
                         {/* Antigravity-like minimalist logo text */}
-                        <div className="flex items-center gap-1">
-                            <div className="w-2 h-2 rounded-full bg-blue-500" />
-                            <div className="w-2 h-2 rounded-full bg-green-500" />
-                            <div className="w-2 h-2 rounded-full bg-red-500" />
-                        </div>
-                        <span className="text-xl font-bold tracking-tight ml-2">Ritmo</span>
+                        <Link href="/" className="flex items-center gap-2 transition-opacity hover:opacity-80">
+                            <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent tracking-tight">Ritmo</span>
+                        </Link>
                     </div>
 
                     <nav className="hidden items-center gap-10 text-sm font-medium text-zinc-600 md:flex">
@@ -137,7 +134,7 @@ export default function LandingPage() {
                                 <div className="w-full md:w-[70%]">
                                     <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-zinc-200 shadow-2xl bg-zinc-900 transform transition-all duration-700 hover:shadow-3xl hover:-translate-y-1">
                                         <Image
-                                            src="/landing_step1_dark.png"
+                                            src="/landing_step1_v2.png"
                                             alt="Register Quote"
                                             fill
                                             className="object-cover object-top"
@@ -162,7 +159,7 @@ export default function LandingPage() {
                                 <div className="w-full md:w-[70%]">
                                     <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-zinc-200 shadow-2xl bg-zinc-900 transform transition-all duration-700 hover:shadow-3xl hover:-translate-y-1">
                                         <Image
-                                            src="/landing_step2_dark.png"
+                                            src="/landing_step2_v2.png"
                                             alt="Send as Usual"
                                             fill
                                             className="object-cover object-top"
@@ -187,7 +184,7 @@ export default function LandingPage() {
                                 <div className="w-full md:w-[70%]">
                                     <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-zinc-200 shadow-2xl bg-zinc-900 transform transition-all duration-700 hover:shadow-3xl hover:-translate-y-1">
                                         <Image
-                                            src="/landing_step3_dark.png"
+                                            src="/landing_step3_v2.png"
                                             alt="Action Today"
                                             fill
                                             className="object-cover object-top"
