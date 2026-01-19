@@ -121,59 +121,63 @@ export default function LandingPage() {
                             </p>
                         </div>
 
-                        <div className="grid gap-12 lg:grid-cols-3">
+                        <div className="max-w-4xl mx-auto space-y-32 mt-20">
                             {/* Step 1 */}
-                            <div className="group">
-                                <div className="relative aspect-[4/3] mb-6 overflow-hidden rounded-2xl border border-zinc-200 shadow-md bg-zinc-900">
+                            <div className="group text-center">
+                                <div className="mb-10 space-y-4">
+                                    <h3 className="text-3xl font-bold text-zinc-900 tracking-tight">Registe o orçamento</h3>
+                                    <p className="text-lg text-zinc-600 max-w-xl mx-auto leading-relaxed">
+                                        <strong className="text-zinc-900 font-semibold">Cliente, valor e referência.</strong> Cole um link da proposta (ou anexe o PDF mais tarde).
+                                    </p>
+                                </div>
+                                <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-zinc-200 shadow-2xl bg-zinc-900 mx-auto transform transition-all duration-700 hover:shadow-3xl hover:-translate-y-2">
                                     <Image
                                         src="/landing_step1_dark.png"
                                         alt="Register Quote"
                                         fill
-                                        className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                                        className="object-cover object-top"
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-                                    <div className="hidden absolute top-4 left-4 w-8 h-8 rounded-full bg-black/50 backdrop-blur-md border border-white/20 text-white font-bold flex items-center justify-center text-sm shadow-lg">1</div>
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
                                 </div>
-                                <h3 className="text-xl font-bold mb-2 text-zinc-900">Registe o orçamento</h3>
-                                <p className="text-zinc-600 bg-white p-4 rounded-xl border border-zinc-100 shadow-sm leading-relaxed">
-                                    <strong className="text-zinc-900">Cliente, valor e referência.</strong> Cole um link da proposta (ou anexe o PDF mais tarde).
-                                </p>
                             </div>
 
                             {/* Step 2 */}
-                            <div className="group">
-                                <div className="relative aspect-[4/3] mb-6 overflow-hidden rounded-2xl border border-zinc-200 shadow-md bg-zinc-900">
+                            <div className="group text-center">
+                                <div className="mb-10 space-y-4">
+                                    <h3 className="text-3xl font-bold text-zinc-900 tracking-tight">Envie como sempre</h3>
+                                    <p className="text-lg text-zinc-600 max-w-xl mx-auto leading-relaxed">
+                                        <strong className="text-zinc-900 font-semibold">Continue com Excel/Word + Outlook/Gmail.</strong> <br />
+                                        Marque como enviado no Ritmo (1 clique).
+                                    </p>
+                                </div>
+                                <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-zinc-200 shadow-2xl bg-zinc-900 mx-auto transform transition-all duration-700 hover:shadow-3xl hover:-translate-y-2">
                                     <Image
                                         src="/landing_step2_dark.png"
                                         alt="Send as Usual"
                                         fill
-                                        className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                                        className="object-cover object-top"
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-                                    <div className="hidden absolute top-4 left-4 w-8 h-8 rounded-full bg-black/50 backdrop-blur-md border border-white/20 text-white font-bold flex items-center justify-center text-sm shadow-lg">2</div>
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
                                 </div>
-                                <h3 className="text-xl font-bold mb-2 text-zinc-900">Envie como sempre</h3>
-                                <p className="text-zinc-600 bg-white p-4 rounded-xl border border-zinc-100 shadow-sm leading-relaxed">
-                                    <strong className="text-zinc-900">Continue com Excel/Word + Outlook/Gmail.</strong> Marque como enviado no Ritmo (1 clique).
-                                </p>
                             </div>
 
                             {/* Step 3 */}
-                            <div className="group">
-                                <div className="relative aspect-[4/3] mb-6 overflow-hidden rounded-2xl border border-zinc-200 shadow-md bg-zinc-900">
+                            <div className="group text-center">
+                                <div className="mb-10 space-y-4">
+                                    <h3 className="text-3xl font-bold text-zinc-900 tracking-tight">Faça o que aparece hoje</h3>
+                                    <p className="text-lg text-zinc-600 max-w-xl mx-auto leading-relaxed">
+                                        <strong className="text-zinc-900 font-semibold">Emails prontos a enviar.</strong> Chamadas com proposta e resumo — sem procurar ficheiros.
+                                    </p>
+                                </div>
+                                <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-zinc-200 shadow-2xl bg-zinc-900 mx-auto transform transition-all duration-700 hover:shadow-3xl hover:-translate-y-2">
                                     <Image
                                         src="/landing_step3_dark.png"
                                         alt="Action Today"
                                         fill
-                                        className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                                        className="object-cover object-top"
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-                                    <div className="hidden absolute top-4 left-4 w-8 h-8 rounded-full bg-black/50 backdrop-blur-md border border-white/20 text-white font-bold flex items-center justify-center text-sm shadow-lg">3</div>
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
                                 </div>
-                                <h3 className="text-xl font-bold mb-2 text-zinc-900">Faça o que aparece hoje</h3>
-                                <p className="text-zinc-600 bg-white p-4 rounded-xl border border-zinc-100 shadow-sm leading-relaxed">
-                                    <strong className="text-zinc-900">Emails prontos a enviar.</strong> Chamadas com proposta e resumo — sem procurar ficheiros.
-                                </p>
                             </div>
                         </div>
 
