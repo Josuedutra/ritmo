@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Check, ListChecks, FileText, Zap, ChevronDown, Plus, Mail, Bell } from "lucide-react";
+import { ArrowRight, Check, ListChecks, FileText, Zap, Bell } from "lucide-react";
 import { AntigravityParticles } from "@/components/landing/antigravity-particles";
 import {
     Accordion,
@@ -124,7 +124,8 @@ export default function LandingPage() {
                                         Registe o orçamento
                                     </h3>
                                     <p className="text-lg text-zinc-600 leading-relaxed">
-                                        Cliente, valor e referência. Pode colar o link da proposta ou anexar o PDF mais tarde.
+                                        <strong className="text-zinc-900 font-semibold block mb-2">Cliente, valor e referência.</strong>
+                                        Basta colar o link da proposta ou anexar o PDF mais tarde. Simples e rápido.
                                     </p>
                                 </div>
                                 <div className="w-full md:w-[70%]">
@@ -148,7 +149,8 @@ export default function LandingPage() {
                                         Envie como sempre
                                     </h3>
                                     <p className="text-lg text-zinc-600 leading-relaxed">
-                                        Envie por Outlook/Gmail. No Ritmo, marque como &quot;Enviado&quot; com 1 clique.
+                                        <strong className="text-zinc-900 font-semibold block mb-2">Continue com as suas ferramentas.</strong>
+                                        Excel, Word, Outlook ou Gmail. Quando enviar, marque como &quot;Enviado&quot; no Ritmo com apenas 1 clique.
                                     </p>
                                 </div>
                                 <div className="w-full md:w-[70%]">
@@ -172,7 +174,8 @@ export default function LandingPage() {
                                         Faça o que aparece hoje
                                     </h3>
                                     <p className="text-lg text-zinc-600 leading-relaxed">
-                                        Emails prontos a enviar e chamadas D+7 com resumo e proposta num clique.
+                                        <strong className="text-zinc-900 font-semibold block mb-2">Foco total na ação.</strong>
+                                        Emails prontos a enviar e chamadas com o contexto certo. Nada de procurar ficheiros perdidos.
                                     </p>
                                 </div>
                                 <div className="w-full md:w-[70%]">
