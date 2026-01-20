@@ -475,6 +475,7 @@ model Plan {
   name              String
   monthlyQuoteLimit Int      @map("monthly_quote_limit")
   priceMonthly      Int      @default(0) @map("price_monthly") // In cents (EUR)
+  maxUsers          Int      @default(1) @map("max_users")     // Max team members
   stripePriceId     String?  @map("stripe_price_id")
   isActive          Boolean  @default(true) @map("is_active")
 

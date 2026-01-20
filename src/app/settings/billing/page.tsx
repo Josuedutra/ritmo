@@ -69,17 +69,20 @@ export default async function BillingPage() {
             name: p.name,
             quotesLimit: p.monthlyQuoteLimit,
             priceMonthly: p.priceMonthly,
+            maxUsers: p.maxUsers,
             hasStripePrice: !!p.stripePriceId,
-            // Features based on plan - spec compliant copy
+            // Features based on plan - frozen pricing
             features:
                 p.id === "free"
                     ? [
-                          { text: "Sem emails automáticos (modo manual)", enabled: false },
+                          { text: "Modo manual (tarefas + copiar templates)", enabled: true },
+                          { text: "Sem emails automáticos", enabled: false },
                           { text: "Sem captura por BCC", enabled: false },
                       ]
                     : [
                           { text: "Emails automáticos", enabled: true },
-                          { text: "Captura de proposta por BCC", enabled: true },
+                          { text: "Captura por BCC", enabled: true },
+                          { text: `Até ${p.maxUsers} utilizadores`, enabled: true },
                       ],
         })),
     };

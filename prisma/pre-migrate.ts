@@ -190,30 +190,37 @@ async function main() {
         `;
     }
 
-    // Seed default plans if plans table exists but is empty
+    // Seed/update plans if plans table exists
     if (await tableExists("plans")) {
-        const planCount = await prisma.$queryRaw<{ count: bigint }[]>`
-            SELECT COUNT(*) as count FROM plans
+        console.log("📝 Updating plans with frozen pricing...");
+
+        // Check if max_users column exists, add if not
+        const maxUsersExists = await columnExists("plans", "max_users");
+        if (!maxUsersExists) {
+            await prisma.$executeRaw`
+                ALTER TABLE plans ADD COLUMN IF NOT EXISTS max_users INTEGER DEFAULT 1
+            `;
+            console.log("✅ Added max_users column to plans");
+        }
+
+        // Upsert plans with frozen pricing: Free=5, Starter=€39/80, Pro=€99/250
+        await prisma.$executeRaw`
+            INSERT INTO plans (id, name, monthly_quote_limit, price_monthly, max_users, is_active, created_at, updated_at)
+            VALUES
+                ('free', 'Gratuito', 5, 0, 1, true, NOW(), NOW()),
+                ('starter', 'Starter', 80, 3900, 2, true, NOW(), NOW()),
+                ('pro', 'Pro', 250, 9900, 5, true, NOW(), NOW()),
+                ('enterprise', 'Enterprise', 1000, 0, 999, false, NOW(), NOW())
+            ON CONFLICT (id) DO UPDATE SET
+                name = EXCLUDED.name,
+                monthly_quote_limit = EXCLUDED.monthly_quote_limit,
+                price_monthly = EXCLUDED.price_monthly,
+                max_users = EXCLUDED.max_users,
+                is_active = EXCLUDED.is_active,
+                updated_at = NOW()
         `;
 
-        if (Number(planCount[0]?.count) === 0) {
-            console.log("📝 Seeding default plans...");
-
-            // Insert default plans
-            await prisma.$executeRaw`
-                INSERT INTO plans (id, name, monthly_quote_limit, price_monthly, is_active, created_at, updated_at)
-                VALUES
-                    ('free', 'Gratuito', 5, 0, true, NOW(), NOW()),
-                    ('starter', 'Starter', 50, 2900, true, NOW(), NOW()),
-                    ('pro', 'Pro', 150, 7900, true, NOW(), NOW()),
-                    ('enterprise', 'Enterprise', 500, 19900, true, NOW(), NOW())
-                ON CONFLICT (id) DO NOTHING
-            `;
-
-            console.log("✅ Default plans seeded");
-        } else {
-            console.log("✅ Plans table already populated");
-        }
+        console.log("✅ Plans updated (Free=5, Starter=€39/80, Pro=€99/250)");
     }
 
     console.log("✅ Pre-migration complete");

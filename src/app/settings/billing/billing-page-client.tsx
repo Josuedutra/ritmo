@@ -34,6 +34,7 @@ interface Plan {
     name: string;
     quotesLimit: number;
     priceMonthly: number;
+    maxUsers: number;
     hasStripePrice: boolean;
     features: PlanFeature[];
 }

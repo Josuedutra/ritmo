@@ -18,34 +18,39 @@ function getStripe(): Stripe | null {
 }
 
 // Fallback plan definitions (used when DB is not available)
+// Frozen pricing: Free=5, Starter=€39/80, Pro=€99/250
 export const PLANS = {
     free: {
         id: "free",
         name: "Gratuito",
         quotesLimit: 5,
+        maxUsers: 1,
         priceMonthly: 0,
         stripePriceId: null,
     },
     starter: {
         id: "starter",
         name: "Starter",
-        quotesLimit: 50,
-        priceMonthly: 2900,
+        quotesLimit: 80,
+        maxUsers: 2,
+        priceMonthly: 3900,
         stripePriceId: process.env.STRIPE_PRICE_STARTER,
     },
     pro: {
         id: "pro",
         name: "Pro",
-        quotesLimit: 150,
-        priceMonthly: 7900,
+        quotesLimit: 250,
+        maxUsers: 5,
+        priceMonthly: 9900,
         stripePriceId: process.env.STRIPE_PRICE_PRO,
     },
     enterprise: {
         id: "enterprise",
         name: "Enterprise",
-        quotesLimit: 500,
-        priceMonthly: 19900,
-        stripePriceId: process.env.STRIPE_PRICE_ENTERPRISE,
+        quotesLimit: 1000,
+        maxUsers: 999,
+        priceMonthly: 0,
+        stripePriceId: null, // Custom pricing
     },
 } as const;
 

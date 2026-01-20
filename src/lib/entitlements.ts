@@ -16,21 +16,33 @@
 
 import { prisma } from "@/lib/prisma";
 
-// Constants
+// Constants - Frozen pricing
 export const FREE_TIER_LIMIT = 5;
+export const FREE_MAX_USERS = 1;
 export const TRIAL_LIMIT = 20;
+export const TRIAL_MAX_USERS = 2;
 export const TRIAL_DURATION_DAYS = 14;
 export const MAX_RESENDS_PER_MONTH = 2;
+
+// Plan limits (single source of truth for UI consistency)
+export const PLAN_LIMITS = {
+    free: { monthlyQuotes: 5, maxUsers: 1, price: 0 },
+    starter: { monthlyQuotes: 80, maxUsers: 2, price: 3900 },
+    pro: { monthlyQuotes: 250, maxUsers: 5, price: 9900 },
+    enterprise: { monthlyQuotes: 1000, maxUsers: 999, price: 0 },
+} as const;
 
 export interface Entitlements {
     // Tier info
     tier: "trial" | "free" | "paid";
     planName: string;
+    planId: string | null;
 
     // Limits
     effectivePlanLimit: number;
     quotesUsed: number;
     quotesRemaining: number;
+    maxUsers: number;
 
     // Trial-specific
     trialActive: boolean;
@@ -64,9 +76,12 @@ interface OrgData {
     subscription: {
         status: string;
         quotesLimit: number;
+        planId: string;
         plan: {
+            id: string;
             name: string;
             monthlyQuoteLimit: number;
+            maxUsers: number;
         } | null;
     } | null;
 }
@@ -92,8 +107,10 @@ export async function getEntitlements(organizationId: string): Promise<Entitleme
                 include: {
                     plan: {
                         select: {
+                            id: true,
                             name: true,
                             monthlyQuoteLimit: true,
+                            maxUsers: true,
                         },
                     },
                 },
@@ -145,6 +162,8 @@ export function calculateEntitlements(
     let effectivePlanLimit: number;
     let quotesUsed: number;
     let planName: string;
+    let planId: string | null;
+    let maxUsers: number;
     let autoEmailEnabled: boolean;
     let bccInboundEnabled: boolean;
 
@@ -154,6 +173,8 @@ export function calculateEntitlements(
         effectivePlanLimit = subscription.plan?.monthlyQuoteLimit ?? subscription.quotesLimit;
         quotesUsed = periodQuotesSent;
         planName = subscription.plan?.name ?? "Pago";
+        planId = subscription.plan?.id ?? subscription.planId;
+        maxUsers = subscription.plan?.maxUsers ?? 1;
         // Paid plans get automation features
         autoEmailEnabled = true;
         bccInboundEnabled = true;
@@ -163,6 +184,8 @@ export function calculateEntitlements(
         effectivePlanLimit = org.trialSentLimit;
         quotesUsed = org.trialSentUsed;
         planName = "Trial";
+        planId = null;
+        maxUsers = TRIAL_MAX_USERS;
         // Trial gets automation features
         autoEmailEnabled = true;
         bccInboundEnabled = true;
@@ -172,6 +195,8 @@ export function calculateEntitlements(
         effectivePlanLimit = FREE_TIER_LIMIT;
         quotesUsed = periodQuotesSent;
         planName = "Gratuito";
+        planId = "free";
+        maxUsers = FREE_MAX_USERS;
         // Free tier has NO automation
         autoEmailEnabled = false;
         bccInboundEnabled = false;
@@ -193,9 +218,11 @@ export function calculateEntitlements(
     return {
         tier,
         planName,
+        planId,
         effectivePlanLimit,
         quotesUsed,
         quotesRemaining,
+        maxUsers,
         trialActive,
         trialEndsAt: org.trialEndsAt,
         trialDaysRemaining,
@@ -293,9 +320,11 @@ function getDefaultEntitlements(): Entitlements {
     return {
         tier: "free",
         planName: "Gratuito",
+        planId: "free",
         effectivePlanLimit: FREE_TIER_LIMIT,
         quotesUsed: 0,
         quotesRemaining: FREE_TIER_LIMIT,
+        maxUsers: FREE_MAX_USERS,
         trialActive: false,
         trialEndsAt: null,
         trialDaysRemaining: null,

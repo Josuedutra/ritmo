@@ -308,9 +308,9 @@ export default function LandingPage() {
                                     </span>
                                 </div>
                                 <h3 className="text-xl font-bold text-zinc-900 mb-2">Starter</h3>
-                                <p className="text-zinc-500 text-sm mb-6">50 envios/mês</p>
+                                <p className="text-zinc-500 text-sm mb-6">80 envios/mês</p>
                                 <div className="mb-6">
-                                    <span className="text-4xl font-bold text-zinc-900">€29</span>
+                                    <span className="text-4xl font-bold text-zinc-900">€39</span>
                                     <span className="text-zinc-500">/mês</span>
                                 </div>
                                 <ul className="space-y-3 mb-8">
@@ -326,6 +326,10 @@ export default function LandingPage() {
                                         <Check className="w-4 h-4 text-green-500" />
                                         Templates editáveis
                                     </li>
+                                    <li className="flex items-center gap-2 text-sm text-zinc-600">
+                                        <Check className="w-4 h-4 text-green-500" />
+                                        Até 2 utilizadores
+                                    </li>
                                 </ul>
                                 <Link href="/signup">
                                     <Button className="w-full rounded-full bg-blue-500 hover:bg-blue-600">
@@ -337,9 +341,9 @@ export default function LandingPage() {
                             {/* Pro Plan */}
                             <div className="relative rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
                                 <h3 className="text-xl font-bold text-zinc-900 mb-2">Pro</h3>
-                                <p className="text-zinc-500 text-sm mb-6">150 envios/mês</p>
+                                <p className="text-zinc-500 text-sm mb-6">250 envios/mês</p>
                                 <div className="mb-6">
-                                    <span className="text-4xl font-bold text-zinc-900">€79</span>
+                                    <span className="text-4xl font-bold text-zinc-900">€99</span>
                                     <span className="text-zinc-500">/mês</span>
                                 </div>
                                 <ul className="space-y-3 mb-8">
@@ -349,7 +353,7 @@ export default function LandingPage() {
                                     </li>
                                     <li className="flex items-center gap-2 text-sm text-zinc-600">
                                         <Check className="w-4 h-4 text-green-500" />
-                                        Limites mais altos
+                                        Até 5 utilizadores
                                     </li>
                                     <li className="flex items-center gap-2 text-sm text-zinc-600">
                                         <Check className="w-4 h-4 text-green-500" />

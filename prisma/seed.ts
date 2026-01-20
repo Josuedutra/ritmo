@@ -6,30 +6,37 @@ async function main() {
     console.log("🌱 Seeding database...");
 
     // Create Plans (Ensure they exist for subscription foreign keys)
+    // Pricing frozen: Free=5, Starter=€39/80, Pro=€99/250
     const plans = [
-        { id: "free", name: "Gratuito", limit: 5, price: 0, stripeId: null },
-        { id: "starter", name: "Starter", limit: 50, price: 2900, stripeId: "price_mock_starter" },
-        { id: "pro", name: "Pro", limit: 150, price: 7900, stripeId: "price_mock_pro" },
-        { id: "enterprise", name: "Enterprise", limit: 500, price: 19900, stripeId: "price_mock_enterprise" },
+        { id: "free", name: "Gratuito", limit: 5, price: 0, maxUsers: 1, stripeId: null, active: true },
+        { id: "starter", name: "Starter", limit: 80, price: 3900, maxUsers: 2, stripeId: process.env.STRIPE_PRICE_STARTER || null, active: true },
+        { id: "pro", name: "Pro", limit: 250, price: 9900, maxUsers: 5, stripeId: process.env.STRIPE_PRICE_PRO || null, active: true },
+        { id: "enterprise", name: "Enterprise", limit: 1000, price: 0, maxUsers: 999, stripeId: null, active: false },
     ];
 
     for (const p of plans) {
         await prisma.plan.upsert({
             where: { id: p.id },
             update: {
-                stripePriceId: p.stripeId, // Ensure stripe IDs are updated
+                name: p.name,
+                monthlyQuoteLimit: p.limit,
+                priceMonthly: p.price,
+                maxUsers: p.maxUsers,
+                stripePriceId: p.stripeId,
+                isActive: p.active,
             },
             create: {
                 id: p.id,
                 name: p.name,
                 monthlyQuoteLimit: p.limit,
                 priceMonthly: p.price,
+                maxUsers: p.maxUsers,
                 stripePriceId: p.stripeId,
-                isActive: true,
+                isActive: p.active,
             },
         });
     }
-    console.log("✅ Plans seeded/updated");
+    console.log("✅ Plans seeded/updated (Free=5, Starter=€39/80, Pro=€99/250)");
 
     // Create demo organization
     const org = await prisma.organization.upsert({
