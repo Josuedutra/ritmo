@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { logger } from "@/lib/logger";
+import { logger, AppLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
+import { trackEvent, ProductEventNames } from "@/lib/product-events";
 import Stripe from "stripe";
 
 export const dynamic = "force-dynamic";
@@ -152,7 +153,7 @@ export async function POST(request: NextRequest) {
 // =============================================================================
 async function handleCheckoutCompleted(
     session: Stripe.Checkout.Session,
-    log: ReturnType<typeof logger.child>
+    log: AppLogger
 ) {
     const { organizationId, planId } = session.metadata || {};
 
@@ -216,7 +217,7 @@ async function handleCheckoutCompleted(
 // =============================================================================
 async function handleSubscriptionCreated(
     subscription: Stripe.Subscription,
-    log: ReturnType<typeof logger.child>
+    log: AppLogger
 ) {
     // Find organization by stripeCustomerId
     const existingSubscription = await prisma.subscription.findFirst({
@@ -260,7 +261,7 @@ async function handleSubscriptionCreated(
 // =============================================================================
 async function handleSubscriptionUpdated(
     subscription: Stripe.Subscription,
-    log: ReturnType<typeof logger.child>
+    log: AppLogger
 ) {
     // Find subscription by stripeSubscriptionId
     let existingSubscription = await prisma.subscription.findFirst({
@@ -314,7 +315,7 @@ async function handleSubscriptionUpdated(
 // =============================================================================
 async function handleSubscriptionDeleted(
     subscription: Stripe.Subscription,
-    log: ReturnType<typeof logger.child>
+    log: AppLogger
 ) {
     const existingSubscription = await prisma.subscription.findFirst({
         where: { stripeSubscriptionId: subscription.id },
@@ -355,10 +356,18 @@ async function handleSubscriptionDeleted(
 // =============================================================================
 async function handleInvoicePaymentSucceeded(
     invoice: Stripe.Invoice,
-    log: ReturnType<typeof logger.child>
+    log: AppLogger
 ) {
     if (!invoice.subscription) {
         log.debug("Invoice not related to subscription - skipping");
+        return;
+    }
+
+    // =========================================================================
+    // GUARDRAIL 1: Skip zero-amount invoices (e.g., trial without card)
+    // =========================================================================
+    if (!invoice.amount_paid || invoice.amount_paid === 0) {
+        log.debug("Invoice amount is 0 - skipping booster calculation");
         return;
     }
 
@@ -374,6 +383,8 @@ async function handleInvoicePaymentSucceeded(
         return;
     }
 
+    const organizationId = existingSubscription.organizationId;
+
     // Ensure status is active after successful payment
     if (existingSubscription.status !== "active") {
         await prisma.subscription.update({
@@ -382,10 +393,191 @@ async function handleInvoicePaymentSucceeded(
         });
 
         log.info(
-            { organizationId: existingSubscription.organizationId },
+            { organizationId },
             "Subscription reactivated after payment"
         );
     }
+
+    // =========================================================================
+    // REFERRAL BOOSTER: Check if this org has a referral attribution
+    // Only for first payment (subscription_create)
+    // =========================================================================
+    try {
+        await handleReferralBooster(
+            organizationId,
+            existingSubscription.id,
+            invoice,
+            log
+        );
+    } catch (error) {
+        // Log but don't fail the webhook
+        const message = error instanceof Error ? error.message : "Unknown error";
+        log.error({ error: message, organizationId }, "Error processing referral booster");
+    }
+}
+
+/**
+ * Handle referral booster creation for first payment.
+ * Creates BoosterLedger entry if org has referral attribution.
+ *
+ * P0-lite Hardening:
+ * - Only converts on billing_reason=subscription_create (first payment)
+ * - Validates attribution status is ATTRIBUTED or SIGNED_UP (not DISQUALIFIED/CONVERTED)
+ * - Idempotency via unique stripeInvoiceId constraint
+ * - One-time booster per org (attribution marked CONVERTED)
+ */
+async function handleReferralBooster(
+    organizationId: string,
+    subscriptionId: string,
+    invoice: Stripe.Invoice,
+    log: AppLogger
+) {
+    // =========================================================================
+    // GUARDRAIL 2: Only process first payment (subscription_create)
+    // =========================================================================
+    const validBillingReasons = ["subscription_create"];
+    const billingReason = invoice.billing_reason;
+
+    if (billingReason && !validBillingReasons.includes(billingReason)) {
+        log.debug(
+            { billingReason, invoiceId: invoice.id },
+            "Not a first payment (billing_reason) - skipping booster"
+        );
+        return;
+    }
+
+    // =========================================================================
+    // GUARDRAIL 3: Check attribution exists and is eligible
+    // =========================================================================
+    const attribution = await prisma.referralAttribution.findUnique({
+        where: { organizationId },
+        include: {
+            partner: {
+                select: {
+                    id: true,
+                    name: true,
+                    status: true,
+                    defaultBoosterRateBps: true,
+                },
+            },
+        },
+    });
+
+    if (!attribution) {
+        log.debug({ organizationId }, "No referral attribution for this org");
+        return;
+    }
+
+    // =========================================================================
+    // GUARDRAIL 4: Attribution must be ATTRIBUTED or SIGNED_UP
+    // CONVERTED/DISQUALIFIED = already processed or blocked
+    // =========================================================================
+    const eligibleStatuses = ["ATTRIBUTED", "SIGNED_UP"];
+    if (!eligibleStatuses.includes(attribution.status)) {
+        log.debug(
+            { organizationId, status: attribution.status },
+            "Attribution not eligible for conversion"
+        );
+        return;
+    }
+
+    // =========================================================================
+    // GUARDRAIL 5: Partner must be ACTIVE
+    // =========================================================================
+    if (attribution.partner.status !== "ACTIVE") {
+        log.warn(
+            { organizationId, partnerId: attribution.partnerId },
+            "Partner is not active - skipping booster"
+        );
+        return;
+    }
+
+    // =========================================================================
+    // GUARDRAIL 6: Idempotency - booster already exists for this invoice
+    // =========================================================================
+    const existingBooster = await prisma.boosterLedger.findUnique({
+        where: { stripeInvoiceId: invoice.id },
+    });
+
+    if (existingBooster) {
+        log.debug(
+            { invoiceId: invoice.id },
+            "Booster already exists for this invoice - skipping"
+        );
+        return;
+    }
+
+    // =========================================================================
+    // GUARDRAIL 7: Check if org already has ANY booster (one-time only)
+    // =========================================================================
+    const existingOrgBooster = await prisma.boosterLedger.findFirst({
+        where: { organizationId },
+    });
+
+    if (existingOrgBooster) {
+        log.debug(
+            { organizationId, existingBoosterId: existingOrgBooster.id },
+            "Org already has a booster - skipping (one-time rule)"
+        );
+        return;
+    }
+
+    // =========================================================================
+    // Calculate and create booster
+    // =========================================================================
+    const rateBps = attribution.partner.defaultBoosterRateBps;
+    const amountCents = Math.round((invoice.amount_paid * rateBps) / 10000);
+    const currency = invoice.currency || "eur";
+
+    // Create booster ledger entry
+    await prisma.boosterLedger.create({
+        data: {
+            partnerId: attribution.partnerId,
+            organizationId,
+            subscriptionId,
+            stripeInvoiceId: invoice.id,
+            amountCents,
+            currency,
+            rateBps,
+            status: "PENDING",
+            reason: "referral_booster",
+        },
+    });
+
+    // Update attribution to CONVERTED
+    await prisma.referralAttribution.update({
+        where: { id: attribution.id },
+        data: {
+            status: "CONVERTED",
+            convertedAt: new Date(),
+        },
+    });
+
+    // Track conversion event
+    trackEvent(ProductEventNames.REFERRAL_CONVERTED, {
+        organizationId,
+        props: {
+            partnerId: attribution.partnerId,
+            partnerName: attribution.partner.name,
+            amountCents,
+            rateBps,
+            currency,
+            stripeInvoiceId: invoice.id,
+            billingReason,
+        },
+    });
+
+    log.info(
+        {
+            organizationId,
+            partnerId: attribution.partnerId,
+            amountCents,
+            rateBps,
+            currency,
+            stripeInvoiceId: invoice.id,
+        },
+        "Referral booster created"
+    );
 }
 
 // =============================================================================
@@ -393,7 +585,7 @@ async function handleInvoicePaymentSucceeded(
 // =============================================================================
 async function handleInvoicePaymentFailed(
     invoice: Stripe.Invoice,
-    log: ReturnType<typeof logger.child>
+    log: AppLogger
 ) {
     if (!invoice.subscription) {
         log.debug("Invoice not related to subscription - skipping");

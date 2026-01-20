@@ -1,23 +1,50 @@
-import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardContent, Badge } from "@/components/ui";
 import { CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
 
-export default async function HealthPage() {
-    let dbStatus = "healthy";
-    let dbLatency = 0;
-    let dbError: string | null = null;
+interface HealthResponse {
+    status: "operational" | "degraded";
+    db: {
+        status: "ok" | "error";
+        latencyMs?: number;
+    };
+    version: string;
+    commit: string;
+    timestamp: string;
+}
 
+async function getHealth(): Promise<HealthResponse> {
     try {
-        const start = Date.now();
-        await prisma.$queryRaw`SELECT 1`;
-        dbLatency = Date.now() - start;
-    } catch (e) {
-        dbStatus = "unhealthy";
-        dbError = e instanceof Error ? e.message : "Unknown error";
-    }
+        // Use absolute URL for server-side fetch
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL
+            ? `https://${process.env.VERCEL_URL}`
+            : "http://localhost:3000";
 
-    const isHealthy = dbStatus === "healthy";
+        const res = await fetch(`${baseUrl}/api/health`, {
+            cache: "no-store",
+        });
+
+        if (!res.ok) {
+            // Return degraded status if fetch fails but we got a response
+            return await res.json();
+        }
+
+        return await res.json();
+    } catch {
+        // Return degraded status if fetch completely fails
+        return {
+            status: "degraded",
+            db: { status: "error" },
+            version: process.env.APP_VERSION || "v0.1.0",
+            commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || "local",
+            timestamp: new Date().toISOString(),
+        };
+    }
+}
+
+export default async function HealthPage() {
+    const health = await getHealth();
+    const isHealthy = health.status === "operational";
 
     return (
         <div className="min-h-screen bg-[var(--color-background)]">
@@ -51,7 +78,7 @@ export default async function HealthPage() {
 
                         <CardContent className="space-y-3">
                             {/* Overall Status */}
-                            <div className="flex items-center justify-between rounded-md bg-[var(--color-background)] p-3">
+                            <div className="flex items-center justify-between rounded-md bg-[var(--color-muted)] p-3">
                                 <span className="text-sm font-medium">Status</span>
                                 <Badge variant={isHealthy ? "success" : "destructive"}>
                                     {isHealthy ? "Operacional" : "Degradado"}
@@ -59,44 +86,35 @@ export default async function HealthPage() {
                             </div>
 
                             {/* Database */}
-                            <div className="flex items-center justify-between rounded-md bg-[var(--color-background)] p-3">
+                            <div className="flex items-center justify-between rounded-md bg-[var(--color-muted)] p-3">
                                 <span className="text-sm font-medium">Base de dados</span>
                                 <div className="flex items-center gap-2">
-                                    {dbStatus === "healthy" && (
+                                    {health.db.status === "ok" && health.db.latencyMs !== undefined && (
                                         <span className="text-xs text-[var(--color-muted-foreground)]">
-                                            {dbLatency}ms
+                                            {health.db.latencyMs}ms
                                         </span>
                                     )}
-                                    <Badge variant={dbStatus === "healthy" ? "success" : "destructive"}>
-                                        {dbStatus === "healthy" ? "OK" : "Erro"}
+                                    <Badge variant={health.db.status === "ok" ? "success" : "destructive"}>
+                                        {health.db.status === "ok" ? "OK" : "Erro"}
                                     </Badge>
                                 </div>
                             </div>
 
                             {/* Version */}
-                            <div className="flex items-center justify-between rounded-md bg-[var(--color-background)] p-3">
+                            <div className="flex items-center justify-between rounded-md bg-[var(--color-muted)] p-3">
                                 <span className="text-sm font-medium">Versão</span>
                                 <span className="font-mono text-sm text-[var(--color-muted-foreground)]">
-                                    v0.1.0
+                                    {health.version}
                                 </span>
                             </div>
 
                             {/* Commit */}
-                            <div className="flex items-center justify-between rounded-md bg-[var(--color-background)] p-3">
+                            <div className="flex items-center justify-between rounded-md bg-[var(--color-muted)] p-3">
                                 <span className="text-sm font-medium">Commit</span>
                                 <span className="font-mono text-sm text-[var(--color-muted-foreground)]">
-                                    {process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || "local"}
+                                    {health.commit}
                                 </span>
                             </div>
-
-                            {/* Error Message */}
-                            {dbError && (
-                                <div className="rounded-md border border-[var(--color-destructive)]/30 bg-[var(--color-destructive)]/10 p-3">
-                                    <p className="text-xs text-[var(--color-destructive)]">
-                                        <strong>Erro:</strong> {dbError}
-                                    </p>
-                                </div>
-                            )}
                         </CardContent>
                     </Card>
 

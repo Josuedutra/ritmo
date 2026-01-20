@@ -8,6 +8,7 @@ import { GenerateActionButton } from "@/components/quotes";
 import { Plus, FileText, Clock, Euro, Building2, AlertCircle, Zap } from "lucide-react";
 import { formatDistanceToNow, isToday, isTomorrow } from "date-fns";
 import { pt } from "date-fns/locale";
+import { QuotesEmptyState } from "./quotes-empty-state";
 
 interface PageProps {
     searchParams: Promise<{ filter?: string }>;
@@ -239,32 +240,9 @@ export default async function QuotesPage({ searchParams }: PageProps) {
                     </div>
                 )}
 
-                {/* Quotes list */}
+                {/* Quotes list - Patch E: Empty states with helpful messages */}
                 {quotes.length === 0 ? (
-                    <Card className="flex flex-col items-center justify-center p-12 text-center">
-                        <FileText className="mb-4 h-12 w-12 text-[var(--color-muted-foreground)]" />
-                        <h3 className="mb-2 text-lg font-medium">Sem orçamentos</h3>
-                        <p className="mb-2 text-sm text-[var(--color-muted-foreground)]">
-                            {filter === "no_response"
-                                ? "Nenhum orçamento sem resposta há mais de 24h."
-                                : "Comece por criar o seu primeiro orçamento."}
-                        </p>
-                        {filter === "all" && (
-                            <>
-                                <p className="mb-6 text-xs text-[var(--color-muted-foreground)]">
-                                    Crie → Marque como enviado → Ritmo gera D+1/D+3/D+7/D+14
-                                </p>
-                                <div className="flex gap-3">
-                                    <Link href="/quotes/new">
-                                        <Button>
-                                            <Plus className="mr-2 h-4 w-4" />
-                                            Criar orçamento
-                                        </Button>
-                                    </Link>
-                                </div>
-                            </>
-                        )}
-                    </Card>
+                    <QuotesEmptyState filter={filter} />
                 ) : (
                     <div className="space-y-3">
                         {quotes.map((quote) => {

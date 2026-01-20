@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import {
     getApiSession,
     unauthorized,
+    forbidden,
     notFound,
     badRequest,
     serverError,
@@ -51,12 +52,17 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
 /**
  * PUT /api/templates/:id
- * Update a template
+ * Update a template (admin only)
  */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
     try {
         const session = await getApiSession();
         if (!session) return unauthorized();
+
+        // Only admins can update templates
+        if (session.user.role !== "admin") {
+            return forbidden("Apenas administradores podem editar templates");
+        }
 
         const { id } = await params;
         const body = await request.json();
@@ -91,12 +97,17 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
 /**
  * DELETE /api/templates/:id
- * Delete a template
+ * Delete a template (admin only)
  */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
     try {
         const session = await getApiSession();
         if (!session) return unauthorized();
+
+        // Only admins can delete templates
+        if (session.user.role !== "admin") {
+            return forbidden("Apenas administradores podem eliminar templates");
+        }
 
         const { id } = await params;
 

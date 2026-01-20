@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import {
     getApiSession,
     unauthorized,
+    forbidden,
     notFound,
     badRequest,
     serverError,
@@ -84,16 +85,30 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
             return badRequest(parsed.error.errors[0].message);
         }
 
-        // Check ownership
+        // Check task exists in org
         const existing = await prisma.task.findFirst({
             where: {
                 id,
                 organizationId: session.user.organizationId,
             },
+            include: {
+                quote: {
+                    select: { ownerUserId: true },
+                },
+            },
         });
 
         if (!existing) {
             return notFound("Task");
+        }
+
+        // Members can only edit tasks assigned to them or from their own quotes
+        if (session.user.role !== "admin") {
+            const isAssignedToMe = existing.assignedToId === session.user.id;
+            const isMyQuote = existing.quote?.ownerUserId === session.user.id;
+            if (!isAssignedToMe && !isMyQuote) {
+                return forbidden("Apenas pode editar tarefas atribuídas a si");
+            }
         }
 
         const { dueAt, assignedToId, status, ...rest } = parsed.data;
@@ -141,16 +156,30 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
         const { id } = await params;
 
-        // Check ownership
+        // Check task exists in org
         const existing = await prisma.task.findFirst({
             where: {
                 id,
                 organizationId: session.user.organizationId,
             },
+            include: {
+                quote: {
+                    select: { ownerUserId: true },
+                },
+            },
         });
 
         if (!existing) {
             return notFound("Task");
+        }
+
+        // Members can only delete tasks assigned to them or from their own quotes
+        if (session.user.role !== "admin") {
+            const isAssignedToMe = existing.assignedToId === session.user.id;
+            const isMyQuote = existing.quote?.ownerUserId === session.user.id;
+            if (!isAssignedToMe && !isMyQuote) {
+                return forbidden("Apenas pode eliminar tarefas atribuídas a si");
+            }
         }
 
         await prisma.task.delete({

@@ -1,15 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { TRIAL_LIMIT, TRIAL_DURATION_DAYS } from "@/lib/entitlements";
+import { trackEvent, ProductEventNames } from "@/lib/product-events";
+import {
+    REFERRAL_COOKIE_NAME,
+    REFERRAL_COOKIE_DAYS,
+    decodeCookiePayload,
+    isReferralCookieValid,
+} from "@/app/api/referrals/capture/route";
 
 /**
  * POST /api/auth/signup
  * Creates a new user and organization with trial defaults.
+ * Also handles referral attribution if ritmo_ref cookie is present and valid.
+ *
+ * Hardening (P0-lite):
+ * - Validates cookie expiry (30 days from capture)
+ * - Blocks self-referral (partner.contactEmail === signup email)
+ * - Creates DISQUALIFIED attribution for blocked referrals
  */
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         const { email, password, name, companyName } = body;
+
+        // Read and parse referral cookie
+        const cookieStore = await cookies();
+        const referralCookieValue = cookieStore.get(REFERRAL_COOKIE_NAME)?.value;
+        const referralPayload = referralCookieValue ? decodeCookiePayload(referralCookieValue) : null;
 
         // Validation
         if (!email || !password) {
@@ -94,7 +113,35 @@ export async function POST(request: NextRequest) {
             return { organization, user };
         });
 
-        return NextResponse.json({
+        // Track signup event (non-blocking)
+        trackEvent(ProductEventNames.SIGNUP_COMPLETED, {
+            organizationId: result.organization.id,
+            userId: result.user.id,
+            props: {
+                hasCompanyName: !!companyName,
+                trialDays: TRIAL_DURATION_DAYS,
+                hasReferral: !!referralPayload,
+            },
+        });
+
+        // Handle referral attribution (non-blocking)
+        let referralAttribution = null;
+        if (referralPayload) {
+            try {
+                referralAttribution = await handleReferralAttribution(
+                    referralPayload,
+                    email.toLowerCase(),
+                    result.organization.id,
+                    result.user.id
+                );
+            } catch (error) {
+                // Log but don't fail signup
+                console.error("[Signup] Referral attribution error:", error);
+            }
+        }
+
+        // Create response
+        const response = NextResponse.json({
             success: true,
             user: {
                 id: result.user.id,
@@ -106,7 +153,19 @@ export async function POST(request: NextRequest) {
                 name: result.organization.name,
                 trialEndsAt: result.organization.trialEndsAt,
             },
+            referral: referralAttribution ? {
+                partnerId: referralAttribution.partnerId,
+                partnerName: referralAttribution.partnerName,
+                status: referralAttribution.status,
+            } : null,
         });
+
+        // Clear referral cookie after processing (regardless of outcome)
+        if (referralPayload) {
+            response.cookies.delete(REFERRAL_COOKIE_NAME);
+        }
+
+        return response;
     } catch (error) {
         console.error("[Signup] Error:", error);
         return NextResponse.json(
@@ -114,4 +173,147 @@ export async function POST(request: NextRequest) {
             { status: 500 }
         );
     }
+}
+
+/**
+ * Handle referral attribution for a new organization.
+ * Creates ReferralAttribution record linking org to partner.
+ *
+ * P0-lite Hardening:
+ * - Validates cookie expiry (30 days from capture)
+ * - Blocks self-referral (partner.contactEmail === signup email)
+ * - Creates DISQUALIFIED attribution for blocked referrals
+ */
+async function handleReferralAttribution(
+    payload: { code: string; capturedAt: string },
+    signupEmail: string,
+    organizationId: string,
+    userId: string
+): Promise<{ partnerId: string; partnerName: string; status: string } | null> {
+    // =========================================================================
+    // 1. Validate attribution window (30 days)
+    // =========================================================================
+    if (!isReferralCookieValid(payload)) {
+        // Cookie expired - track and skip
+        trackEvent(ProductEventNames.REFERRAL_EXPIRED, {
+            organizationId,
+            userId,
+            props: {
+                code: payload.code,
+                capturedAt: payload.capturedAt,
+                expiredDays: REFERRAL_COOKIE_DAYS,
+            },
+        });
+        console.log(`[Signup] Referral cookie expired: ${payload.code}`);
+        return null;
+    }
+
+    // =========================================================================
+    // 2. Find the referral link and partner
+    // =========================================================================
+    const referralLink = await prisma.referralLink.findUnique({
+        where: { code: payload.code },
+        include: {
+            partner: {
+                select: {
+                    id: true,
+                    name: true,
+                    status: true,
+                    contactEmail: true,
+                },
+            },
+        },
+    });
+
+    if (!referralLink || referralLink.partner.status !== "ACTIVE") {
+        return null;
+    }
+
+    // =========================================================================
+    // 3. Check for self-referral (anti-abuse)
+    // =========================================================================
+    const partnerEmail = referralLink.partner.contactEmail?.toLowerCase();
+    const isSelfReferral = partnerEmail && partnerEmail === signupEmail;
+
+    if (isSelfReferral) {
+        // Create DISQUALIFIED attribution for audit trail
+        await prisma.referralAttribution.create({
+            data: {
+                partnerId: referralLink.partnerId,
+                referralLinkId: referralLink.id,
+                organizationId,
+                invitedUserId: userId,
+                status: "DISQUALIFIED",
+                signupAt: new Date(),
+            },
+        });
+
+        // Track disqualification event
+        trackEvent(ProductEventNames.REFERRAL_DISQUALIFIED, {
+            organizationId,
+            userId,
+            props: {
+                reason: "self_referral",
+                partnerId: referralLink.partnerId,
+                partnerName: referralLink.partner.name,
+                code: payload.code,
+            },
+        });
+
+        console.log(`[Signup] Self-referral blocked: ${signupEmail} is partner contact`);
+
+        return {
+            partnerId: referralLink.partnerId,
+            partnerName: referralLink.partner.name,
+            status: "DISQUALIFIED",
+        };
+    }
+
+    // =========================================================================
+    // 4. Check if org already has an attribution (shouldn't happen, but be safe)
+    // =========================================================================
+    const existingAttribution = await prisma.referralAttribution.findUnique({
+        where: { organizationId },
+    });
+
+    if (existingAttribution) {
+        // Already attributed, return existing
+        return {
+            partnerId: existingAttribution.partnerId,
+            partnerName: referralLink.partner.name,
+            status: existingAttribution.status,
+        };
+    }
+
+    // =========================================================================
+    // 5. Create new valid attribution
+    // =========================================================================
+    await prisma.referralAttribution.create({
+        data: {
+            partnerId: referralLink.partnerId,
+            referralLinkId: referralLink.id,
+            organizationId,
+            invitedUserId: userId,
+            status: "SIGNED_UP",
+            signupAt: new Date(),
+        },
+    });
+
+    // Track attribution event
+    trackEvent(ProductEventNames.REFERRAL_ATTRIBUTED, {
+        organizationId,
+        userId,
+        props: {
+            partnerId: referralLink.partnerId,
+            partnerName: referralLink.partner.name,
+            code: payload.code,
+            capturedAt: payload.capturedAt,
+        },
+    });
+
+    return {
+        partnerId: referralLink.partnerId,
+        partnerName: referralLink.partner.name,
+        status: "SIGNED_UP",
+    };
 }

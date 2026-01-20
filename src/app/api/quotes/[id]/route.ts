@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import {
     getApiSession,
     unauthorized,
+    forbidden,
     notFound,
     badRequest,
     serverError,
@@ -94,7 +95,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
             return badRequest(parsed.error.errors[0].message);
         }
 
-        // Check ownership
+        // Check quote exists in org
         const existing = await prisma.quote.findFirst({
             where: {
                 id,
@@ -104,6 +105,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
         if (!existing) {
             return notFound("Quote");
+        }
+
+        // Members can only edit their own quotes
+        if (session.user.role !== "admin" && existing.ownerUserId !== session.user.id) {
+            return forbidden("Apenas pode editar os seus próprios orçamentos");
         }
 
         const { contactId, validUntil, ...rest } = parsed.data;
@@ -160,7 +166,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
         const { id } = await params;
 
-        // Check ownership
+        // Check quote exists in org
         const existing = await prisma.quote.findFirst({
             where: {
                 id,
@@ -170,6 +176,11 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
         if (!existing) {
             return notFound("Quote");
+        }
+
+        // Members can only delete their own quotes
+        if (session.user.role !== "admin" && existing.ownerUserId !== session.user.id) {
+            return forbidden("Apenas pode eliminar os seus próprios orçamentos");
         }
 
         // Cascade delete handled by Prisma schema

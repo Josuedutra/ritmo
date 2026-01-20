@@ -389,3 +389,144 @@ export async function incrementTrialUsage(organizationId: string): Promise<void>
         },
     });
 }
+
+/**
+ * Check if organization can access the scoreboard feature.
+ * Available for: Starter, Pro, Enterprise (paid plans)
+ * NOT available for: Free tier
+ * Trial: Shows teaser with upgrade CTA
+ */
+export async function canAccessScoreboard(organizationId: string): Promise<{
+    allowed: boolean;
+    tier: "paid" | "trial" | "free";
+    showTeaser: boolean;
+}> {
+    const entitlements = await getEntitlements(organizationId);
+
+    if (entitlements.tier === "paid") {
+        return { allowed: true, tier: "paid", showTeaser: false };
+    }
+
+    if (entitlements.tier === "trial") {
+        // Trial users see a teaser but not full data
+        return { allowed: false, tier: "trial", showTeaser: true };
+    }
+
+    // Free tier - no access
+    return { allowed: false, tier: "free", showTeaser: false };
+}
+
+/**
+ * Check if organization can access the benchmark feature.
+ * Only available for Pro and Enterprise plans.
+ */
+export async function canAccessBenchmark(organizationId: string): Promise<{
+    allowed: boolean;
+    planRequired: string;
+}> {
+    const entitlements = await getEntitlements(organizationId);
+
+    // Only Pro and Enterprise have benchmark access
+    const benchmarkPlans = ["pro", "enterprise"];
+    const allowed = entitlements.tier === "paid" &&
+        entitlements.planId !== null &&
+        benchmarkPlans.includes(entitlements.planId);
+
+    return {
+        allowed,
+        planRequired: allowed ? "" : "Pro",
+    };
+}
+
+/**
+ * Check if organization can add more users (seats).
+ * Returns current count, limit, and whether adding is allowed.
+ */
+export async function checkSeatLimit(organizationId: string): Promise<{
+    currentUsers: number;
+    maxUsers: number;
+    canAddUser: boolean;
+    remaining: number;
+}> {
+    const entitlements = await getEntitlements(organizationId);
+
+    const currentUsers = await prisma.user.count({
+        where: { organizationId },
+    });
+
+    const canAddUser = currentUsers < entitlements.maxUsers;
+
+    return {
+        currentUsers,
+        maxUsers: entitlements.maxUsers,
+        canAddUser,
+        remaining: Math.max(0, entitlements.maxUsers - currentUsers),
+    };
+}
+
+/**
+ * Check if organization can access reports feature.
+ * Only available for Pro and Enterprise plans.
+ */
+export async function canAccessReports(organizationId: string): Promise<{
+    allowed: boolean;
+    planRequired: string;
+}> {
+    const entitlements = await getEntitlements(organizationId);
+
+    // Only Pro and Enterprise have reports access
+    const reportsPlans = ["pro", "enterprise"];
+    const allowed = entitlements.tier === "paid" &&
+        entitlements.planId !== null &&
+        reportsPlans.includes(entitlements.planId);
+
+    return {
+        allowed,
+        planRequired: allowed ? "" : "Pro",
+    };
+}
+
+/**
+ * Check if organization can configure priority rules.
+ * Only Pro and Enterprise can customize rules.
+ * Starter uses fixed threshold of 1000.
+ */
+export async function canConfigurePriorityRules(organizationId: string): Promise<{
+    allowed: boolean;
+    planRequired: string;
+}> {
+    const entitlements = await getEntitlements(organizationId);
+
+    // Only Pro and Enterprise can configure priority rules
+    const configPlans = ["pro", "enterprise"];
+    const allowed = entitlements.tier === "paid" &&
+        entitlements.planId !== null &&
+        configPlans.includes(entitlements.planId);
+
+    return {
+        allowed,
+        planRequired: allowed ? "" : "Pro",
+    };
+}
+
+/**
+ * Check if organization can reassign quote owners.
+ * Only Pro and Enterprise can reassign (team features).
+ */
+export async function canReassignOwner(organizationId: string): Promise<{
+    allowed: boolean;
+    planRequired: string;
+}> {
+    const entitlements = await getEntitlements(organizationId);
+
+    // Only Pro and Enterprise can reassign owners
+    const teamPlans = ["pro", "enterprise"];
+    const allowed = entitlements.tier === "paid" &&
+        entitlements.planId !== null &&
+        teamPlans.includes(entitlements.planId);
+
+    return {
+        allowed,
+        planRequired: allowed ? "" : "Pro",
+    };
+}

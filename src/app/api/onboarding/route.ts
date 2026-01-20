@@ -8,6 +8,7 @@ import {
     serverError,
     success,
 } from "@/lib/api-utils";
+import { trackEvent, ProductEventNames } from "@/lib/product-events";
 
 export interface OnboardingState {
     templates: boolean;
@@ -139,6 +140,12 @@ export async function PUT() {
             data: {
                 onboardingCompleted: true,
             },
+        });
+
+        // Track onboarding completed event
+        trackEvent(ProductEventNames.ONBOARDING_COMPLETED, {
+            organizationId: session.user.organizationId,
+            userId: session.user.id,
         });
 
         return success({ completed: true });

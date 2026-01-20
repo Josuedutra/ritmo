@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { AppHeader } from "@/components/layout";
 import { Card, CardHeader, CardTitle, CardContent, Badge } from "@/components/ui";
 import { ArrowLeft, Mail, Phone, Building2, Calendar, FileText, Clock, CheckCircle2, MessageSquare } from "lucide-react";
-import { QuoteTimeline } from "./quote-timeline";
+import { TimelineWrapper } from "./timeline-wrapper";
 import { QuoteActions } from "./quote-actions";
 import { ProposalSection } from "./proposal-section";
 import { QuoteTagsNotes } from "./quote-tags-notes";
@@ -453,7 +453,7 @@ export default async function QuoteDetailPage({ params }: PageProps) {
                                 <CardTitle>Histórico</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <QuoteTimeline
+                                <TimelineWrapper
                                     events={timelineEvents}
                                     currentRunId={quote.cadenceRunId}
                                     quoteCreatedAt={quote.createdAt.toISOString()}

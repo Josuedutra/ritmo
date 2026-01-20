@@ -28,11 +28,19 @@ export default async function BillingPage() {
     // Get entitlements (single source of truth)
     const entitlements = await getEntitlements(organizationId);
 
-    // Get all plans
+    // Get only PUBLIC plans for display (hides pro_plus, enterprise)
     const plans = await prisma.plan.findMany({
-        where: { isActive: true },
+        where: {
+            isActive: true,
+            isPublic: true,
+        },
         orderBy: { priceMonthly: "asc" },
     });
+
+    // Check if current plan is hidden (pro_plus, etc)
+    const currentPlanIsHidden = organization.subscription?.plan
+        ? !organization.subscription.plan.isPublic
+        : false;
 
     // Transform data for client
     const subscription = organization.subscription;
@@ -52,6 +60,7 @@ export default async function BillingPage() {
                   cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
                   hasStripeCustomer: !!subscription.stripeCustomerId,
                   hasStripeSubscription: !!subscription.stripeSubscriptionId,
+                  isHiddenPlan: currentPlanIsHidden, // Flag for hidden plans (pro_plus, etc)
               }
             : null,
         entitlements: {

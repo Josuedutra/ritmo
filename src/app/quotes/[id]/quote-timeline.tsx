@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui";
 import { Mail, Phone, CheckCircle2, Clock, XCircle, AlertCircle, ListTodo, Send, Plus, FileText } from "lucide-react";
 
-interface CadenceEvent {
+export interface CadenceEvent {
     id: string;
     type: "cadence";
     eventType: string;
@@ -16,7 +16,7 @@ interface CadenceEvent {
     cancelReason: string | null;
 }
 
-interface TaskEvent {
+export interface TaskEvent {
     id: string;
     type: "task";
     taskType: string;
@@ -28,7 +28,7 @@ interface TaskEvent {
     createdAt: string;
 }
 
-interface EmailEvent {
+export interface EmailEvent {
     id: string;
     type: "email";
     status: string;
@@ -38,7 +38,7 @@ interface EmailEvent {
     createdAt: string;
 }
 
-interface SystemEvent {
+export interface SystemEvent {
     id: string;
     type: "system";
     eventType: "created" | "sent" | "status_change";
@@ -46,13 +46,14 @@ interface SystemEvent {
     date: string;
 }
 
-type TimelineEvent = CadenceEvent | TaskEvent | EmailEvent | SystemEvent;
+export type TimelineEvent = CadenceEvent | TaskEvent | EmailEvent | SystemEvent;
 
 interface QuoteTimelineProps {
     events: TimelineEvent[];
     currentRunId: number;
     quoteCreatedAt: string;
     quoteSentAt: string | null;
+    highlightFirstEvent?: boolean; // P0 Fix: Highlight first D+1 event after Aha
 }
 
 // Event type labels
@@ -75,7 +76,7 @@ const STATUS_CONFIG: Record<string, { icon: typeof CheckCircle2; color: string; 
     pending: { icon: Clock, color: "text-blue-500", label: "Pendente" },
 };
 
-export function QuoteTimeline({ events, currentRunId, quoteCreatedAt, quoteSentAt }: QuoteTimelineProps) {
+export function QuoteTimeline({ events, currentRunId, quoteCreatedAt, quoteSentAt, highlightFirstEvent = false }: QuoteTimelineProps) {
     // Add system events for quote creation and sent
     const systemEvents: SystemEvent[] = [
         {
@@ -168,8 +169,13 @@ export function QuoteTimeline({ events, currentRunId, quoteCreatedAt, quoteSentA
                 <div>
                     <h4 className="mb-3 text-sm font-medium">Próximas ações</h4>
                     <div className="space-y-3 rounded-lg bg-blue-500/5 p-3">
-                        {upcomingActions.map((event) => (
-                            <TimelineItem key={`${event.type}-${event.id}`} event={event} isUpcoming />
+                        {upcomingActions.map((event, index) => (
+                            <TimelineItem
+                                key={`${event.type}-${event.id}`}
+                                event={event}
+                                isUpcoming
+                                isFirstHighlighted={highlightFirstEvent && index === 0}
+                            />
                         ))}
                     </div>
                 </div>
@@ -204,15 +210,15 @@ export function QuoteTimeline({ events, currentRunId, quoteCreatedAt, quoteSentA
     );
 }
 
-function TimelineItem({ event, isUpcoming = false }: { event: TimelineEvent; isUpcoming?: boolean }) {
+function TimelineItem({ event, isUpcoming = false, isFirstHighlighted = false }: { event: TimelineEvent; isUpcoming?: boolean; isFirstHighlighted?: boolean }) {
     const { icon: Icon, color, label } = getStatusConfig(event);
     const TypeIcon = getTypeIcon(event);
     const isSystemEvent = event.type === "system";
 
     return (
-        <div className="flex gap-3">
+        <div className={`flex gap-3 ${isFirstHighlighted ? "rounded-md bg-[var(--color-primary)]/5 p-2 -m-2 ring-1 ring-[var(--color-primary)]/20" : ""}`}>
             {/* Icon */}
-            <div className={`mt-0.5 rounded-full p-1.5 ${getTypeBackground(event)}`}>
+            <div className={`mt-0.5 rounded-full p-1.5 ${getTypeBackground(event)} ${isFirstHighlighted ? "ring-2 ring-[var(--color-primary)]" : ""}`}>
                 <TypeIcon className="h-3.5 w-3.5" />
             </div>
 
@@ -228,6 +234,12 @@ function TimelineItem({ event, isUpcoming = false }: { event: TimelineEvent; isU
                     )}
                     {event.type === "cadence" && (event as CadenceEvent).priority === "HIGH" && (
                         <Badge variant="high" className="text-xs">Prioritário</Badge>
+                    )}
+                    {/* P0 Fix: First follow-up highlight label */}
+                    {isFirstHighlighted && (
+                        <Badge variant="default" className="text-xs bg-[var(--color-primary)]">
+                            Primeiro follow-up agendado
+                        </Badge>
                     )}
                 </div>
 

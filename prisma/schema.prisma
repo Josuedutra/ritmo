@@ -89,6 +89,14 @@ enum IngestStatus {
   rejected_feature_disabled
 }
 
+enum Sector {
+  AVAC
+  MAINTENANCE
+  IT
+  FACILITIES
+  OTHER
+}
+
 // ============================================================================
 // ORGANIZATION & USERS
 // ============================================================================
@@ -125,6 +133,13 @@ model Organization {
   autoEmailEnabled    Boolean   @default(false) @map("auto_email_enabled")  // Can use AUTO_EMAIL mode in cron
   bccInboundEnabled   Boolean   @default(false) @map("bcc_inbound_enabled") // Can process BCC proposals automatically
 
+  // Sector for benchmark grouping
+  sector              Sector?   // Selected during onboarding for benchmark comparisons
+
+  // Priority rules (Pro only - configurable threshold and tags)
+  priorityThreshold   Decimal   @default(1000.00) @map("priority_threshold") @db.Decimal(10, 2)  // Value >= this = HIGH
+  priorityTags        String[]  @default([]) @map("priority_tags")  // Tags that trigger HIGH priority (e.g. ["Urgente", "Obra"])
+
   createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @updatedAt @map("updated_at")
 
@@ -141,6 +156,7 @@ model Organization {
   cadenceEvents       CadenceEvent[]
   tasks               Task[]
   emailLogs           EmailLog[]
+  orgMetrics          OrgMetricsDaily[]
 
   @@map("organizations")
 }
@@ -161,6 +177,7 @@ model User {
   // Relations
   organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   quotesCreated   Quote[]      @relation("CreatedBy")
+  quotesOwned     Quote[]      @relation("OwnedBy")
   tasksAssigned   Task[]       @relation("AssignedTo")
   attachments     Attachment[] @relation("UploadedBy")
   quoteNotes      QuoteNote[]  @relation("NoteAuthor")
@@ -272,8 +289,10 @@ model Quote {
   notes           String?
   tags            String[]       @default([])           // P1-03: Quick tags
   lossReason      String?        @map("loss_reason")    // P1-02: Reason for losing the quote
+  source          String?        @map("source")         // P0: Quote origin (e.g., "seed", "manual", "bcc")
   lastActivityAt  DateTime?      @map("last_activity_at")
   createdById     String?        @map("created_by")
+  ownerUserId     String?        @map("owner_user_id")  // Current owner/responsible for the quote
 
   // Resend tracking (P1 - anti-abuse)
   resendCount     Int            @default(0) @map("resend_count")      // Resends this month
@@ -286,6 +305,7 @@ model Quote {
   organization    Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   contact         Contact?       @relation(fields: [contactId], references: [id])
   createdBy       User?          @relation("CreatedBy", fields: [createdById], references: [id])
+  owner           User?          @relation("OwnedBy", fields: [ownerUserId], references: [id])
   proposalFile    Attachment?    @relation("ProposalFile", fields: [proposalFileId], references: [id])
   cadenceEvents   CadenceEvent[]
   tasks           Task[]
@@ -296,6 +316,7 @@ model Quote {
   @@index([organizationId, businessStatus])
   @@index([organizationId, ritmoStage])
   @@index([organizationId, firstSentAt])
+  @@index([organizationId, ownerUserId])
   @@map("quotes")
 }
 
@@ -471,13 +492,14 @@ model SuppressionGlobal {
 // ============================================================================
 
 model Plan {
-  id                String   @id // free | starter | pro | enterprise
+  id                String   @id // free | starter | pro | pro_plus | enterprise
   name              String
   monthlyQuoteLimit Int      @map("monthly_quote_limit")
   priceMonthly      Int      @default(0) @map("price_monthly") // In cents (EUR)
   maxUsers          Int      @default(1) @map("max_users")     // Max team members
   stripePriceId     String?  @map("stripe_price_id")
   isActive          Boolean  @default(true) @map("is_active")
+  isPublic          Boolean  @default(true) @map("is_public")  // Hidden plans (pro_plus) = false
 
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
@@ -621,4 +643,186 @@ model FeedbackItem {
 
   @@index([organizationId, createdAt])
   @@map("feedback_items")
+}
+
+// ============================================================================
+// PRODUCT ANALYTICS (Internal Metrics)
+// ============================================================================
+
+/// Product events for internal metrics tracking
+/// Used to measure Time-to-Aha, activation rates, retention
+model ProductEvent {
+  id              String   @id @default(uuid())
+  organizationId  String?  @map("organization_id")
+  userId          String?  @map("user_id")
+  sessionId       String?  @map("session_id")
+
+  // Event identification
+  name            String   // e.g. signup_completed, mark_sent_success
+
+  // Additional properties as JSON
+  props           Json?    @default("{}")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  // Indexes for efficient queries
+  @@index([name, createdAt])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, name, createdAt])
+  @@map("product_events")
+}
+
+// ============================================================================
+// ORG METRICS DAILY (Scoreboard & Benchmark)
+// ============================================================================
+
+/// Daily aggregated metrics per organization for scoreboard and benchmarking
+/// Pre-calculated by cron job to enable fast dashboard queries
+model OrgMetricsDaily {
+  id              String   @id @default(uuid())
+  organizationId  String   @map("organization_id")
+  date            DateTime @db.Date // The day these metrics are for
+
+  // Core metrics
+  sentCount       Int      @default(0) @map("sent_count")           // Quotes marked as sent
+  completedActions Int     @default(0) @map("completed_actions")    // CadenceEvents completed + Tasks completed
+  totalActions    Int      @default(0) @map("total_actions")        // Total CadenceEvents + Tasks scheduled
+  followUpRate    Decimal  @default(0) @map("follow_up_rate") @db.Decimal(5, 2) // completedActions / totalActions * 100
+  noResponseCount Int      @default(0) @map("no_response_count")    // Quotes "Sem resposta" > 24h (aging)
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, date])
+  @@index([date])
+  @@index([organizationId, date])
+  @@map("org_metrics_daily")
+}
+
+// ============================================================================
+// REFERRALS & PARTNERS
+// ============================================================================
+
+enum PartnerType {
+  ACCOUNTING
+  AGENCY
+  OTHER
+}
+
+enum PartnerStatus {
+  ACTIVE
+  PAUSED
+}
+
+enum ReferralAttributionStatus {
+  ATTRIBUTED    // First touch recorded
+  SIGNED_UP     // Org created via referral
+  CONVERTED     // First payment made
+  DISQUALIFIED  // Manually disqualified (fraud, etc.)
+}
+
+enum BoosterStatus {
+  PENDING   // Awaiting approval/payout
+  APPROVED  // Approved for payout
+  PAID      // Payout completed
+  VOID      // Cancelled/voided
+}
+
+/// Partners (e.g., accounting firms) who refer clients
+model Partner {
+  id                    String        @id @default(cuid())
+  name                  String
+  type                  PartnerType   @default(OTHER)
+  contactName           String?       @map("contact_name")
+  contactEmail          String?       @map("contact_email")
+  website               String?
+  status                PartnerStatus @default(ACTIVE)
+
+  // Booster configuration (basis points: 1500 = 15%)
+  defaultBoosterRateBps Int           @default(1500) @map("default_booster_rate_bps")
+
+  createdAt             DateTime      @default(now()) @map("created_at")
+  updatedAt             DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  referralLinks         ReferralLink[]
+  attributions          ReferralAttribution[]
+  boosterLedger         BoosterLedger[]
+
+  @@index([status])
+  @@map("partners")
+}
+
+/// Referral links generated for partners
+model ReferralLink {
+  id          String   @id @default(cuid())
+  partnerId   String   @map("partner_id")
+  code        String   @unique // Short code for URL, e.g., "acme2024"
+  landingPath String   @default("/signup") @map("landing_path")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  partner     Partner  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  attributions ReferralAttribution[]
+
+  @@index([partnerId])
+  @@map("referral_links")
+}
+
+/// Attribution tracking: which org came from which partner
+model ReferralAttribution {
+  id              String                    @id @default(cuid())
+  partnerId       String                    @map("partner_id")
+  referralLinkId  String?                   @map("referral_link_id")
+  organizationId  String                    @unique @map("organization_id") // One org can only have one referral attribution
+  invitedUserId   String?                   @map("invited_user_id")
+
+  // Timeline tracking
+  firstTouchAt    DateTime                  @default(now()) @map("first_touch_at")
+  signupAt        DateTime?                 @map("signup_at")
+  convertedAt     DateTime?                 @map("converted_at")
+
+  status          ReferralAttributionStatus @default(ATTRIBUTED)
+
+  createdAt       DateTime                  @default(now()) @map("created_at")
+  updatedAt       DateTime                  @updatedAt @map("updated_at")
+
+  // Relations
+  partner         Partner                   @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  referralLink    ReferralLink?             @relation(fields: [referralLinkId], references: [id])
+
+  @@index([partnerId, createdAt])
+  @@index([status])
+  @@map("referral_attributions")
+}
+
+/// Booster ledger: tracks commissions/credits owed to partners
+model BoosterLedger {
+  id              String        @id @default(cuid())
+  partnerId       String        @map("partner_id")
+  organizationId  String        @map("organization_id")
+  subscriptionId  String?       @map("subscription_id")
+  stripeInvoiceId String?       @unique @map("stripe_invoice_id") // For idempotency
+
+  amountCents     Int           @map("amount_cents")
+  currency        String        @default("eur")
+  rateBps         Int           @map("rate_bps") // Rate at time of calculation
+
+  status          BoosterStatus @default(PENDING)
+  reason          String        @default("referral_booster")
+
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  partner         Partner       @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@index([partnerId, createdAt])
+  @@index([organizationId, createdAt])
+  @@index([status])
+  @@map("booster_ledger")
 }

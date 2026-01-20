@@ -1,47 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card, CardHeader, CardTitle, CardContent, Input, Label, Textarea, toast } from "@/components/ui";
-import { Send, Save, Plus, Loader2, AlertTriangle } from "lucide-react";
+import { Send, Save, Loader2, Info } from "lucide-react";
 
-interface Contact {
-    id: string;
-    name: string | null;
-    email: string | null;
-    company: string | null;
-}
-
-interface QuoteFormProps {
-    contacts: Contact[];
-}
-
-export function QuoteForm({ contacts }: QuoteFormProps) {
+// Removed contacts prop - now using inline contact creation
+export function QuoteForm() {
     const router = useRouter();
     const [loading, setLoading] = useState<"save" | "send" | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    // Form state
+    // Form state - Patch A: simplified inline contact with separate fields
     const [title, setTitle] = useState("");
     const [reference, setReference] = useState("");
-    const [contactId, setContactId] = useState("");
-    const [newContactName, setNewContactName] = useState("");
-    const [newContactEmail, setNewContactEmail] = useState("");
-    const [newContactCompany, setNewContactCompany] = useState("");
+    const [clientName, setClientName] = useState(""); // Patch A: Cliente (nome) - OBRIGATÓRIO
+    const [clientEmail, setClientEmail] = useState(""); // Patch A: Email (opcional) - separated
+    const [clientPhone, setClientPhone] = useState(""); // Patch A: Telefone (opcional) - separated
     const [serviceType, setServiceType] = useState("");
     const [value, setValue] = useState("");
     const [proposalLink, setProposalLink] = useState("");
     const [proposalLinkError, setProposalLinkError] = useState<string | null>(null);
     const [notes, setNotes] = useState("");
-    const [showNewContact, setShowNewContact] = useState(false);
 
-    // Check if selected contact has email or phone
-    const selectedContact = contacts.find((c) => c.id === contactId);
-    const hasContactInfo = showNewContact
-        ? !!newContactEmail
-        : selectedContact
-            ? !!(selectedContact.email || (selectedContact as any).phone)
-            : false;
+    // Patch F: Track quote_new_opened event on mount
+    useEffect(() => {
+        fetch("/api/tracking/quote-new-opened", { method: "POST" }).catch(() => {});
+    }, []);
+
+    // Patch A: Check if contact info provided (for automation features)
+    const hasContactInfo = !!clientEmail || !!clientPhone;
 
     // Validate proposal link
     const validateProposalLink = (link: string): boolean => {
@@ -64,6 +52,13 @@ export function QuoteForm({ contacts }: QuoteFormProps) {
     };
 
     const handleSubmit = async (action: "save" | "send") => {
+        // Patch A: Validate client name (obrigatório)
+        if (!clientName.trim()) {
+            setError("O nome do cliente é obrigatório");
+            toast.error("Erro", "O nome do cliente é obrigatório");
+            return;
+        }
+
         // Validate proposal link before submitting
         if (proposalLink && !validateProposalLink(proposalLink)) {
             setProposalLinkError("Insira um URL válido (ex: https://drive.google.com/...)");
@@ -71,32 +66,37 @@ export function QuoteForm({ contacts }: QuoteFormProps) {
             return;
         }
 
+        // Patch F: Track mark_sent_clicked event
+        if (action === "send") {
+            fetch("/api/tracking/mark-sent-clicked", { method: "POST" }).catch(() => {});
+        }
+
         setLoading(action);
         setError(null);
 
         try {
-            let finalContactId = contactId || null;
+            let finalContactId: string | null = null;
 
-            // Create new contact if needed
-            if (showNewContact && newContactEmail) {
-                const contactResponse = await fetch("/api/contacts", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        name: newContactName || newContactEmail.split("@")[0],
-                        email: newContactEmail,
-                        company: newContactCompany || null,
-                    }),
-                });
+            // Patch A: Create contact automatically (always, since name is required)
+            // If email empty, always create new (no dedupe)
+            const contactResponse = await fetch("/api/contacts", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: clientName.trim(),
+                    email: clientEmail.trim() || null,
+                    phone: clientPhone.trim() || null,
+                    company: null,
+                }),
+            });
 
-                if (!contactResponse.ok) {
-                    const data = await contactResponse.json();
-                    throw new Error(data.error || data.message || "Erro ao criar contacto");
-                }
-
-                const newContact = await contactResponse.json();
-                finalContactId = newContact.id;
+            if (!contactResponse.ok) {
+                const data = await contactResponse.json();
+                throw new Error(data.error || data.message || "Erro ao criar contacto");
             }
+
+            const newContact = await contactResponse.json();
+            finalContactId = newContact.id;
 
             // Create quote
             const quoteResponse = await fetch("/api/quotes", {
@@ -105,7 +105,7 @@ export function QuoteForm({ contacts }: QuoteFormProps) {
                 body: JSON.stringify({
                     title,
                     reference: reference || null,
-                    contactId: finalContactId || null,
+                    contactId: finalContactId,
                     serviceType: serviceType || null,
                     value: value ? parseFloat(value) : null,
                     proposalLink: proposalLink || null,
@@ -152,238 +152,200 @@ export function QuoteForm({ contacts }: QuoteFormProps) {
     };
 
     return (
-        <div className="grid gap-6 lg:grid-cols-3">
-            {/* Main form */}
-            <div className="space-y-6 lg:col-span-2">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Detalhes do orçamento</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        {error && (
-                            <div className="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-500">
-                                {error}
-                            </div>
-                        )}
+        <div className="space-y-6 max-w-2xl">
+            {/* Main form - single column, simplified */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Detalhes do orçamento</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {error && (
+                        <div className="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-500">
+                            {error}
+                        </div>
+                    )}
 
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <div className="sm:col-span-2">
-                                <Label htmlFor="title">Título *</Label>
+                    {/* Título - campo obrigatório */}
+                    <div>
+                        <Label htmlFor="title">Título do orçamento *</Label>
+                        <Input
+                            id="title"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            placeholder="Ex: Proposta de consultoria Q1"
+                            required
+                            autoFocus
+                        />
+                    </div>
+
+                    {/* Patch A: Contacto inline - nome obrigatório + email/telefone opcionais */}
+                    <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-muted)]/30 p-4">
+                        <div className="mb-3 flex items-center gap-2">
+                            <span className="text-sm font-medium">Cliente</span>
+                            <span className="text-xs text-[var(--color-muted-foreground)]">(guardado automaticamente)</span>
+                        </div>
+                        <div className="space-y-3">
+                            {/* Nome do cliente - OBRIGATÓRIO */}
+                            <div>
+                                <Label htmlFor="clientName" className="text-xs">
+                                    Nome do cliente <span className="text-red-500">*</span>
+                                </Label>
                                 <Input
-                                    id="title"
-                                    value={title}
-                                    onChange={(e) => setTitle(e.target.value)}
-                                    placeholder="Ex: Proposta de consultoria Q1"
+                                    id="clientName"
+                                    value={clientName}
+                                    onChange={(e) => setClientName(e.target.value)}
+                                    placeholder="Nome do cliente (obrigatório)"
                                     required
                                 />
                             </div>
-
-                            <div>
-                                <Label htmlFor="reference">Referência</Label>
-                                <Input
-                                    id="reference"
-                                    value={reference}
-                                    onChange={(e) => setReference(e.target.value)}
-                                    placeholder="Ex: ORC-2024-001"
-                                />
+                            {/* Email e telefone - OPCIONAIS */}
+                            <div className="grid gap-3 sm:grid-cols-2">
+                                <div>
+                                    <Label htmlFor="clientEmail" className="text-xs">
+                                        Email <span className="font-normal text-[var(--color-muted-foreground)]">(opcional)</span>
+                                    </Label>
+                                    <Input
+                                        id="clientEmail"
+                                        type="email"
+                                        value={clientEmail}
+                                        onChange={(e) => setClientEmail(e.target.value)}
+                                        placeholder="joao@empresa.pt"
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="clientPhone" className="text-xs">
+                                        Telefone <span className="font-normal text-[var(--color-muted-foreground)]">(opcional)</span>
+                                    </Label>
+                                    <Input
+                                        id="clientPhone"
+                                        type="tel"
+                                        value={clientPhone}
+                                        onChange={(e) => setClientPhone(e.target.value)}
+                                        placeholder="+351 912 345 678"
+                                    />
+                                </div>
                             </div>
-
-                            <div>
-                                <Label htmlFor="serviceType">Tipo de serviço</Label>
-                                <Input
-                                    id="serviceType"
-                                    value={serviceType}
-                                    onChange={(e) => setServiceType(e.target.value)}
-                                    placeholder="Ex: Consultoria"
-                                />
+                        </div>
+                        {!hasContactInfo && clientName && (
+                            <div className="mt-2 flex items-center gap-1.5 text-xs text-[var(--color-muted-foreground)]">
+                                <Info className="h-3 w-3" />
+                                Sem email/telefone = tarefas manuais (sem emails automáticos)
                             </div>
+                        )}
+                    </div>
 
-                            <div>
-                                <Label htmlFor="value">Valor (EUR)</Label>
-                                <Input
-                                    id="value"
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    value={value}
-                                    onChange={(e) => setValue(e.target.value)}
-                                    placeholder="0"
-                                />
-                                {value && (
-                                    <p className="mt-1 text-xs text-[var(--color-muted-foreground)]">
-                                        {parseFloat(value).toLocaleString("pt-PT", { style: "currency", currency: "EUR" })}
-                                    </p>
-                                )}
-                            </div>
-
-                            <div>
-                                <Label htmlFor="proposalLink">Link da proposta</Label>
-                                <Input
-                                    id="proposalLink"
-                                    type="text"
-                                    value={proposalLink}
-                                    onChange={(e) => handleProposalLinkChange(e.target.value)}
-                                    placeholder="https://drive.google.com/..."
-                                    className={proposalLinkError ? "border-red-500" : ""}
-                                />
-                                {proposalLinkError ? (
-                                    <p className="mt-1 text-xs text-red-500">
-                                        {proposalLinkError}
-                                    </p>
-                                ) : (
-                                    <p className="mt-1 text-xs text-[var(--color-muted-foreground)]">
-                                        Cole o link do Google Drive, OneDrive ou Dropbox
-                                    </p>
-                                )}
-                            </div>
+                    {/* Campos secundários - colapsáveis visualmente */}
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <Label htmlFor="value">Valor (EUR)</Label>
+                            <Input
+                                id="value"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={value}
+                                onChange={(e) => setValue(e.target.value)}
+                                placeholder="0"
+                            />
                         </div>
 
                         <div>
-                            <Label htmlFor="notes">Notas</Label>
-                            <Textarea
-                                id="notes"
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                                placeholder="Ex: Obra na Rua X / Prazo 30 dias / Aguarda validação técnica"
-                                rows={3}
+                            <Label htmlFor="reference">Referência</Label>
+                            <Input
+                                id="reference"
+                                value={reference}
+                                onChange={(e) => setReference(e.target.value)}
+                                placeholder="Ex: ORC-2024-001"
                             />
                         </div>
-                    </CardContent>
-                </Card>
-            </div>
+                    </div>
 
-            {/* Sidebar - Contact selection */}
-            <div className="space-y-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-base">Contacto</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        {!showNewContact ? (
-                            <>
-                                <div>
-                                    <Label htmlFor="contact">Selecionar contacto</Label>
-                                    <select
-                                        id="contact"
-                                        value={contactId}
-                                        onChange={(e) => setContactId(e.target.value)}
-                                        className="flex h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-ring)]"
-                                    >
-                                        <option value="">Sem contacto</option>
-                                        {contacts.map((c) => (
-                                            <option key={c.id} value={c.id}>
-                                                {c.name || c.email}
-                                                {c.company ? ` (${c.company})` : ""}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setShowNewContact(true)}
-                                    className="w-full gap-1.5"
-                                >
-                                    <Plus className="h-3.5 w-3.5" />
-                                    Criar novo contacto
-                                </Button>
-                            </>
+                    {/* Patch B: Link da proposta - claramente opcional */}
+                    <div>
+                        <Label htmlFor="proposalLink">
+                            Link da proposta <span className="font-normal text-[var(--color-muted-foreground)]">(opcional)</span>
+                        </Label>
+                        <Input
+                            id="proposalLink"
+                            type="text"
+                            value={proposalLink}
+                            onChange={(e) => handleProposalLinkChange(e.target.value)}
+                            placeholder="https://drive.google.com/..."
+                            className={proposalLinkError ? "border-red-500" : ""}
+                        />
+                        {proposalLinkError ? (
+                            <p className="mt-1 text-xs text-red-500">
+                                {proposalLinkError}
+                            </p>
                         ) : (
-                            <>
-                                <div>
-                                    <Label htmlFor="newContactName">Nome</Label>
-                                    <Input
-                                        id="newContactName"
-                                        value={newContactName}
-                                        onChange={(e) => setNewContactName(e.target.value)}
-                                        placeholder="João Silva"
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor="newContactEmail">Email *</Label>
-                                    <Input
-                                        id="newContactEmail"
-                                        type="email"
-                                        value={newContactEmail}
-                                        onChange={(e) => setNewContactEmail(e.target.value)}
-                                        placeholder="joao@empresa.pt"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor="newContactCompany">Empresa</Label>
-                                    <Input
-                                        id="newContactCompany"
-                                        value={newContactCompany}
-                                        onChange={(e) => setNewContactCompany(e.target.value)}
-                                        placeholder="Empresa, Lda"
-                                    />
-                                </div>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                        setShowNewContact(false);
-                                        setNewContactName("");
-                                        setNewContactEmail("");
-                                        setNewContactCompany("");
-                                    }}
-                                    className="w-full"
-                                >
-                                    Cancelar
-                                </Button>
-                            </>
+                            <p className="mt-1 text-xs text-[var(--color-muted-foreground)]">
+                                Pode adicionar mais tarde · Google Drive, OneDrive ou Dropbox
+                            </p>
                         )}
-                    </CardContent>
-                </Card>
+                    </div>
 
-                {/* Actions */}
-                <Card>
-                    <CardContent className="space-y-3 pt-6">
-                        <Button
-                            onClick={() => handleSubmit("send")}
-                            disabled={loading !== null || !title}
-                            className="w-full gap-1.5"
-                        >
-                            {loading === "send" ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                                <Send className="h-4 w-4" />
-                            )}
-                            {loading === "send" ? "A criar..." : "Criar e marcar como enviado"}
-                        </Button>
-                        <p className="text-center text-xs text-[var(--color-muted-foreground)]">
-                            Isto inicia a cadência (D+1, D+3, D+7, D+14)
-                        </p>
+                    <div>
+                        <Label htmlFor="notes">
+                            Notas <span className="font-normal text-[var(--color-muted-foreground)]">(opcional)</span>
+                        </Label>
+                        <Textarea
+                            id="notes"
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            placeholder="Ex: Prazo 30 dias / Aguarda validação técnica"
+                            rows={2}
+                        />
+                    </div>
+                </CardContent>
+            </Card>
 
-                        {/* Warning when no contact email/phone */}
-                        {!hasContactInfo && !contactId && !showNewContact && (
-                            <div className="flex items-start gap-2 rounded-md border border-orange-500/30 bg-orange-500/10 px-3 py-2">
-                                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-orange-500" />
-                                <p className="text-xs text-orange-600">
-                                    Sem email/telefone → vamos criar tarefas manuais em vez de emails automáticos.
-                                </p>
-                            </div>
+            {/* Actions - Patch D: CTAs renomeados com microcopy */}
+            <Card>
+                <CardContent className="space-y-3 pt-6">
+                    {/* Patch D: CTA primário - "Guardar e iniciar follow-up" */}
+                    <Button
+                        onClick={() => handleSubmit("send")}
+                        disabled={loading !== null || !clientName.trim()}
+                        className="w-full gap-1.5"
+                        size="lg"
+                    >
+                        {loading === "send" ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <Send className="h-4 w-4" />
                         )}
+                        {loading === "send" ? "A criar..." : "Guardar e iniciar follow-up"}
+                    </Button>
+                    {/* Patch D: Microcopy explicativo */}
+                    <p className="text-center text-xs text-[var(--color-muted-foreground)]">
+                        Cria D+1/D+3/D+7/D+14 automaticamente. Só o primeiro envio conta.
+                    </p>
 
-                        <Button
-                            variant="outline"
-                            onClick={() => handleSubmit("save")}
-                            disabled={loading !== null || !title}
-                            className="w-full gap-1.5"
-                        >
-                            {loading === "save" ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                                <Save className="h-4 w-4" />
-                            )}
-                            {loading === "save" ? "A guardar..." : "Guardar rascunho"}
-                        </Button>
-                    </CardContent>
-                </Card>
-            </div>
+                    <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t border-[var(--color-border)]" />
+                        </div>
+                        <div className="relative flex justify-center text-xs">
+                            <span className="bg-[var(--color-card)] px-2 text-[var(--color-muted-foreground)]">ou</span>
+                        </div>
+                    </div>
+
+                    {/* Patch D: CTA secundário discreto - "Guardar rascunho" */}
+                    <Button
+                        variant="ghost"
+                        onClick={() => handleSubmit("save")}
+                        disabled={loading !== null || !clientName.trim()}
+                        className="w-full gap-1.5"
+                    >
+                        {loading === "save" ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <Save className="h-4 w-4" />
+                        )}
+                        {loading === "save" ? "A guardar..." : "Guardar rascunho"}
+                    </Button>
+                </CardContent>
+            </Card>
         </div>
     );
 }

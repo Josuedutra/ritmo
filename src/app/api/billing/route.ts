@@ -55,11 +55,17 @@ export async function GET() {
             orderBy: { periodStart: "desc" },
         });
 
-        // Get all active plans for upgrade options
+        // Get only PUBLIC active plans for upgrade options (hides pro_plus, enterprise)
         const plans = await prisma.plan.findMany({
-            where: { isActive: true },
+            where: {
+                isActive: true,
+                isPublic: true,
+            },
             orderBy: { priceMonthly: "asc" },
         });
+
+        // Check if current plan is hidden (pro_plus, enterprise)
+        const currentPlanIsHidden = subscription?.plan && !subscription.plan.isPublic;
 
         // Get entitlements (single source of truth) - P0-BILL-09
         const entitlements = await getEntitlements(organizationId);
@@ -77,6 +83,7 @@ export async function GET() {
                       cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
                       hasStripeCustomer: !!subscription.stripeCustomerId,
                       hasStripeSubscription: !!subscription.stripeSubscriptionId,
+                      isHiddenPlan: currentPlanIsHidden, // Flag for hidden plans (pro_plus, etc)
                   }
                 : null,
             usage: {
@@ -95,6 +102,7 @@ export async function GET() {
                 bccInboundEnabled: entitlements.bccInboundEnabled,
                 subscriptionStatus: entitlements.subscriptionStatus,
             },
+            // Only public plans are returned (pro_plus, enterprise hidden)
             plans: plans.map((p) => ({
                 id: p.id,
                 name: p.name,

@@ -1,23 +1,9 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
 import { AppHeader, PageHeader } from "@/components/layout";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { QuoteForm } from "./quote-form";
-
-async function getContacts(organizationId: string) {
-    return prisma.contact.findMany({
-        where: { organizationId },
-        orderBy: { name: "asc" },
-        select: {
-            id: true,
-            name: true,
-            email: true,
-            company: true,
-        },
-    });
-}
 
 export default async function NewQuotePage() {
     const session = await auth();
@@ -25,8 +11,6 @@ export default async function NewQuotePage() {
     if (!session?.user) {
         redirect("/login");
     }
-
-    const contacts = await getContacts(session.user.organizationId);
 
     return (
         <div className="min-h-screen bg-[var(--color-background)]">
@@ -43,10 +27,10 @@ export default async function NewQuotePage() {
 
                 <PageHeader
                     title="Novo orçamento"
-                    description="Criar um novo orçamento para acompanhar"
+                    description="Preencha os dados mínimos e inicie o follow-up"
                 />
 
-                <QuoteForm contacts={contacts} />
+                <QuoteForm />
             </main>
         </div>
     );

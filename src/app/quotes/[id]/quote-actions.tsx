@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button, toast } from "@/components/ui";
 import {
@@ -14,6 +14,7 @@ import {
     ClipboardCopy,
     Loader2,
     X,
+    Sparkles,
 } from "lucide-react";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -49,6 +50,7 @@ interface QuoteActionsProps {
 
 export function QuoteActions({ quote }: QuoteActionsProps) {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [loading, setLoading] = useState<string | null>(null);
     const [limitError, setLimitError] = useState<{
         message: string;
@@ -60,9 +62,38 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
     const [showLossReasonModal, setShowLossReasonModal] = useState(false);
     const [selectedLossReason, setSelectedLossReason] = useState<string | null>(null);
 
+    // P0 Fix: Detect seed example via query param
+    const isSeedExample = searchParams.get("seed") === "1";
+    const [showSeedHighlight, setShowSeedHighlight] = useState(false);
+
+    // P0 Fix: Show highlight animation for seed example on first render
+    useEffect(() => {
+        if (isSeedExample && quote.businessStatus === "draft") {
+            setShowSeedHighlight(true);
+            // Remove highlight after animation
+            const timer = setTimeout(() => setShowSeedHighlight(false), 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [isSeedExample, quote.businessStatus]);
+
     const handleMarkSent = async () => {
         setLoading("send");
         setLimitError(null);
+
+        // P0 Fix: Track mark_sent_clicked with source
+        try {
+            fetch("/api/tracking/mark-sent-clicked", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    quoteId: quote.id,
+                    source: isSeedExample ? "quote_detail_seed" : "quote_detail",
+                }),
+            }).catch(() => {}); // Non-blocking
+        } catch {
+            // Ignore tracking errors
+        }
+
         try {
             const response = await fetch(`/api/quotes/${quote.id}/mark-sent`, {
                 method: "POST",
@@ -87,7 +118,13 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
                 return;
             }
 
-            toast.success("Orçamento enviado!", "Cadência de follow-up iniciada");
+            // P0 Fix: Show enhanced toast for Aha moment
+            toast.success("Orçamento enviado!", "Cadência iniciada: D+1, D+3, D+7, D+14");
+
+            // Remove seed query param and refresh
+            if (isSeedExample) {
+                router.replace(`/quotes/${quote.id}`);
+            }
             router.refresh();
         } catch (error) {
             console.error("Error marking as sent:", error);
@@ -248,20 +285,34 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
 
             {/* P1-02: Primary actions row */}
             <div className="flex flex-wrap gap-2">
-                {/* Mark as sent (draft only) */}
+                {/* P0 Fix: Mark as sent (draft only) - renamed CTA with seed highlight */}
                 {isDraft && (
-                    <Button
-                        onClick={handleMarkSent}
-                        disabled={loading !== null}
-                        className="gap-1.5"
-                    >
-                        {loading === "send" ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                            <Send className="h-4 w-4" />
+                    <div className="flex flex-col gap-1.5">
+                        <Button
+                            onClick={handleMarkSent}
+                            disabled={loading !== null}
+                            className={`gap-1.5 ${showSeedHighlight ? "ring-2 ring-[var(--color-primary)] ring-offset-2 animate-pulse" : ""}`}
+                        >
+                            {loading === "send" ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : showSeedHighlight ? (
+                                <Sparkles className="h-4 w-4" />
+                            ) : (
+                                <Send className="h-4 w-4" />
+                            )}
+                            {loading === "send" ? "A enviar..." : "Guardar e iniciar follow-up"}
+                        </Button>
+                        <p className="text-xs text-[var(--color-muted-foreground)]">
+                            Cria D+1/D+3/D+7/D+14 automaticamente. Só o primeiro envio conta.
+                        </p>
+                        {/* P0 Fix: Extra callout for seed example */}
+                        {showSeedHighlight && (
+                            <div className="mt-2 flex items-center gap-2 rounded-md bg-[var(--color-primary)]/10 p-2 text-xs text-[var(--color-primary)]">
+                                <Sparkles className="h-3.5 w-3.5" />
+                                <span>Clique para ver a cadência de follow-up em ação!</span>
+                            </div>
                         )}
-                        {loading === "send" ? "A enviar..." : "Marcar como enviado"}
-                    </Button>
+                    </div>
                 )}
 
                 {/* Resend (sent or negotiation) */}

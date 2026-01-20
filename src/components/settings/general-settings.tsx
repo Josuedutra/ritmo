@@ -12,10 +12,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/components/ui/use-toast";
 import { Organization } from "@prisma/client";
 
+const SECTORS = [
+    { value: "AVAC", label: "AVAC" },
+    { value: "MAINTENANCE", label: "Manutenção" },
+    { value: "IT", label: "IT / Tecnologia" },
+    { value: "FACILITIES", label: "Facilities" },
+    { value: "OTHER", label: "Outros" },
+] as const;
+
 const settingsSchema = z.object({
     timezone: z.string().min(1, "Fuso horário obrigatório"),
     sendWindowStart: z.coerce.number().min(0).max(23),
     sendWindowEnd: z.coerce.number().min(0).max(23),
+    sector: z.string().optional(),
 }).refine((data) => data.sendWindowEnd > data.sendWindowStart, {
     message: "A hora de fim deve ser posterior à de início",
     path: ["sendWindowEnd"],
@@ -35,6 +44,7 @@ export function GeneralSettings({ organization }: GeneralSettingsProps) {
             timezone: organization.timezone,
             sendWindowStart: parseInt(organization.sendWindowStart) || 9,
             sendWindowEnd: parseInt(organization.sendWindowEnd) || 18,
+            sector: organization.sector || undefined,
         },
     });
 
@@ -91,6 +101,30 @@ export function GeneralSettings({ organization }: GeneralSettingsProps) {
             <CardContent>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+
+                        <FormField control={form.control} name="sector" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Setor de Atividade</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecione o setor" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {SECTORS.map((s) => (
+                                            <SelectItem key={s.value} value={s.value}>
+                                                {s.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <p className="text-xs text-muted-foreground">
+                                    Usado para comparar o seu desempenho com outras empresas do mesmo setor (Benchmark).
+                                </p>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
 
                         <FormField control={form.control} name="timezone" render={({ field }) => (
                             <FormItem>

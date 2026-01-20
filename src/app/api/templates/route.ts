@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import {
     getApiSession,
     unauthorized,
+    forbidden,
     badRequest,
     serverError,
     success,
@@ -41,12 +42,17 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/templates
- * Create a new template
+ * Create a new template (admin only)
  */
 export async function POST(request: NextRequest) {
     try {
         const session = await getApiSession();
         if (!session) return unauthorized();
+
+        // Only admins can create templates
+        if (session.user.role !== "admin") {
+            return forbidden("Apenas administradores podem criar templates");
+        }
 
         const body = await request.json();
         const parsed = createTemplateSchema.safeParse(body);

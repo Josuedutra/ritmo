@@ -17,9 +17,13 @@ function getStripe(): Stripe | null {
     return _stripe;
 }
 
-// Fallback plan definitions (used when DB is not available)
-// Frozen pricing: Free=5, Starter=€39/80, Pro=€99/250
-export const PLANS = {
+/**
+ * FALLBACK plan definitions - used ONLY when DB is unavailable.
+ * IMPORTANT: Only PUBLIC plans are included here.
+ * Hidden plans (pro_plus, enterprise) must ONLY exist in the database.
+ * This prevents "phantom plans" appearing when DB is down.
+ */
+export const PLANS_FALLBACK = {
     free: {
         id: "free",
         name: "Gratuito",
@@ -27,6 +31,7 @@ export const PLANS = {
         maxUsers: 1,
         priceMonthly: 0,
         stripePriceId: null,
+        isPublic: true,
     },
     starter: {
         id: "starter",
@@ -35,6 +40,7 @@ export const PLANS = {
         maxUsers: 2,
         priceMonthly: 3900,
         stripePriceId: process.env.STRIPE_PRICE_STARTER,
+        isPublic: true,
     },
     pro: {
         id: "pro",
@@ -43,21 +49,21 @@ export const PLANS = {
         maxUsers: 5,
         priceMonthly: 9900,
         stripePriceId: process.env.STRIPE_PRICE_PRO,
+        isPublic: true,
     },
-    enterprise: {
-        id: "enterprise",
-        name: "Enterprise",
-        quotesLimit: 1000,
-        maxUsers: 999,
-        priceMonthly: 0,
-        stripePriceId: null, // Custom pricing
-    },
+    // NOTE: pro_plus and enterprise are intentionally NOT included here.
+    // They must only exist in the database to prevent phantom plan issues.
 } as const;
 
-export type PlanId = keyof typeof PLANS;
+// Legacy alias for backwards compatibility
+export const PLANS = PLANS_FALLBACK;
+
+export type PlanId = keyof typeof PLANS_FALLBACK;
 
 /**
- * Get plan from database, with fallback to hardcoded PLANS
+ * Get plan from database (primary source of truth).
+ * Falls back to PLANS_FALLBACK ONLY for public plans when DB is unavailable.
+ * Hidden plans (pro_plus, enterprise) can ONLY come from DB.
  */
 export async function getPlanById(planId: string) {
     try {
@@ -71,33 +77,142 @@ export async function getPlanById(planId: string) {
                 quotesLimit: plan.monthlyQuoteLimit,
                 priceMonthly: plan.priceMonthly,
                 stripePriceId: plan.stripePriceId,
+                isPublic: plan.isPublic,
+                maxUsers: plan.maxUsers,
             };
         }
+        // Plan not found in DB - only allow fallback for public plans
+        const fallback = PLANS_FALLBACK[planId as PlanId];
+        if (fallback && fallback.isPublic) {
+            return fallback;
+        }
+        // Hidden plan not in DB = doesn't exist
+        return null;
     } catch {
-        // DB not available, use fallback
+        // DB not available, use fallback ONLY for public plans
+        const fallback = PLANS_FALLBACK[planId as PlanId];
+        if (fallback && fallback.isPublic) {
+            return fallback;
+        }
+        return null;
     }
-    return PLANS[planId as PlanId] || PLANS.free;
 }
 
 /**
- * Get all active plans from database
+ * Get all active AND public plans from database (for UI display).
+ * Hidden plans (pro_plus, enterprise) are excluded.
+ * DB is the primary source; fallback only used if DB unavailable.
  */
 export async function getActivePlans() {
+    try {
+        const plans = await prisma.plan.findMany({
+            where: {
+                isActive: true,
+                isPublic: true, // Only public plans
+            },
+            orderBy: { priceMonthly: "asc" },
+        });
+        // If DB has plans, always use them
+        if (plans.length > 0) {
+            return plans.map((plan) => ({
+                id: plan.id,
+                name: plan.name,
+                quotesLimit: plan.monthlyQuoteLimit,
+                priceMonthly: plan.priceMonthly,
+                stripePriceId: plan.stripePriceId,
+                isPublic: plan.isPublic,
+                maxUsers: plan.maxUsers,
+            }));
+        }
+        // DB empty (unlikely in production) - use fallback public plans
+        return Object.values(PLANS_FALLBACK);
+    } catch {
+        // DB not available, use fallback (only public plans, already filtered)
+        return Object.values(PLANS_FALLBACK);
+    }
+}
+
+/**
+ * Get ALL active plans including hidden ones (for admin/internal use).
+ * IMPORTANT: This function ONLY returns plans from DB.
+ * If DB is unavailable, returns empty array (no fallback for hidden plans).
+ * This ensures hidden plans can only exist if properly seeded in DB.
+ */
+export async function getAllPlansForAdmin(): Promise<{
+    plans: Array<{
+        id: string;
+        name: string;
+        quotesLimit: number;
+        priceMonthly: number;
+        maxUsers: number;
+        stripePriceId: string | null;
+        isPublic: boolean;
+    }>;
+    dbAvailable: boolean;
+}> {
     try {
         const plans = await prisma.plan.findMany({
             where: { isActive: true },
             orderBy: { priceMonthly: "asc" },
         });
-        return plans.map((plan) => ({
-            id: plan.id,
-            name: plan.name,
-            quotesLimit: plan.monthlyQuoteLimit,
-            priceMonthly: plan.priceMonthly,
-            stripePriceId: plan.stripePriceId,
-        }));
+        return {
+            plans: plans.map((plan) => ({
+                id: plan.id,
+                name: plan.name,
+                quotesLimit: plan.monthlyQuoteLimit,
+                priceMonthly: plan.priceMonthly,
+                maxUsers: plan.maxUsers,
+                stripePriceId: plan.stripePriceId,
+                isPublic: plan.isPublic,
+            })),
+            dbAvailable: true,
+        };
+    } catch (error) {
+        // DB not available - return empty array, no fallback for admin view
+        // This prevents phantom hidden plans from appearing
+        // Log for visibility (no PII)
+        console.error("[DB_UNAVAILABLE_ADMIN_PLANS] Failed to fetch plans from database:",
+            error instanceof Error ? error.message : "Unknown error"
+        );
+        return {
+            plans: [],
+            dbAvailable: false,
+        };
+    }
+}
+
+/**
+ * Check if a plan is publicly available for checkout.
+ * Only checks DB - hidden plans must exist in DB to be recognized.
+ */
+export async function isPlanPublic(planId: string): Promise<boolean> {
+    try {
+        const plan = await prisma.plan.findUnique({
+            where: { id: planId },
+            select: { isPublic: true },
+        });
+        return plan?.isPublic ?? false;
     } catch {
-        // DB not available, use fallback
-        return Object.values(PLANS);
+        // Fallback - only public plans in fallback, so check there
+        const fallback = PLANS_FALLBACK[planId as PlanId];
+        // Only return true if it's a known public fallback plan
+        return fallback?.isPublic ?? false;
+    }
+}
+
+/**
+ * Check if a plan exists in the database.
+ * Used for validation before admin operations.
+ */
+export async function planExistsInDb(planId: string): Promise<boolean> {
+    try {
+        const plan = await prisma.plan.findUnique({
+            where: { id: planId },
+            select: { id: true },
+        });
+        return plan !== null;
+    } catch {
+        return false;
     }
 }
 
@@ -111,6 +226,10 @@ export async function createCheckoutSession(
     cancelUrl: string
 ): Promise<{ url: string | null; error?: string }> {
     const plan = await getPlanById(planId);
+
+    if (!plan) {
+        return { url: null, error: "Plan not found" };
+    }
 
     if (!plan.stripePriceId) {
         return { url: null, error: "Plan has no Stripe price" };

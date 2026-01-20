@@ -27,7 +27,7 @@ export async function PUT(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { timezone, sendWindowStart, sendWindowEnd } = body;
+        const { timezone, sendWindowStart, sendWindowEnd, sector } = body;
 
         // Basic validation
         if (!timezone) {
@@ -47,12 +47,17 @@ export async function PUT(request: NextRequest) {
         const startHour = parseInt(sendWindowStart);
         const endHour = parseInt(sendWindowEnd);
 
+        // Validate sector if provided
+        const validSectors = ["AVAC", "MAINTENANCE", "IT", "FACILITIES", "OTHER"];
+        const sectorValue = sector && validSectors.includes(sector) ? sector : undefined;
+
         await prisma.organization.update({
             where: { id: session.user.organizationId },
             data: {
                 timezone,
                 sendWindowStart: `${String(startHour).padStart(2, '0')}:00`,
                 sendWindowEnd: `${String(endHour).padStart(2, '0')}:00`,
+                ...(sectorValue && { sector: sectorValue }),
             },
         });
 

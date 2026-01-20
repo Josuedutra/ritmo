@@ -4,8 +4,8 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ActionCard, type ActionCardProps } from "./action-card";
-import { Tabs, TabsList, TabsTrigger, TabsContent, Button } from "@/components/ui";
-import { Mail, Phone, ListTodo, Inbox, FileText, Send, Zap, Plus, Calendar, ArrowRight } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent, Button, toast } from "@/components/ui";
+import { Mail, Phone, ListTodo, Inbox, FileText, Send, Zap, Plus, Calendar, ArrowRight, Sparkles, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
 
@@ -72,17 +72,61 @@ interface NextActionData {
     quoteTitle: string;
 }
 
+// P0-lite: Pending seed for "continue Aha" prompt
+interface PendingSeedData {
+    id: string;
+    title: string;
+}
+
 interface ActionsListProps {
     emails: ActionData[];
     calls: ActionData[];
     tasks: TaskData[];
     quotesSent?: number;
     nextAction?: NextActionData | null;
+    pendingSeed?: PendingSeedData | null;
 }
 
-export function ActionsList({ emails, calls, tasks, quotesSent = 0, nextAction }: ActionsListProps) {
+export function ActionsList({ emails, calls, tasks, quotesSent = 0, nextAction, pendingSeed }: ActionsListProps) {
     const router = useRouter();
     const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
+    const [creatingExample, setCreatingExample] = useState(false);
+
+    // P0 Fix: Create example quote as DRAFT - user must click CTA for Aha
+    const handleCreateExample = useCallback(async () => {
+        setCreatingExample(true);
+        try {
+            const response = await fetch("/api/quotes/example", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ source: "dashboard_empty_state" }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "Erro ao criar orçamento de exemplo");
+            }
+
+            // P0 Fix: Redirect to quote detail with seed=1 to highlight CTA
+            if (data.quote?.id) {
+                if (data.isExisting) {
+                    toast.success("Orçamento de exemplo já existe", "A redirecionar...");
+                } else {
+                    toast.success("Orçamento de exemplo criado!", "Clique no botão para iniciar follow-up");
+                }
+                // Add seed=1 query param to trigger CTA highlight
+                router.push(`/quotes/${data.quote.id}?seed=1`);
+            } else {
+                router.refresh();
+            }
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "Erro ao criar orçamento";
+            toast.error("Erro", message);
+        } finally {
+            setCreatingExample(false);
+        }
+    }, [router]);
 
     const handleComplete = useCallback(async (id: string) => {
         try {
@@ -149,6 +193,36 @@ export function ActionsList({ emails, calls, tasks, quotesSent = 0, nextAction }
 
     // P0-06: Different empty states based on context
     if (totalCount === 0) {
+        // P0-lite: Case 0: Has pending seed (draft) - prompt to complete Aha
+        if (pendingSeed && quotesSent === 0) {
+            return (
+                <div className="py-6">
+                    <div className="mb-4 flex justify-center">
+                        <div className="rounded-full bg-[var(--color-primary)]/10 p-3">
+                            <Sparkles className="h-6 w-6 text-[var(--color-primary)]" />
+                        </div>
+                    </div>
+                    <h3 className="mb-2 text-center font-medium">Quase lá!</h3>
+                    <p className="mb-4 text-center text-sm text-[var(--color-muted-foreground)]">
+                        Tem um orçamento de exemplo pronto. Clique para iniciar o follow-up.
+                    </p>
+                    <div className="flex justify-center">
+                        <Link
+                            href={`/quotes/${pendingSeed.id}?seed=1`}
+                            className="inline-flex items-center gap-2 rounded-lg border border-[var(--color-primary)]/30 bg-[var(--color-primary)]/5 px-4 py-3 font-medium text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/10"
+                        >
+                            <Sparkles className="h-4 w-4" />
+                            <span>Continuar com &quot;{pendingSeed.title}&quot;</span>
+                            <ArrowRight className="h-4 w-4" />
+                        </Link>
+                    </div>
+                    <p className="mt-4 text-center text-xs text-[var(--color-muted-foreground)]">
+                        Após iniciar, verá as ações de follow-up aparecer aqui
+                    </p>
+                </div>
+            );
+        }
+
         // Case 1: Has quotes sent but no actions today - show next action
         if (quotesSent > 0) {
             const getEventLabel = (eventType: string) => {
@@ -198,7 +272,7 @@ export function ActionsList({ emails, calls, tasks, quotesSent = 0, nextAction }
             );
         }
 
-        // Case 2: No quotes sent - show "Como funciona"
+        // Case 2: No quotes sent - show "Como funciona" + Patch C: Example button
         return (
             <div className="py-6">
                 <h3 className="mb-4 text-center text-sm font-medium text-[var(--color-muted-foreground)]">
@@ -254,14 +328,32 @@ export function ActionsList({ emails, calls, tasks, quotesSent = 0, nextAction }
                     </div>
                 </div>
 
-                {/* CTA */}
-                <div className="mt-6 text-center">
-                    <Link href="/quotes/new">
-                        <Button>
-                            <Plus className="mr-2 h-4 w-4" />
-                            Criar primeiro orçamento
-                        </Button>
-                    </Link>
+                {/* CTAs - Patch C: Example quote button */}
+                <div className="mt-6 flex flex-col items-center gap-3">
+                    <Button
+                        onClick={handleCreateExample}
+                        disabled={creatingExample}
+                        className="gap-2"
+                    >
+                        {creatingExample ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <Sparkles className="h-4 w-4" />
+                        )}
+                        {creatingExample ? "A criar..." : "Criar orçamento de exemplo"}
+                    </Button>
+                    <p className="text-xs text-[var(--color-muted-foreground)]">
+                        Ver como funciona em 1 clique
+                    </p>
+                    <div className="flex items-center gap-2 text-xs text-[var(--color-muted-foreground)]">
+                        <span>ou</span>
+                        <Link
+                            href="/quotes/new"
+                            className="font-medium text-[var(--color-primary)] hover:underline"
+                        >
+                            criar o seu primeiro orçamento
+                        </Link>
+                    </div>
                 </div>
             </div>
         );

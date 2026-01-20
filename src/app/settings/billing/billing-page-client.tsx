@@ -53,6 +53,7 @@ interface BillingData {
         cancelAtPeriodEnd: boolean;
         hasStripeCustomer: boolean;
         hasStripeSubscription: boolean;
+        isHiddenPlan?: boolean; // True for pro_plus, enterprise (early access)
     } | null;
     entitlements: {
         tier: "trial" | "free" | "paid";
@@ -107,6 +108,7 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
     const isPastDue = entitlements.subscriptionStatus === "past_due";
     const isCancelled = entitlements.subscriptionStatus === "cancelled";
     const isCancelAtPeriodEnd = subscription?.cancelAtPeriodEnd ?? false;
+    const isHiddenPlan = subscription?.isHiddenPlan ?? false; // pro_plus, enterprise (early access)
 
     const formatDate = (dateStr: string | null) => {
         if (!dateStr) return "-";
@@ -184,6 +186,9 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
         if (isCancelAtPeriodEnd) {
             return "O plano termina no fim do período atual.";
         }
+        if (isHiddenPlan) {
+            return "Este plano está em early access. Para alterações, contacte-nos.";
+        }
         return "Tudo ativo — emails automáticos e captura por BCC incluídos no seu plano.";
     };
 
@@ -193,6 +198,7 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
         if (isCancelled) return { text: "Cancelado", variant: "secondary" as const };
         if (isCancelAtPeriodEnd) return { text: "Termina no fim do período", variant: "warning" as const };
         if (entitlements.tier === "trial") return { text: "Trial", variant: "default" as const };
+        if (isHiddenPlan) return { text: "Early Access", variant: "default" as const };
         return { text: "Ativo", variant: "success" as const };
     };
 
@@ -407,7 +413,10 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                     <CardContent className="space-y-4">
                         <div className="flex items-center justify-between">
                             <span className="text-sm text-muted-foreground">Plano</span>
-                            <span className="text-lg font-semibold">{entitlements.planName}</span>
+                            <span className="text-lg font-semibold">
+                                {entitlements.planName}
+                                {isHiddenPlan && " (Early Access)"}
+                            </span>
                         </div>
 
                         <div className="flex items-center justify-between">
@@ -427,8 +436,8 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                             <span>{getPlanHelper()}</span>
                         </div>
 
-                        {/* Portal button for paid users */}
-                        {subscription?.hasStripeCustomer && (
+                        {/* Portal button for paid users, or contact support for hidden plans without portal */}
+                        {subscription?.hasStripeCustomer ? (
                             <Button
                                 onClick={handlePortal}
                                 disabled={loading === "portal"}
@@ -439,7 +448,15 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                                 <ExternalLink className="mr-2 h-4 w-4" />
                                 Gerir subscrição
                             </Button>
-                        )}
+                        ) : isHiddenPlan ? (
+                            <Button
+                                variant="outline"
+                                className="w-full"
+                                onClick={() => window.location.href = "mailto:ola@ritmo.app?subject=Plano%20Early%20Access"}
+                            >
+                                Contactar suporte
+                            </Button>
+                        ) : null}
                     </CardContent>
                 </Card>
 

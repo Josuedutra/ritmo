@@ -14,6 +14,7 @@ import {
     incrementTrialUsage,
     MAX_RESENDS_PER_MONTH,
 } from "@/lib/entitlements";
+import { trackAhaEvent, trackEvent, ProductEventNames } from "@/lib/product-events";
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -158,6 +159,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             timezone,
         });
 
+        // P0-lite: Detect if this is a seed example quote using source field (robust)
+        // Fallback to notes check for backwards compatibility
+        const isSeedExample = (quote as { source?: string }).source === "seed";
+
         // Increment usage counter if first send
         if (isFirstSend) {
             // For trial, increment trial counter
@@ -166,6 +171,22 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             }
             // Always increment period usage counter (for billing tracking)
             await incrementQuotesSent(session.user.organizationId);
+
+            // Track Aha event (non-blocking) - include isSeedExample prop
+            trackAhaEvent(
+                session.user.organizationId,
+                session.user.id,
+                id,
+                cadenceResult.eventsCreated,
+                isSeedExample
+            );
+        } else {
+            // Track resend event
+            trackEvent(ProductEventNames.MARK_SENT_SUCCESS, {
+                organizationId: session.user.organizationId,
+                userId: session.user.id,
+                props: { quoteId: id, isResend: true, isSeedExample },
+            });
         }
 
         return success({

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { logger } from "@/lib/logger";
+import { logger, AppLogger } from "@/lib/logger";
 import { isBusinessDay, isWithinSendWindow } from "@/lib/business-days";
 import { toZonedTime } from "date-fns-tz";
 import { endOfDay, startOfDay } from "date-fns";
@@ -162,7 +162,7 @@ interface OrgResult {
 async function processOrganization(
     org: OrgConfig,
     workerId: string,
-    log: ReturnType<typeof logger.child>
+    log: AppLogger
 ): Promise<OrgResult> {
     const result: OrgResult = {
         processed: 0,
@@ -224,8 +224,25 @@ async function processOrganization(
         where: { id: { in: eventIds } },
         include: {
             quote: {
-                include: {
-                    contact: true,
+                select: {
+                    id: true,
+                    title: true,
+                    reference: true,
+                    value: true,
+                    firstSentAt: true,
+                    proposalLink: true,
+                    proposalFileId: true,
+                    businessStatus: true,
+                    ownerUserId: true,
+                    contact: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                            company: true,
+                            phone: true,
+                        },
+                    },
                 },
             },
         },
@@ -255,11 +272,15 @@ async function processOrganization(
             const contactEmail = event.quote.contact?.email;
             const contactName = event.quote.contact?.name;
 
+            // Get quote owner for task assignment
+            const quoteOwnerId = event.quote.ownerUserId;
+
             // Call events always create tasks
             if (isCallEvent) {
                 await createTask(org.id, event, "call",
                     getTaskTitle(event.eventType, contactName),
-                    getTaskDescription(event.eventType, event.quote)
+                    getTaskDescription(event.eventType, event.quote),
+                    quoteOwnerId
                 );
                 await markEventCompleted(event.id);
                 await updateQuoteRitmoStage(event.quoteId, event.eventType);
@@ -273,7 +294,8 @@ async function processOrganization(
                 if (!contactEmail) {
                     await createTask(org.id, event, "call",
                         getNoEmailTaskTitle(event.eventType, contactName),
-                        getNoEmailTaskDescription(event.eventType, event.quote)
+                        getNoEmailTaskDescription(event.eventType, event.quote),
+                        quoteOwnerId
                     );
                     await markEventSkipped(event.id, "no_email");
                     await updateQuoteRitmoStage(event.quoteId, event.eventType);
@@ -313,7 +335,8 @@ async function processOrganization(
                 // TASK-EMAIL mode (default for free tier or when AUTO_EMAIL disabled): create task for manual sending
                 await createTask(org.id, event, "email",
                     getTaskTitle(event.eventType, contactName),
-                    getTaskDescription(event.eventType, event.quote)
+                    getTaskDescription(event.eventType, event.quote),
+                    quoteOwnerId
                 );
                 await markEventCompleted(event.id);
                 await updateQuoteRitmoStage(event.quoteId, event.eventType);
@@ -433,7 +456,8 @@ async function createTask(
     event: { id: string; quoteId: string; scheduledFor: Date; priority: string | null },
     type: string,
     title: string,
-    description: string
+    description: string,
+    assignedToId?: string | null
 ): Promise<void> {
     await prisma.task.create({
         data: {
@@ -446,6 +470,7 @@ async function createTask(
             dueAt: event.scheduledFor,
             priority: (event.priority || "LOW") as "HIGH" | "LOW",
             status: "pending",
+            assignedToId: assignedToId || null,
         },
     });
 }
@@ -494,11 +519,13 @@ async function processAutoEmail(
             title: string;
             reference: string | null;
             value: { toNumber: () => number } | null;
+            ownerUserId: string | null;
             contact: { email: string | null; name: string | null; company: string | null } | null;
         };
     },
-    log: ReturnType<typeof logger.child>
+    log: AppLogger
 ): Promise<AutoEmailResult> {
+    const ownerUserId = event.quote.ownerUserId;
     const { quote } = event;
     const contact = quote.contact;
 
@@ -507,7 +534,8 @@ async function processAutoEmail(
         // No SMTP/Resend configured - create manual task
         await createTask(organizationId, event, "email",
             `Enviar email manualmente - ${quote.title}`,
-            `SMTP não configurado. Enviar follow-up ${event.eventType} manualmente.`
+            `SMTP não configurado. Enviar follow-up ${event.eventType} manualmente.`,
+            ownerUserId
         );
         await markEventSkipped(event.id, "no_smtp");
         log.info({ eventId: event.id }, "No email capability - task created");
@@ -528,7 +556,8 @@ async function processAutoEmail(
         // No template - create manual task
         await createTask(organizationId, event, "email",
             `Enviar email manualmente - ${quote.title}`,
-            `Template ${templateCode} não encontrado. Configurar em /templates.`
+            `Template ${templateCode} não encontrado. Configurar em /templates.`,
+            ownerUserId
         );
         await markEventSkipped(event.id, "no_template");
         log.info({ eventId: event.id, templateCode }, "No template - task created");
@@ -593,7 +622,8 @@ async function processAutoEmail(
         // Create fallback task
         await createTask(organizationId, event, "email",
             `Enviar email manualmente - ${quote.title}`,
-            `Falha no envio automático: ${sendResult.error}\n\nEnviar follow-up ${event.eventType} manualmente.`
+            `Falha no envio automático: ${sendResult.error}\n\nEnviar follow-up ${event.eventType} manualmente.`,
+            ownerUserId
         );
 
         log.error({ eventId: event.id, error: sendResult.error }, "Email send failed - task created");

@@ -16,6 +16,7 @@ import { Plus, FileText, Clock, TrendingUp } from "lucide-react";
 import { ActionsList } from "@/components/actions";
 import { OnboardingChecklist } from "@/components/onboarding";
 import { LifecycleBanner } from "@/components/lifecycle";
+import { ScoreboardCard, BenchmarkCard } from "@/components/scoreboard";
 import { getEntitlements, type Entitlements } from "@/lib/entitlements";
 
 // Usage Meter Component - shows correct limits based on tier
@@ -133,6 +134,8 @@ async function getDashboardData(organizationId: string, timezone: string) {
         pipelineAgg,
         templates,
         nextAction,
+        // P0-lite: Check for pending seed example (draft with source="seed")
+        pendingSeed,
     ] = await Promise.all([
         // Today's cadence events
         prisma.cadenceEvent.findMany({
@@ -255,6 +258,18 @@ async function getDashboardData(organizationId: string, timezone: string) {
             },
             orderBy: { scheduledFor: "asc" },
         }),
+        // P0-lite: Check for pending seed example (draft with source="seed")
+        prisma.quote.findFirst({
+            where: {
+                organizationId,
+                businessStatus: "draft",
+                source: "seed",
+            },
+            select: {
+                id: true,
+                title: true,
+            },
+        }),
     ]);
 
     // Create template lookup
@@ -347,6 +362,11 @@ async function getDashboardData(organizationId: string, timezone: string) {
             quoteId: nextAction.quote.id,
             quoteTitle: nextAction.quote.title,
         } : null,
+        // P0-lite: Pending seed for "continue Aha" prompt
+        pendingSeed: pendingSeed ? {
+            id: pendingSeed.id,
+            title: pendingSeed.title,
+        } : null,
     };
 }
 
@@ -431,6 +451,7 @@ export default async function DashboardPage() {
                                     tasks={data.actions.tasks}
                                     quotesSent={data.stats.quotesSent}
                                     nextAction={data.nextAction}
+                                    pendingSeed={data.pendingSeed}
                                 />
                             </CardContent>
                         </Card>
@@ -477,6 +498,12 @@ export default async function DashboardPage() {
 
                         {/* Usage Meter - uses entitlements for correct limits */}
                         <UsageMeter entitlements={entitlements} />
+
+                        {/* Scoreboard - shows for Starter+ */}
+                        <ScoreboardCard />
+
+                        {/* Benchmark - shows for Pro+ */}
+                        <BenchmarkCard />
                     </div>
                 </div>
             </main>

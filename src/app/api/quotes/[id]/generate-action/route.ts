@@ -3,11 +3,13 @@ import { prisma } from "@/lib/prisma";
 import {
     getApiSession,
     unauthorized,
+    forbidden,
     notFound,
     badRequest,
     serverError,
     success,
 } from "@/lib/api-utils";
+import { getOrgPriorityRules, calculatePriority } from "@/lib/priority-rules";
 
 /**
  * POST /api/quotes/[id]/generate-action
@@ -38,7 +40,13 @@ export async function POST(
                 id: quoteId,
                 organizationId: session.user.organizationId,
             },
-            include: {
+            select: {
+                id: true,
+                title: true,
+                reference: true,
+                value: true,
+                tags: true,
+                ownerUserId: true,
                 contact: {
                     select: {
                         id: true,
@@ -53,6 +61,11 @@ export async function POST(
 
         if (!quote) {
             return notFound("Orçamento");
+        }
+
+        // Members can only generate actions for their own quotes
+        if (session.user.role !== "admin" && quote.ownerUserId !== session.user.id) {
+            return forbidden("Apenas pode gerar ações para os seus próprios orçamentos");
         }
 
         // Determine task type based on contact info
@@ -77,9 +90,9 @@ export async function POST(
             taskDescription = `Obter email ou telefone do cliente ${quote.contact?.name || ""} para dar seguimento ao orçamento ${quote.reference || quote.title}.`;
         }
 
-        // Determine priority based on value
-        const quoteValue = quote.value?.toNumber() ?? 0;
-        const priority = quoteValue >= 1000 ? "HIGH" : "LOW";
+        // Determine priority based on org rules (value and tags)
+        const priorityRules = await getOrgPriorityRules(session.user.organizationId);
+        const priority = calculatePriority(quote.value, quote.tags, priorityRules);
 
         // Check for existing pending task with same type (deduplication)
         const existingTask = await prisma.task.findFirst({
@@ -95,7 +108,7 @@ export async function POST(
             return badRequest("Já existe uma tarefa pendente similar para este orçamento");
         }
 
-        // Create the task with dueAt as today
+        // Create the task with dueAt as today, assigned to quote owner
         const task = await prisma.task.create({
             data: {
                 organizationId: session.user.organizationId,
@@ -106,6 +119,7 @@ export async function POST(
                 priority,
                 dueAt: new Date(), // Due today
                 status: "pending",
+                assignedToId: quote.ownerUserId,
             },
             include: {
                 quote: {

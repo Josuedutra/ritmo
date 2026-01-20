@@ -8,6 +8,7 @@ import {
     serverError,
     success,
 } from "@/lib/api-utils";
+import { trackEvent, ProductEventNames } from "@/lib/product-events";
 
 // Validation schemas
 // Helper to convert empty strings to null before validation
@@ -74,6 +75,13 @@ export async function GET(request: NextRequest) {
                             company: true,
                         },
                     },
+                    owner: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                        },
+                    },
                     _count: {
                         select: {
                             cadenceEvents: true,
@@ -137,6 +145,7 @@ export async function POST(request: NextRequest) {
                 validUntil: validUntil ? new Date(validUntil) : null,
                 organizationId: session.user.organizationId,
                 createdById: session.user.id,
+                ownerUserId: session.user.id, // Owner defaults to creator
             },
             include: {
                 contact: {
@@ -147,6 +156,24 @@ export async function POST(request: NextRequest) {
                         company: true,
                     },
                 },
+                owner: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    },
+                },
+            },
+        });
+
+        // Track quote creation event (non-blocking)
+        trackEvent(ProductEventNames.QUOTE_CREATED, {
+            organizationId: session.user.organizationId,
+            userId: session.user.id,
+            props: {
+                quoteId: quote.id,
+                hasContact: !!contactId,
+                hasValue: !!rest.value,
             },
         });
 

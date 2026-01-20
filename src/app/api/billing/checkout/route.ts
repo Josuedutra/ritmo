@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getApiSession, unauthorized, badRequest, serverError } from "@/lib/api-utils";
 import { prisma } from "@/lib/prisma";
-import { createCheckoutSession, getPlanById } from "@/lib/stripe";
+import { createCheckoutSession, getPlanById, isPlanPublic } from "@/lib/stripe";
 import { logger } from "@/lib/logger";
+
+// Allow hidden plans checkout only if this env var is set (for admin/internal use)
+const ALLOW_HIDDEN_PLANS_CHECKOUT = process.env.ALLOW_HIDDEN_PLANS_CHECKOUT === "true";
 
 const checkoutSchema = z.object({
     planKey: z.string().min(1, "Plan key is required"),
@@ -67,6 +70,19 @@ export async function POST(request: NextRequest) {
         if (dbPlan && !dbPlan.isActive) {
             log.warn({ planKey }, "Plan is not active");
             return badRequest(`Plano "${plan.name}" não está disponível`);
+        }
+
+        // Block checkout for hidden plans (pro_plus, enterprise) unless env override is set
+        const planIsPublic = await isPlanPublic(planKey);
+        if (!planIsPublic && !ALLOW_HIDDEN_PLANS_CHECKOUT) {
+            log.warn({ planKey }, "Attempted checkout for hidden plan");
+            return NextResponse.json(
+                {
+                    error: "PLAN_NOT_PUBLIC",
+                    message: `O plano "${plan.name}" não está disponível para subscrição pública. Contacte-nos para mais informações.`,
+                },
+                { status: 400 }
+            );
         }
 
         // Build success and cancel URLs

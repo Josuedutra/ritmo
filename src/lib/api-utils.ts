@@ -33,6 +33,13 @@ export function unauthorized() {
 }
 
 /**
+ * Standard forbidden response (authenticated but not authorized)
+ */
+export function forbidden(message = "Forbidden") {
+    return NextResponse.json({ error: message }, { status: 403 });
+}
+
+/**
  * Standard not found response
  */
 export function notFound(resource = "Resource") {

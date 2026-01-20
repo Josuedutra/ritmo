@@ -203,24 +203,36 @@ async function main() {
             console.log("✅ Added max_users column to plans");
         }
 
-        // Upsert plans with frozen pricing: Free=5, Starter=€39/80, Pro=€99/250
+        // Check if is_public column exists, add if not
+        const isPublicExists = await columnExists("plans", "is_public");
+        if (!isPublicExists) {
+            await prisma.$executeRaw`
+                ALTER TABLE plans ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT true
+            `;
+            console.log("✅ Added is_public column to plans");
+        }
+
+        // Upsert plans with frozen pricing: Free=5, Starter=€39/80, Pro=€99/250, Pro+=€149/500
+        // Pro+ and Enterprise are hidden (isPublic=false)
         await prisma.$executeRaw`
-            INSERT INTO plans (id, name, monthly_quote_limit, price_monthly, max_users, is_active, created_at, updated_at)
+            INSERT INTO plans (id, name, monthly_quote_limit, price_monthly, max_users, is_active, is_public, created_at, updated_at)
             VALUES
-                ('free', 'Gratuito', 5, 0, 1, true, NOW(), NOW()),
-                ('starter', 'Starter', 80, 3900, 2, true, NOW(), NOW()),
-                ('pro', 'Pro', 250, 9900, 5, true, NOW(), NOW()),
-                ('enterprise', 'Enterprise', 1000, 0, 999, false, NOW(), NOW())
+                ('free', 'Gratuito', 5, 0, 1, true, true, NOW(), NOW()),
+                ('starter', 'Starter', 80, 3900, 2, true, true, NOW(), NOW()),
+                ('pro', 'Pro', 250, 9900, 5, true, true, NOW(), NOW()),
+                ('pro_plus', 'Pro+', 500, 14900, 10, true, false, NOW(), NOW()),
+                ('enterprise', 'Enterprise', 1000, 0, 999, false, false, NOW(), NOW())
             ON CONFLICT (id) DO UPDATE SET
                 name = EXCLUDED.name,
                 monthly_quote_limit = EXCLUDED.monthly_quote_limit,
                 price_monthly = EXCLUDED.price_monthly,
                 max_users = EXCLUDED.max_users,
                 is_active = EXCLUDED.is_active,
+                is_public = EXCLUDED.is_public,
                 updated_at = NOW()
         `;
 
-        console.log("✅ Plans updated (Free=5, Starter=€39/80, Pro=€99/250)");
+        console.log("✅ Plans updated (Free=5, Starter=€39/80, Pro=€99/250, Pro+=€149/500 hidden)");
     }
 
     console.log("✅ Pre-migration complete");
