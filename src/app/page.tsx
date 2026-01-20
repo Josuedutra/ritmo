@@ -182,9 +182,9 @@ export default function LandingPage() {
 
                                     {/* Orbits */}
                                     <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="absolute w-[280px] h-[280px] rounded-full border border-white/5 animate-[spin_60s_linear_infinite]" />
-                                        <div className="absolute w-[450px] h-[450px] rounded-full border border-white/5 animate-[spin_80s_linear_infinite_reverse]" />
-                                        <div className="absolute w-[620px] h-[620px] rounded-full border border-white/5 opacity-50" />
+                                        <div className="absolute w-[220px] h-[220px] rounded-full border border-white/5 animate-[spin_40s_linear_infinite]" />
+                                        <div className="absolute w-[340px] h-[340px] rounded-full border border-white/5 animate-[spin_60s_linear_infinite_reverse]" />
+                                        <div className="absolute w-[460px] h-[460px] rounded-full border border-white/5 opacity-40 animate-[spin_80s_linear_infinite]" />
                                     </div>
 
                                     {/* Center Hub */}
@@ -194,9 +194,9 @@ export default function LandingPage() {
                                         animate={{
                                             scale: [1, 1.05, 1],
                                             boxShadow: [
-                                                "0 0 60px -15px rgba(59,130,246,0.5)",
-                                                "0 0 90px -10px rgba(59,130,246,0.6)",
-                                                "0 0 60px -15px rgba(59,130,246,0.5)"
+                                                "0 0 60px -15px rgba(59,130,246,0.3)",
+                                                "0 0 90px -10px rgba(59,130,246,0.4)",
+                                                "0 0 60px -15px rgba(59,130,246,0.3)"
                                             ]
                                         }}
                                         transition={{
@@ -204,76 +204,67 @@ export default function LandingPage() {
                                             scale: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 },
                                             boxShadow: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }
                                         }}
-                                        className="relative z-20 flex flex-col items-center justify-center w-28 h-28 bg-white rounded-full shadow-[0_0_60px_-15px_rgba(59,130,246,0.5)] ring-4 ring-black/20"
+                                        className="relative z-20 flex flex-col items-center justify-center w-28 h-28 bg-zinc-950 border border-zinc-800 rounded-full shadow-[0_0_60px_-15px_rgba(59,130,246,0.5)]"
                                     >
-                                        <div className="bg-gradient-to-r from-blue-600 to-emerald-500 text-transparent bg-clip-text font-bold text-xl tracking-tighter">Ritmo</div>
-                                        <div className="absolute -bottom-2 px-2 py-0.5 bg-zinc-900 rounded-full text-[10px] font-bold text-white border border-zinc-700">HUB</div>
+                                        <div className="bg-gradient-to-r from-blue-500 to-emerald-400 text-transparent bg-clip-text font-bold text-2xl tracking-tighter">Ritmo</div>
                                     </motion.div>
 
-                                    {/* Orbiting Elements */}
+                                    {/* Orbiting Elements - Individual Icons */}
 
-                                    {/* Element 1: Excel / Word */}
+                                    {/* Excel - Inner Orbit */}
                                     <motion.div
-                                        className="absolute z-10 p-4 rounded-2xl bg-zinc-800/80 backdrop-blur-xl border border-white/10 shadow-xl flex items-center gap-4 w-52"
-                                        style={{ top: '15%', left: '5%' }}
-                                        animate={{ y: [0, -15, 0] }}
-                                        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                                        className="absolute z-10 w-14 h-14 rounded-2xl bg-zinc-900 border border-white/10 shadow-lg flex items-center justify-center"
+                                        style={{ top: '28%', left: '35%' }}
+                                        animate={{ y: [0, -10, 0] }}
+                                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                                     >
-                                        <div className="flex items-center -space-x-3 shrink-0">
-                                            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-lg z-10 p-1.5">
-                                                <img src="https://upload.wikimedia.org/wikipedia/commons/3/34/Microsoft_Office_Excel_%282019%E2%80%93present%29.svg" alt="Excel" className="w-full h-full" />
-                                            </div>
-                                            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-lg z-0 p-1.5">
-                                                <img src="https://upload.wikimedia.org/wikipedia/commons/f/fd/Microsoft_Office_Word_%282019%E2%80%93present%29.svg" alt="Word" className="w-full h-full" />
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-bold text-white">Excel / Word</span>
-                                            <span className="text-[10px] text-zinc-400">Sem mudar nada</span>
-                                        </div>
+                                        <img src="https://cdn.simpleicons.org/microsoftexcel/217346" alt="Excel" className="w-7 h-7" />
                                     </motion.div>
 
-                                    {/* Element 2: Email */}
+                                    {/* Word - Middle Orbit */}
                                     <motion.div
-                                        className="absolute z-10 p-4 rounded-2xl bg-zinc-800/80 backdrop-blur-xl border border-white/10 shadow-xl flex items-center gap-4 w-52"
-                                        style={{ top: '45%', right: '0%' }}
-                                        animate={{ y: [0, 15, 0] }}
+                                        className="absolute z-10 w-14 h-14 rounded-2xl bg-zinc-900 border border-white/10 shadow-lg flex items-center justify-center"
+                                        style={{ bottom: '25%', left: '20%' }}
+                                        animate={{ y: [0, 10, 0] }}
+                                        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                                    >
+                                        <img src="https://cdn.simpleicons.org/microsoftword/2B579A" alt="Word" className="w-7 h-7" />
+                                    </motion.div>
+
+                                    {/* Gmail - Middle Orbit */}
+                                    <motion.div
+                                        className="absolute z-10 w-14 h-14 rounded-2xl bg-zinc-900 border border-white/10 shadow-lg flex items-center justify-center"
+                                        style={{ top: '20%', right: '25%' }}
+                                        animate={{ y: [0, -12, 0] }}
                                         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                                     >
-                                        <div className="flex items-center -space-x-3 shrink-0">
-                                            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-lg z-10 p-1.5">
-                                                <img src="https://upload.wikimedia.org/wikipedia/commons/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg" alt="Outlook" className="w-full h-full" />
-                                            </div>
-                                            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-lg z-0 p-2">
-                                                <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg" alt="Gmail" className="w-full h-full" />
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-bold text-white">Email</span>
-                                            <span className="text-[10px] text-zinc-400">Outlook & Gmail</span>
-                                        </div>
+                                        <img src="https://cdn.simpleicons.org/gmail/EA4335" alt="Gmail" className="w-7 h-7" />
                                     </motion.div>
 
-                                    {/* Element 3: PDFs */}
+                                    {/* Outlook - Outer Orbit */}
                                     <motion.div
-                                        className="absolute z-10 p-4 rounded-2xl bg-zinc-800/80 backdrop-blur-xl border border-white/10 shadow-xl flex items-center gap-4 w-52"
-                                        style={{ bottom: '15%', left: '15%' }}
-                                        animate={{ y: [0, -10, 0] }}
-                                        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                                        className="absolute z-10 w-14 h-14 rounded-2xl bg-zinc-900 border border-white/10 shadow-lg flex items-center justify-center"
+                                        style={{ bottom: '35%', right: '15%' }}
+                                        animate={{ y: [0, 15, 0] }}
+                                        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
                                     >
-                                        <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-lg shrink-0 p-1.5">
-                                            <img src="https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg" alt="PDF" className="w-full h-full" />
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-bold text-white">PDFs</span>
-                                            <span className="text-[10px] text-zinc-400">Anexos diretos</span>
-                                        </div>
+                                        <img src="https://cdn.simpleicons.org/microsoftoutlook/0078D4" alt="Outlook" className="w-7 h-7" />
+                                    </motion.div>
+
+                                    {/* PDF - Outer Orbit */}
+                                    <motion.div
+                                        className="absolute z-10 w-14 h-14 rounded-2xl bg-zinc-900 border border-white/10 shadow-lg flex items-center justify-center"
+                                        style={{ top: '10%', left: '45%' }}
+                                        animate={{ y: [0, -8, 0] }}
+                                        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+                                    >
+                                        <img src="https://cdn.simpleicons.org/adobeacrobatreader/EC1C24" alt="PDF" className="w-7 h-7" />
                                     </motion.div>
 
                                     {/* Decorative Particles */}
-                                    <div className="absolute top-1/4 right-1/4 w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
-                                    <div className="absolute bottom-1/3 right-1/3 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse delay-700" />
-                                    <div className="absolute top-1/3 left-1/4 w-2 h-2 bg-purple-400 rounded-full animate-pulse delay-1000" />
+                                    <div className="absolute top-1/4 right-1/4 w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse opacity-50" />
+                                    <div className="absolute bottom-1/3 right-1/3 w-1 h-1 bg-emerald-400 rounded-full animate-pulse delay-700 opacity-50" />
+                                    <div className="absolute top-1/3 left-1/4 w-1.5 h-1.5 bg-purple-400 rounded-full animate-pulse delay-1000 opacity-50" />
 
                                 </div>
                             </div>
