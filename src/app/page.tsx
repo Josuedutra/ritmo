@@ -508,59 +508,80 @@ export default function LandingPage() {
                 </section>
 
                 {/* FAQ */}
-                <section id="faq" className="py-24 px-6 bg-white border-t border-zinc-100">
-                    <div className="container mx-auto max-w-3xl">
-                        <h2 className="text-3xl font-bold text-center mb-12 text-zinc-900">Perguntas Frequentes</h2>
-                        <Accordion type="single" collapsible className="w-full">
-                            <AccordionItem value="item-1">
-                                <AccordionTrigger>O Ritmo vai &quot;parecer robô&quot; com emails automáticos?</AccordionTrigger>
-                                <AccordionContent>
-                                    Não. Os templates são curtos, humanos e editáveis. E o Ritmo alterna email com ações de chamada (D+7) para evitar pressão excessiva.
-                                </AccordionContent>
-                            </AccordionItem>
-                            <AccordionItem value="item-2">
-                                <AccordionTrigger>O que conta como &quot;envio&quot;?</AccordionTrigger>
-                                <AccordionContent>
-                                    Conta apenas o 1º envio por orçamento quando o marca como Enviado. Reenvios não contam. Isto evita medo de testar e ajustar.
-                                </AccordionContent>
-                            </AccordionItem>
-                            <AccordionItem value="item-3">
-                                <AccordionTrigger>Preciso anexar a proposta no Ritmo para começar?</AccordionTrigger>
-                                <AccordionContent>
-                                    Não. Pode continuar a criar o orçamento em Excel/Word e enviar por Outlook/Gmail. O Ritmo entra para garantir o follow-up. A proposta pode ser adicionada depois (link ou upload).
-                                </AccordionContent>
-                            </AccordionItem>
-                            <AccordionItem value="item-4">
-                                <AccordionTrigger>Como funciona a captura de propostas por BCC?</AccordionTrigger>
-                                <AccordionContent>
-                                    Basta colocar o endereço BCC do Ritmo no email de envio. Se a proposta vier em PDF (ou link), o Ritmo associa ao orçamento automaticamente.
-                                </AccordionContent>
-                            </AccordionItem>
-                            <AccordionItem value="item-5">
-                                <AccordionTrigger>Posso usar sem automação?</AccordionTrigger>
-                                <AccordionContent>
-                                    Sim. O plano Free funciona em modo manual: o Ritmo cria a cadência e as tarefas, mas você decide quando enviar.
-                                </AccordionContent>
-                            </AccordionItem>
-                            <AccordionItem value="item-6">
-                                <AccordionTrigger>Posso ter mais do que um utilizador?</AccordionTrigger>
-                                <AccordionContent>
-                                    Sim. Free tem 1 utilizador, Starter 2, Pro 5. Se precisar de mais, fale connosco.
-                                </AccordionContent>
-                            </AccordionItem>
-                            <AccordionItem value="item-7">
-                                <AccordionTrigger>O trial é mesmo sem cartão?</AccordionTrigger>
-                                <AccordionContent>
-                                    Sim. 14 dias, 20 envios, 2 utilizadores, sem cartão. No fim, escolhe se quer continuar no Free ou fazer upgrade.
-                                </AccordionContent>
-                            </AccordionItem>
-                            <AccordionItem value="item-8">
-                                <AccordionTrigger>Posso cancelar quando quiser?</AccordionTrigger>
-                                <AccordionContent>
-                                    Sim. Pode gerir a subscrição na página de faturação e cancelar a qualquer momento.
-                                </AccordionContent>
-                            </AccordionItem>
-                        </Accordion>
+                <section id="faq" className="py-24 px-6 bg-zinc-50 border-t border-zinc-100">
+                    <div className="container mx-auto max-w-6xl">
+                        <div className="grid lg:grid-cols-12 gap-12 lg:gap-24">
+
+                            {/* Left Column: Intro */}
+                            <div className="lg:col-span-4 space-y-8">
+                                <div>
+                                    <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-zinc-900 mb-4">
+                                        Perguntas <br />
+                                        <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">frequentes</span>
+                                    </h2>
+                                    <div className="space-y-4">
+                                        <h3 className="text-lg font-semibold text-zinc-900">Ainda tens dúvidas?</h3>
+                                        <p className="text-zinc-500 leading-relaxed">
+                                            Preparamos um conjunto de perguntas e respostas rápidas para esclarecer todas as tuas questões.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Right Column: Accordion */}
+                            <div className="lg:col-span-8">
+                                <Accordion type="single" collapsible className="w-full space-y-4">
+                                    <AccordionItem value="item-1" className="border border-zinc-200 bg-white rounded-xl px-4">
+                                        <AccordionTrigger className="hover:no-underline py-4 text-left font-medium text-zinc-900">O Ritmo vai &quot;parecer robô&quot; com emails automáticos?</AccordionTrigger>
+                                        <AccordionContent className="text-zinc-600 pb-4">
+                                            Não. Os templates são curtos, humanos e editáveis. E o Ritmo alterna email com ações de chamada (D+7) para evitar pressão excessiva.
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                    <AccordionItem value="item-2" className="border border-zinc-200 bg-white rounded-xl px-4">
+                                        <AccordionTrigger className="hover:no-underline py-4 text-left font-medium text-zinc-900">O que conta como &quot;envio&quot;?</AccordionTrigger>
+                                        <AccordionContent className="text-zinc-600 pb-4">
+                                            Conta apenas o 1º envio por orçamento quando o marca como Enviado. Reenvios não contam. Isto evita medo de testar e ajustar.
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                    <AccordionItem value="item-3" className="border border-zinc-200 bg-white rounded-xl px-4">
+                                        <AccordionTrigger className="hover:no-underline py-4 text-left font-medium text-zinc-900">Preciso anexar a proposta no Ritmo para começar?</AccordionTrigger>
+                                        <AccordionContent className="text-zinc-600 pb-4">
+                                            Não. Pode continuar a criar o orçamento em Excel/Word e enviar por Outlook/Gmail. O Ritmo entra para garantir o follow-up. A proposta pode ser adicionada depois (link ou upload).
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                    <AccordionItem value="item-4" className="border border-zinc-200 bg-white rounded-xl px-4">
+                                        <AccordionTrigger className="hover:no-underline py-4 text-left font-medium text-zinc-900">Como funciona a captura de propostas por BCC?</AccordionTrigger>
+                                        <AccordionContent className="text-zinc-600 pb-4">
+                                            Basta colocar o endereço BCC do Ritmo no email de envio. Se a proposta vier em PDF (ou link), o Ritmo associa ao orçamento automaticamente.
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                    <AccordionItem value="item-5" className="border border-zinc-200 bg-white rounded-xl px-4">
+                                        <AccordionTrigger className="hover:no-underline py-4 text-left font-medium text-zinc-900">Posso usar sem automação?</AccordionTrigger>
+                                        <AccordionContent className="text-zinc-600 pb-4">
+                                            Sim. O plano Free funciona em modo manual: o Ritmo cria a cadência e as tarefas, mas você decide quando enviar.
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                    <AccordionItem value="item-6" className="border border-zinc-200 bg-white rounded-xl px-4">
+                                        <AccordionTrigger className="hover:no-underline py-4 text-left font-medium text-zinc-900">Posso ter mais do que um utilizador?</AccordionTrigger>
+                                        <AccordionContent className="text-zinc-600 pb-4">
+                                            Sim. Free tem 1 utilizador, Starter 2, Pro 5. Se precisar de mais, fale connosco.
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                    <AccordionItem value="item-7" className="border border-zinc-200 bg-white rounded-xl px-4">
+                                        <AccordionTrigger className="hover:no-underline py-4 text-left font-medium text-zinc-900">O trial é mesmo sem cartão?</AccordionTrigger>
+                                        <AccordionContent className="text-zinc-600 pb-4">
+                                            Sim. 14 dias, 20 envios, 2 utilizadores, sem cartão. No fim, escolhe se quer continuar no Free ou fazer upgrade.
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                    <AccordionItem value="item-8" className="border border-zinc-200 bg-white rounded-xl px-4">
+                                        <AccordionTrigger className="hover:no-underline py-4 text-left font-medium text-zinc-900">Posso cancelar quando quiser?</AccordionTrigger>
+                                        <AccordionContent className="text-zinc-600 pb-4">
+                                            Sim. Pode gerir a subscrição na página de faturação e cancelar a qualquer momento.
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                </Accordion>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
