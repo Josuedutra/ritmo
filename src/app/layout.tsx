@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import { FeedbackModal } from "@/components/feedback";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Providers } from "@/components/providers";
 import "./globals.css";
 
 const inter = Inter({
@@ -24,16 +25,18 @@ export default function RootLayout({
     return (
         <html lang="pt-PT" suppressHydrationWarning>
             <body className={`${inter.variable} antialiased`}>
-                <ThemeProvider
-                    attribute="class"
-                    defaultTheme="system"
-                    enableSystem
-                    disableTransitionOnChange
-                >
-                    {children}
-                    <Toaster />
-                    <FeedbackModal />
-                </ThemeProvider>
+                <Providers>
+                    <ThemeProvider
+                        attribute="class"
+                        defaultTheme="system"
+                        enableSystem
+                        disableTransitionOnChange
+                    >
+                        {children}
+                        <Toaster />
+                        <FeedbackModal />
+                    </ThemeProvider>
+                </Providers>
             </body>
         </html>
     );
