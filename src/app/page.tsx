@@ -193,7 +193,7 @@ export default function LandingPage() {
                                         animate={{ y: [0, -10, 0] }}
                                         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                                     >
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/3/34/Microsoft_Office_Excel_%282019%E2%80%93present%29.svg" alt="Excel" className="w-10 h-10 drop-shadow-lg" />
+                                        <img src="https://img.icons8.com/fluency/96/microsoft-excel-2019.png" alt="Excel" className="w-10 h-10 drop-shadow-lg" />
                                     </motion.div>
 
                                     {/* Word - Middle Orbit */}
@@ -203,7 +203,7 @@ export default function LandingPage() {
                                         animate={{ y: [0, 10, 0] }}
                                         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
                                     >
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/f/fd/Microsoft_Office_Word_%282019%E2%80%93present%29.svg" alt="Word" className="w-10 h-10 drop-shadow-lg" />
+                                        <img src="https://img.icons8.com/fluency/96/microsoft-word-2019.png" alt="Word" className="w-10 h-10 drop-shadow-lg" />
                                     </motion.div>
 
                                     {/* Gmail - Middle Orbit */}
@@ -213,7 +213,7 @@ export default function LandingPage() {
                                         animate={{ y: [0, -12, 0] }}
                                         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                                     >
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg" alt="Gmail" className="w-10 h-10 drop-shadow-lg" />
+                                        <img src="https://img.icons8.com/fluency/96/gmail-new.png" alt="Gmail" className="w-10 h-10 drop-shadow-lg" />
                                     </motion.div>
 
                                     {/* Outlook - Outer Orbit */}
@@ -223,7 +223,7 @@ export default function LandingPage() {
                                         animate={{ y: [0, 15, 0] }}
                                         transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
                                     >
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg" alt="Outlook" className="w-10 h-10 drop-shadow-lg" />
+                                        <img src="https://img.icons8.com/fluency/96/microsoft-outlook-2019.png" alt="Outlook" className="w-10 h-10 drop-shadow-lg" />
                                     </motion.div>
 
                                     {/* PDF - Outer Orbit */}
@@ -233,7 +233,7 @@ export default function LandingPage() {
                                         animate={{ y: [0, -8, 0] }}
                                         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }}
                                     >
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg" alt="PDF" className="w-10 h-10 drop-shadow-lg" />
+                                        <img src="https://img.icons8.com/fluency/96/adobe-acrobat.png" alt="PDF" className="w-10 h-10 drop-shadow-lg" />
                                     </motion.div>
 
                                     {/* Decorative Particles */}
