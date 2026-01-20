@@ -95,6 +95,35 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             }
             return true;
         },
+        /**
+         * Session callback with Prisma access (server-side only, not Edge)
+         * Enriches session with organizationId for OAuth users
+         */
+        async session({ session, token }) {
+            if (session.user) {
+                session.user.id = token.id as string;
+                session.user.role = (token.role as string) || "admin";
+
+                // For OAuth users, organizationId might not be in token yet
+                if (token.organizationId) {
+                    session.user.organizationId = token.organizationId as string;
+                } else if (token.id) {
+                    // Lazy load organizationId from database for OAuth users
+                    const user = await prisma.user.findUnique({
+                        where: { id: token.id as string },
+                        select: { organizationId: true, role: true },
+                    });
+                    if (user?.organizationId) {
+                        session.user.organizationId = user.organizationId;
+                        session.user.role = user.role;
+                        // Update token for future requests
+                        token.organizationId = user.organizationId;
+                        token.role = user.role;
+                    }
+                }
+            }
+            return session;
+        },
     },
     events: {
         /**

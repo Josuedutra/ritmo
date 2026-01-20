@@ -62,29 +62,13 @@ export const authConfig: NextAuthConfig = {
             return token;
         },
         async session({ session, token }) {
+            // Basic session population from token - no Prisma here (Edge compatible)
+            // Full Prisma-based session enrichment happens in auth.ts
             if (session.user) {
                 session.user.id = token.id as string;
                 session.user.role = (token.role as string) || "admin";
-
-                // For OAuth users, organizationId might not be in token yet
-                // Fetch from DB if needed
                 if (token.organizationId) {
                     session.user.organizationId = token.organizationId as string;
-                } else if (token.id) {
-                    // Lazy load organizationId from database for OAuth users
-                    // This import is safe because session callback runs server-side
-                    const { prisma } = await import("@/lib/prisma");
-                    const user = await prisma.user.findUnique({
-                        where: { id: token.id as string },
-                        select: { organizationId: true, role: true },
-                    });
-                    if (user?.organizationId) {
-                        session.user.organizationId = user.organizationId;
-                        session.user.role = user.role;
-                        // Update token for future requests
-                        token.organizationId = user.organizationId;
-                        token.role = user.role;
-                    }
                 }
             }
             return session;
