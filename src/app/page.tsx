@@ -132,14 +132,10 @@ export default function LandingPage() {
                             <div className="relative z-10 grid lg:grid-cols-2 gap-12 p-8 md:p-16 items-center">
                                 {/* Left: Text Content */}
                                 <div className="text-left space-y-8">
-                                    <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                                        <Zap className="w-3 h-3" />
-                                        Integrações
-                                    </div>
 
                                     <div className="space-y-4">
                                         <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white leading-tight">
-                                            <span className="text-blue-500">Funciona com o que</span> <br />
+                                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Funciona com o que</span> <br />
                                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">você já usa.</span>
                                         </h2>
                                         <p className="text-lg text-zinc-400 max-w-md leading-relaxed">
@@ -188,7 +184,7 @@ export default function LandingPage() {
                                         <div className="bg-gradient-to-r from-blue-500 to-emerald-400 text-transparent bg-clip-text font-bold text-3xl tracking-tighter">Ritmo</div>
                                     </motion.div>
 
-                                    {/* Orbiting Elements - Individual Icons */}
+                                    {/* Orbiting Elements - Individual Icons - Using Reliable Wikipedia Sources */}
 
                                     {/* Excel - Inner Orbit */}
                                     <motion.div
@@ -197,7 +193,7 @@ export default function LandingPage() {
                                         animate={{ y: [0, -10, 0] }}
                                         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                                     >
-                                        <img src="https://www.vectorlogo.zone/logos/microsoft_excel/microsoft_excel-icon.svg" alt="Excel" className="w-10 h-10 drop-shadow-lg" />
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/3/34/Microsoft_Office_Excel_%282019%E2%80%93present%29.svg" alt="Excel" className="w-10 h-10 drop-shadow-lg" />
                                     </motion.div>
 
                                     {/* Word - Middle Orbit */}
@@ -207,7 +203,7 @@ export default function LandingPage() {
                                         animate={{ y: [0, 10, 0] }}
                                         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
                                     >
-                                        <img src="https://www.vectorlogo.zone/logos/microsoft_word/microsoft_word-icon.svg" alt="Word" className="w-10 h-10 drop-shadow-lg" />
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/f/fd/Microsoft_Office_Word_%282019%E2%80%93present%29.svg" alt="Word" className="w-10 h-10 drop-shadow-lg" />
                                     </motion.div>
 
                                     {/* Gmail - Middle Orbit */}
@@ -217,7 +213,7 @@ export default function LandingPage() {
                                         animate={{ y: [0, -12, 0] }}
                                         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                                     >
-                                        <img src="https://www.vectorlogo.zone/logos/google_gmail/google_gmail-icon.svg" alt="Gmail" className="w-10 h-10 drop-shadow-lg" />
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg" alt="Gmail" className="w-10 h-10 drop-shadow-lg" />
                                     </motion.div>
 
                                     {/* Outlook - Outer Orbit */}
@@ -227,7 +223,7 @@ export default function LandingPage() {
                                         animate={{ y: [0, 15, 0] }}
                                         transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
                                     >
-                                        <img src="https://www.vectorlogo.zone/logos/microsoft_outlook/microsoft_outlook-icon.svg" alt="Outlook" className="w-10 h-10 drop-shadow-lg" />
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg" alt="Outlook" className="w-10 h-10 drop-shadow-lg" />
                                     </motion.div>
 
                                     {/* PDF - Outer Orbit */}
@@ -237,7 +233,7 @@ export default function LandingPage() {
                                         animate={{ y: [0, -8, 0] }}
                                         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }}
                                     >
-                                        <img src="https://www.vectorlogo.zone/logos/adobe_acrobat/adobe_acrobat-icon.svg" alt="PDF" className="w-10 h-10 drop-shadow-lg" />
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg" alt="PDF" className="w-10 h-10 drop-shadow-lg" />
                                     </motion.div>
 
                                     {/* Decorative Particles */}
