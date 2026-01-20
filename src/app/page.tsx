@@ -139,34 +139,13 @@ export default function LandingPage() {
 
                                     <div className="space-y-4">
                                         <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white leading-tight">
-                                            Funciona com o que <br />
+                                            <span className="text-blue-500">Funciona com o que</span> <br />
                                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">você já usa.</span>
                                         </h2>
                                         <p className="text-lg text-zinc-400 max-w-md leading-relaxed">
                                             Sem CRM pesado. Sem mudar processos. <br />
                                             Simplesmente conecte o Ritmo ao seu fluxo de trabalho habitual e deixe o follow-up connosco.
                                         </p>
-                                    </div>
-
-                                    <div className="flex flex-wrap gap-3 pt-2">
-                                        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-zinc-300">
-                                            <div className="flex -space-x-1">
-                                                <img src="https://upload.wikimedia.org/wikipedia/commons/3/34/Microsoft_Office_Excel_%282019%E2%80%93present%29.svg" alt="Excel" className="w-4 h-4" />
-                                                <img src="https://upload.wikimedia.org/wikipedia/commons/f/fd/Microsoft_Office_Word_%282019%E2%80%93present%29.svg" alt="Word" className="w-4 h-4 ml-1" />
-                                            </div>
-                                            <span>Excel / Word</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-zinc-300">
-                                            <div className="flex -space-x-1">
-                                                <img src="https://upload.wikimedia.org/wikipedia/commons/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg" alt="Outlook" className="w-4 h-4" />
-                                                <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg" alt="Gmail" className="w-4 h-4 ml-1" />
-                                            </div>
-                                            <span>Outlook / Gmail</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-zinc-300">
-                                            <img src="https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg" alt="PDF" className="w-4 h-4" />
-                                            <span>PDFs</span>
-                                        </div>
                                     </div>
 
                                     <Link href="/signup">
@@ -187,78 +166,78 @@ export default function LandingPage() {
                                         <div className="absolute w-[460px] h-[460px] rounded-full border border-white/5 opacity-40 animate-[spin_80s_linear_infinite]" />
                                     </div>
 
-                                    {/* Center Hub */}
+                                    {/* Center Hub - Seamless Dark */}
                                     <motion.div
                                         initial={{ scale: 0.8, opacity: 0 }}
                                         whileInView={{ scale: 1, opacity: 1 }}
                                         animate={{
                                             scale: [1, 1.05, 1],
-                                            boxShadow: [
-                                                "0 0 60px -15px rgba(59,130,246,0.3)",
-                                                "0 0 90px -10px rgba(59,130,246,0.4)",
-                                                "0 0 60px -15px rgba(59,130,246,0.3)"
+                                            filter: [
+                                                "drop-shadow(0 0 20px rgba(59,130,246,0.3))",
+                                                "drop-shadow(0 0 30px rgba(59,130,246,0.5))",
+                                                "drop-shadow(0 0 20px rgba(59,130,246,0.3))"
                                             ]
                                         }}
                                         transition={{
                                             duration: 0.5,
                                             scale: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 },
-                                            boxShadow: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }
+                                            filter: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }
                                         }}
-                                        className="relative z-20 flex flex-col items-center justify-center w-28 h-28 bg-zinc-950 border border-zinc-800 rounded-full shadow-[0_0_60px_-15px_rgba(59,130,246,0.5)]"
+                                        className="relative z-20 flex flex-col items-center justify-center w-auto h-auto p-4 bg-zinc-900 rounded-full"
                                     >
-                                        <div className="bg-gradient-to-r from-blue-500 to-emerald-400 text-transparent bg-clip-text font-bold text-2xl tracking-tighter">Ritmo</div>
+                                        <div className="bg-gradient-to-r from-blue-500 to-emerald-400 text-transparent bg-clip-text font-bold text-3xl tracking-tighter">Ritmo</div>
                                     </motion.div>
 
                                     {/* Orbiting Elements - Individual Icons */}
 
                                     {/* Excel - Inner Orbit */}
                                     <motion.div
-                                        className="absolute z-10 w-14 h-14 rounded-2xl bg-zinc-900 border border-white/10 shadow-lg flex items-center justify-center"
+                                        className="absolute z-10 w-12 h-12 flex items-center justify-center"
                                         style={{ top: '28%', left: '35%' }}
                                         animate={{ y: [0, -10, 0] }}
                                         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                                     >
-                                        <img src="https://cdn.simpleicons.org/microsoftexcel/217346" alt="Excel" className="w-7 h-7" />
+                                        <img src="https://www.vectorlogo.zone/logos/microsoft_excel/microsoft_excel-icon.svg" alt="Excel" className="w-10 h-10 drop-shadow-lg" />
                                     </motion.div>
 
                                     {/* Word - Middle Orbit */}
                                     <motion.div
-                                        className="absolute z-10 w-14 h-14 rounded-2xl bg-zinc-900 border border-white/10 shadow-lg flex items-center justify-center"
+                                        className="absolute z-10 w-12 h-12 flex items-center justify-center"
                                         style={{ bottom: '25%', left: '20%' }}
                                         animate={{ y: [0, 10, 0] }}
                                         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
                                     >
-                                        <img src="https://cdn.simpleicons.org/microsoftword/2B579A" alt="Word" className="w-7 h-7" />
+                                        <img src="https://www.vectorlogo.zone/logos/microsoft_word/microsoft_word-icon.svg" alt="Word" className="w-10 h-10 drop-shadow-lg" />
                                     </motion.div>
 
                                     {/* Gmail - Middle Orbit */}
                                     <motion.div
-                                        className="absolute z-10 w-14 h-14 rounded-2xl bg-zinc-900 border border-white/10 shadow-lg flex items-center justify-center"
+                                        className="absolute z-10 w-12 h-12 flex items-center justify-center"
                                         style={{ top: '20%', right: '25%' }}
                                         animate={{ y: [0, -12, 0] }}
                                         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                                     >
-                                        <img src="https://cdn.simpleicons.org/gmail/EA4335" alt="Gmail" className="w-7 h-7" />
+                                        <img src="https://www.vectorlogo.zone/logos/google_gmail/google_gmail-icon.svg" alt="Gmail" className="w-10 h-10 drop-shadow-lg" />
                                     </motion.div>
 
                                     {/* Outlook - Outer Orbit */}
                                     <motion.div
-                                        className="absolute z-10 w-14 h-14 rounded-2xl bg-zinc-900 border border-white/10 shadow-lg flex items-center justify-center"
+                                        className="absolute z-10 w-12 h-12 flex items-center justify-center"
                                         style={{ bottom: '35%', right: '15%' }}
                                         animate={{ y: [0, 15, 0] }}
                                         transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
                                     >
-                                        <img src="https://cdn.simpleicons.org/microsoftoutlook/0078D4" alt="Outlook" className="w-7 h-7" />
+                                        <img src="https://www.vectorlogo.zone/logos/microsoft_outlook/microsoft_outlook-icon.svg" alt="Outlook" className="w-10 h-10 drop-shadow-lg" />
                                     </motion.div>
 
                                     {/* PDF - Outer Orbit */}
                                     <motion.div
-                                        className="absolute z-10 w-14 h-14 rounded-2xl bg-zinc-900 border border-white/10 shadow-lg flex items-center justify-center"
+                                        className="absolute z-10 w-12 h-12 flex items-center justify-center"
                                         style={{ top: '10%', left: '45%' }}
                                         animate={{ y: [0, -8, 0] }}
                                         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }}
                                     >
-                                        <img src="https://cdn.simpleicons.org/adobeacrobatreader/EC1C24" alt="PDF" className="w-7 h-7" />
+                                        <img src="https://www.vectorlogo.zone/logos/adobe_acrobat/adobe_acrobat-icon.svg" alt="PDF" className="w-10 h-10 drop-shadow-lg" />
                                     </motion.div>
 
                                     {/* Decorative Particles */}
