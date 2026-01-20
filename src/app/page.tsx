@@ -121,40 +121,161 @@ export default function LandingPage() {
                 </section>
 
                 {/* WORKS WITH WHAT YOU USE */}
-                <section className="py-16 px-6 bg-white">
-                    <div className="container mx-auto max-w-4xl">
-                        <div className="text-center mb-10">
-                            <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-zinc-900 mb-3">
-                                Funciona com o que já usa
-                            </h2>
-                            <p className="text-lg text-zinc-500">
-                                Sem CRM pesado. Sem mudar processos.
-                            </p>
-                        </div>
+                <section className="py-24 px-6 bg-zinc-50 border-y border-zinc-100 mb-[-1px]">
+                    <div className="container mx-auto max-w-6xl">
+                        <div className="relative rounded-3xl bg-zinc-900 overflow-hidden shadow-2xl ring-1 ring-white/10 group">
 
-                        <div className="grid md:grid-cols-3 gap-8">
-                            <div className="group flex flex-col items-center text-center p-8 rounded-2xl bg-white border border-zinc-100 shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/5 hover:-translate-y-1 hover:border-blue-50/50">
-                                <div className="w-14 h-14 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:bg-emerald-100">
-                                    <FileSpreadsheet className="w-7 h-7" />
-                                </div>
-                                <h3 className="text-lg font-semibold text-zinc-900 mb-2">Excel / Word</h3>
-                                <p className="text-sm text-zinc-500">Continue a fazer orçamentos nas suas ferramentas habituais.</p>
-                            </div>
+                            {/* Animated Background Gradients */}
+                            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+                            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[80px] translate-y-1/3 -translate-x-1/4 pointer-events-none" />
 
-                            <div className="group flex flex-col items-center text-center p-8 rounded-2xl bg-white border border-zinc-100 shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/5 hover:-translate-y-1 hover:border-blue-50/50">
-                                <div className="w-14 h-14 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:bg-blue-100">
-                                    <Mail className="w-7 h-7" />
-                                </div>
-                                <h3 className="text-lg font-semibold text-zinc-900 mb-2">Outlook / Gmail</h3>
-                                <p className="text-sm text-zinc-500">Envie emails como sempre. O Ritmo trata do follow-up.</p>
-                            </div>
+                            <div className="relative z-10 grid lg:grid-cols-2 gap-12 p-8 md:p-16 items-center">
+                                {/* Left: Text Content */}
+                                <div className="text-left space-y-8">
+                                    <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                                        <Zap className="w-3 h-3" />
+                                        Integrações
+                                    </div>
 
-                            <div className="group flex flex-col items-center text-center p-8 rounded-2xl bg-white border border-zinc-100 shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/5 hover:-translate-y-1 hover:border-blue-50/50">
-                                <div className="w-14 h-14 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:bg-rose-100">
-                                    <FileText className="w-7 h-7" />
+                                    <div className="space-y-4">
+                                        <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white leading-tight">
+                                            Funciona com o que <br />
+                                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">você já usa.</span>
+                                        </h2>
+                                        <p className="text-lg text-zinc-400 max-w-md leading-relaxed">
+                                            Sem CRM pesado. Sem mudar processos. <br />
+                                            Simplesmente conecte o Ritmo ao seu fluxo de trabalho habitual e deixe o follow-up connosco.
+                                        </p>
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-3 pt-2">
+                                        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-zinc-300">
+                                            <div className="flex -space-x-1">
+                                                <img src="https://upload.wikimedia.org/wikipedia/commons/3/34/Microsoft_Office_Excel_%282019%E2%80%93present%29.svg" alt="Excel" className="w-4 h-4" />
+                                                <img src="https://upload.wikimedia.org/wikipedia/commons/f/fd/Microsoft_Office_Word_%282019%E2%80%93present%29.svg" alt="Word" className="w-4 h-4 ml-1" />
+                                            </div>
+                                            <span>Excel / Word</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-zinc-300">
+                                            <div className="flex -space-x-1">
+                                                <img src="https://upload.wikimedia.org/wikipedia/commons/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg" alt="Outlook" className="w-4 h-4" />
+                                                <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg" alt="Gmail" className="w-4 h-4 ml-1" />
+                                            </div>
+                                            <span>Outlook / Gmail</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-zinc-300">
+                                            <img src="https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg" alt="PDF" className="w-4 h-4" />
+                                            <span>PDFs</span>
+                                        </div>
+                                    </div>
+
+                                    <Link href="/signup">
+                                        <Button className="mt-4 rounded-full bg-white text-zinc-900 hover:bg-zinc-100 font-medium px-8 h-12">
+                                            Começar agora
+                                            <ArrowRight className="ml-2 w-4 h-4" />
+                                        </Button>
+                                    </Link>
                                 </div>
-                                <h3 className="text-lg font-semibold text-zinc-900 mb-2">PDFs</h3>
-                                <p className="text-sm text-zinc-500">Anexe propostas ao orçamento. Sempre à mão quando precisar.</p>
+
+                                {/* Right: Orbit Visual */}
+                                <div className="relative flex items-center justify-center h-[450px] w-full perspective-[1000px]">
+
+                                    {/* Orbits */}
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="absolute w-[280px] h-[280px] rounded-full border border-white/5 animate-[spin_60s_linear_infinite]" />
+                                        <div className="absolute w-[450px] h-[450px] rounded-full border border-white/5 animate-[spin_80s_linear_infinite_reverse]" />
+                                        <div className="absolute w-[620px] h-[620px] rounded-full border border-white/5 opacity-50" />
+                                    </div>
+
+                                    {/* Center Hub */}
+                                    <motion.div
+                                        initial={{ scale: 0.8, opacity: 0 }}
+                                        whileInView={{ scale: 1, opacity: 1 }}
+                                        animate={{
+                                            scale: [1, 1.05, 1],
+                                            boxShadow: [
+                                                "0 0 60px -15px rgba(59,130,246,0.5)",
+                                                "0 0 90px -10px rgba(59,130,246,0.6)",
+                                                "0 0 60px -15px rgba(59,130,246,0.5)"
+                                            ]
+                                        }}
+                                        transition={{
+                                            duration: 0.5,
+                                            scale: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 },
+                                            boxShadow: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }
+                                        }}
+                                        className="relative z-20 flex flex-col items-center justify-center w-28 h-28 bg-white rounded-full shadow-[0_0_60px_-15px_rgba(59,130,246,0.5)] ring-4 ring-black/20"
+                                    >
+                                        <div className="bg-gradient-to-r from-blue-600 to-emerald-500 text-transparent bg-clip-text font-bold text-xl tracking-tighter">Ritmo</div>
+                                        <div className="absolute -bottom-2 px-2 py-0.5 bg-zinc-900 rounded-full text-[10px] font-bold text-white border border-zinc-700">HUB</div>
+                                    </motion.div>
+
+                                    {/* Orbiting Elements */}
+
+                                    {/* Element 1: Excel / Word */}
+                                    <motion.div
+                                        className="absolute z-10 p-4 rounded-2xl bg-zinc-800/80 backdrop-blur-xl border border-white/10 shadow-xl flex items-center gap-4 w-52"
+                                        style={{ top: '15%', left: '5%' }}
+                                        animate={{ y: [0, -15, 0] }}
+                                        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                                    >
+                                        <div className="flex items-center -space-x-3 shrink-0">
+                                            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-lg z-10 p-1.5">
+                                                <img src="https://upload.wikimedia.org/wikipedia/commons/3/34/Microsoft_Office_Excel_%282019%E2%80%93present%29.svg" alt="Excel" className="w-full h-full" />
+                                            </div>
+                                            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-lg z-0 p-1.5">
+                                                <img src="https://upload.wikimedia.org/wikipedia/commons/f/fd/Microsoft_Office_Word_%282019%E2%80%93present%29.svg" alt="Word" className="w-full h-full" />
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-bold text-white">Excel / Word</span>
+                                            <span className="text-[10px] text-zinc-400">Sem mudar nada</span>
+                                        </div>
+                                    </motion.div>
+
+                                    {/* Element 2: Email */}
+                                    <motion.div
+                                        className="absolute z-10 p-4 rounded-2xl bg-zinc-800/80 backdrop-blur-xl border border-white/10 shadow-xl flex items-center gap-4 w-52"
+                                        style={{ top: '45%', right: '0%' }}
+                                        animate={{ y: [0, 15, 0] }}
+                                        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                                    >
+                                        <div className="flex items-center -space-x-3 shrink-0">
+                                            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-lg z-10 p-1.5">
+                                                <img src="https://upload.wikimedia.org/wikipedia/commons/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg" alt="Outlook" className="w-full h-full" />
+                                            </div>
+                                            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-lg z-0 p-2">
+                                                <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg" alt="Gmail" className="w-full h-full" />
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-bold text-white">Email</span>
+                                            <span className="text-[10px] text-zinc-400">Outlook & Gmail</span>
+                                        </div>
+                                    </motion.div>
+
+                                    {/* Element 3: PDFs */}
+                                    <motion.div
+                                        className="absolute z-10 p-4 rounded-2xl bg-zinc-800/80 backdrop-blur-xl border border-white/10 shadow-xl flex items-center gap-4 w-52"
+                                        style={{ bottom: '15%', left: '15%' }}
+                                        animate={{ y: [0, -10, 0] }}
+                                        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                                    >
+                                        <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-lg shrink-0 p-1.5">
+                                            <img src="https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg" alt="PDF" className="w-full h-full" />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-bold text-white">PDFs</span>
+                                            <span className="text-[10px] text-zinc-400">Anexos diretos</span>
+                                        </div>
+                                    </motion.div>
+
+                                    {/* Decorative Particles */}
+                                    <div className="absolute top-1/4 right-1/4 w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+                                    <div className="absolute bottom-1/3 right-1/3 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse delay-700" />
+                                    <div className="absolute top-1/3 left-1/4 w-2 h-2 bg-purple-400 rounded-full animate-pulse delay-1000" />
+
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -552,59 +673,106 @@ export default function LandingPage() {
                 </section>
 
                 {/* FAQ */}
-                <section id="faq" className="py-24 px-6 bg-white border-t border-zinc-100">
-                    <div className="container mx-auto max-w-3xl">
-                        <h2 className="text-3xl font-bold text-center mb-12 text-zinc-900">Perguntas Frequentes</h2>
-                        <Accordion type="single" collapsible className="w-full">
-                            <AccordionItem value="item-1">
-                                <AccordionTrigger>O Ritmo vai &quot;parecer robô&quot; com emails automáticos?</AccordionTrigger>
-                                <AccordionContent>
-                                    Não. Os templates são curtos, humanos e editáveis. E o Ritmo alterna email com ações de chamada (D+7) para evitar pressão excessiva.
-                                </AccordionContent>
-                            </AccordionItem>
-                            <AccordionItem value="item-2">
-                                <AccordionTrigger>O que conta como &quot;envio&quot;?</AccordionTrigger>
-                                <AccordionContent>
-                                    Conta apenas o 1º envio por orçamento quando o marca como Enviado. Reenvios não contam. Isto evita medo de testar e ajustar.
-                                </AccordionContent>
-                            </AccordionItem>
-                            <AccordionItem value="item-3">
-                                <AccordionTrigger>Preciso anexar a proposta no Ritmo para começar?</AccordionTrigger>
-                                <AccordionContent>
-                                    Não. Pode continuar a criar o orçamento em Excel/Word e enviar por Outlook/Gmail. O Ritmo entra para garantir o follow-up. A proposta pode ser adicionada depois (link ou upload).
-                                </AccordionContent>
-                            </AccordionItem>
-                            <AccordionItem value="item-4">
-                                <AccordionTrigger>Como funciona a captura de propostas por BCC?</AccordionTrigger>
-                                <AccordionContent>
-                                    Basta colocar o endereço BCC do Ritmo no email de envio. Se a proposta vier em PDF (ou link), o Ritmo associa ao orçamento automaticamente.
-                                </AccordionContent>
-                            </AccordionItem>
-                            <AccordionItem value="item-5">
-                                <AccordionTrigger>Posso usar sem automação?</AccordionTrigger>
-                                <AccordionContent>
-                                    Sim. O plano Free funciona em modo manual: o Ritmo cria a cadência e as tarefas, mas você decide quando enviar.
-                                </AccordionContent>
-                            </AccordionItem>
-                            <AccordionItem value="item-6">
-                                <AccordionTrigger>Posso ter mais do que um utilizador?</AccordionTrigger>
-                                <AccordionContent>
-                                    Sim. Free tem 1 utilizador, Starter 2, Pro 5. Se precisar de mais, fale connosco.
-                                </AccordionContent>
-                            </AccordionItem>
-                            <AccordionItem value="item-7">
-                                <AccordionTrigger>O trial é mesmo sem cartão?</AccordionTrigger>
-                                <AccordionContent>
-                                    Sim. 14 dias, 20 envios, 2 utilizadores, sem cartão. No fim, escolhe se quer continuar no Free ou fazer upgrade.
-                                </AccordionContent>
-                            </AccordionItem>
-                            <AccordionItem value="item-8">
-                                <AccordionTrigger>Posso cancelar quando quiser?</AccordionTrigger>
-                                <AccordionContent>
-                                    Sim. Pode gerir a subscrição na página de faturação e cancelar a qualquer momento.
-                                </AccordionContent>
-                            </AccordionItem>
-                        </Accordion>
+                <section id="faq" className="py-24 px-6 bg-zinc-50 border-t border-zinc-100">
+                    <div className="container mx-auto max-w-6xl">
+                        <div className="grid lg:grid-cols-12 gap-12 lg:gap-24">
+
+                            {/* Left Column: Intro & Support */}
+                            <div className="lg:col-span-4 space-y-8">
+                                <div>
+                                    <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-zinc-900 mb-6 text-left">
+                                        Perguntas <br />
+                                        <span className="text-blue-600">frequentes</span>
+                                    </h2>
+                                    <h3 className="text-xl font-bold text-zinc-900 mb-3">Ainda tens dúvidas?</h3>
+                                    <p className="text-zinc-500 leading-relaxed mb-8">
+                                        Preparamos um conjunto de perguntas e respostas rápidas para esclarecer todas as tuas questões.
+                                    </p>
+                                    <a href="mailto:ola@ritmo.app" className="inline-block">
+                                        <Button className="rounded-full bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-6 h-auto shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all">
+                                            Apoio ao Cliente <ArrowRight className="ml-2 w-4 h-4" />
+                                        </Button>
+                                    </a>
+                                </div>
+                            </div>
+
+                            {/* Right Column: Accordion Items (Cards) */}
+                            <div className="lg:col-span-8 space-y-4">
+                                <Accordion type="single" collapsible className="w-full space-y-4">
+                                    <AccordionItem value="item-1" className="bg-white rounded-2xl border border-zinc-100 shadow-sm px-2 overflow-hidden hover:shadow-md transition-shadow duration-200">
+                                        <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-blue-600">
+                                            <span className="text-base font-medium text-zinc-700">O Ritmo vai "parecer robô" com emails automáticos?</span>
+                                        </AccordionTrigger>
+                                        <AccordionContent className="px-6 pb-6 text-zinc-600 leading-relaxed bg-white">
+                                            Não. Os templates são curtos, humanos e editáveis. E o Ritmo alterna email com ações de chamada (D+7) para evitar pressão excessiva.
+                                        </AccordionContent>
+                                    </AccordionItem>
+
+                                    <AccordionItem value="item-2" className="bg-white rounded-2xl border border-zinc-100 shadow-sm px-2 overflow-hidden hover:shadow-md transition-shadow duration-200">
+                                        <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-blue-600">
+                                            <span className="text-base font-medium text-zinc-700">O que conta como "envio"?</span>
+                                        </AccordionTrigger>
+                                        <AccordionContent className="px-6 pb-6 text-zinc-600 leading-relaxed bg-white">
+                                            Conta apenas o 1º envio por orçamento quando o marca como Enviado. Reenvios não contam. Isto evita medo de testar e ajustar.
+                                        </AccordionContent>
+                                    </AccordionItem>
+
+                                    <AccordionItem value="item-3" className="bg-white rounded-2xl border border-zinc-100 shadow-sm px-2 overflow-hidden hover:shadow-md transition-shadow duration-200">
+                                        <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-blue-600">
+                                            <span className="text-base font-medium text-zinc-700">Preciso anexar a proposta no Ritmo para começar?</span>
+                                        </AccordionTrigger>
+                                        <AccordionContent className="px-6 pb-6 text-zinc-600 leading-relaxed bg-white">
+                                            Não. Pode continuar a criar o orçamento em Excel/Word e enviar por Outlook/Gmail. O Ritmo entra para garantir o follow-up. A proposta pode ser adicionada depois (link ou upload).
+                                        </AccordionContent>
+                                    </AccordionItem>
+
+                                    <AccordionItem value="item-4" className="bg-white rounded-2xl border border-zinc-100 shadow-sm px-2 overflow-hidden hover:shadow-md transition-shadow duration-200">
+                                        <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-blue-600">
+                                            <span className="text-base font-medium text-zinc-700">Como funciona a captura de propostas por BCC?</span>
+                                        </AccordionTrigger>
+                                        <AccordionContent className="px-6 pb-6 text-zinc-600 leading-relaxed bg-white">
+                                            Basta colocar o endereço BCC do Ritmo no email de envio. Se a proposta vier em PDF (ou link), o Ritmo associa ao orçamento automaticamente.
+                                        </AccordionContent>
+                                    </AccordionItem>
+
+                                    <AccordionItem value="item-5" className="bg-white rounded-2xl border border-zinc-100 shadow-sm px-2 overflow-hidden hover:shadow-md transition-shadow duration-200">
+                                        <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-blue-600">
+                                            <span className="text-base font-medium text-zinc-700">Posso usar sem automação?</span>
+                                        </AccordionTrigger>
+                                        <AccordionContent className="px-6 pb-6 text-zinc-600 leading-relaxed bg-white">
+                                            Sim. O plano Free funciona em modo manual: o Ritmo cria a cadência e as tarefas, mas você decide quando enviar.
+                                        </AccordionContent>
+                                    </AccordionItem>
+
+                                    <AccordionItem value="item-6" className="bg-white rounded-2xl border border-zinc-100 shadow-sm px-2 overflow-hidden hover:shadow-md transition-shadow duration-200">
+                                        <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-blue-600">
+                                            <span className="text-base font-medium text-zinc-700">Posso ter mais do que um utilizador?</span>
+                                        </AccordionTrigger>
+                                        <AccordionContent className="px-6 pb-6 text-zinc-600 leading-relaxed bg-white">
+                                            Sim. Free tem 1 utilizador, Starter 2, Pro 5. Se precisar de mais, fale connosco.
+                                        </AccordionContent>
+                                    </AccordionItem>
+
+                                    <AccordionItem value="item-7" className="bg-white rounded-2xl border border-zinc-100 shadow-sm px-2 overflow-hidden hover:shadow-md transition-shadow duration-200">
+                                        <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-blue-600">
+                                            <span className="text-base font-medium text-zinc-700">O trial é mesmo sem cartão?</span>
+                                        </AccordionTrigger>
+                                        <AccordionContent className="px-6 pb-6 text-zinc-600 leading-relaxed bg-white">
+                                            Sim. 14 dias, 20 envios, 2 utilizadores, sem cartão. No fim, escolhe se quer continuar no Free ou fazer upgrade.
+                                        </AccordionContent>
+                                    </AccordionItem>
+
+                                    <AccordionItem value="item-8" className="bg-white rounded-2xl border border-zinc-100 shadow-sm px-2 overflow-hidden hover:shadow-md transition-shadow duration-200">
+                                        <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-blue-600">
+                                            <span className="text-base font-medium text-zinc-700">Posso cancelar quando quiser?</span>
+                                        </AccordionTrigger>
+                                        <AccordionContent className="px-6 pb-6 text-zinc-600 leading-relaxed bg-white">
+                                            Sim. Pode gerir a subscrição na página de faturação e cancelar a qualquer momento.
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                </Accordion>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
