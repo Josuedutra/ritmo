@@ -74,10 +74,10 @@ export default function PrivacidadePage() {
                             Pode aceder, corrigir ou eliminar os seus dados a qualquer momento.
                             Contacte-nos em{" "}
                             <a
-                                href="mailto:geral@ritmo.app"
+                                href="mailto:geral@useritmo.pt"
                                 className="text-[var(--color-primary)] hover:underline"
                             >
-                                geral@ritmo.app
+                                geral@useritmo.pt
                             </a>
                             .
                         </p>
@@ -90,10 +90,10 @@ export default function PrivacidadePage() {
                         <p>
                             Para questões sobre privacidade:{" "}
                             <a
-                                href="mailto:geral@ritmo.app?subject=Privacidade"
+                                href="mailto:geral@useritmo.pt?subject=Privacidade"
                                 className="text-[var(--color-primary)] hover:underline"
                             >
-                                geral@ritmo.app
+                                geral@useritmo.pt
                             </a>
                         </p>
                     </section>

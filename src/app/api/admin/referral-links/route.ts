@@ -10,6 +10,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/admin-auth";
 import { unauthorized, serverError, success } from "@/lib/api-utils";
 import { nanoid } from "nanoid";
+import { APP_ORIGIN } from "@/lib/config";
 
 export async function GET(request: NextRequest) {
     try {
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
         });
 
         // Add full URL to each link
-        const baseUrl = process.env.NEXTAUTH_URL || "https://ritmo.app";
+        const baseUrl = APP_ORIGIN;
         const linksWithUrls = links.map((link) => ({
             ...link,
             fullUrl: `${baseUrl}${link.landingPath}?ref=${link.code}`,
@@ -110,7 +111,7 @@ export async function POST(request: NextRequest) {
             },
         });
 
-        const baseUrl = process.env.NEXTAUTH_URL || "https://ritmo.app";
+        const baseUrl = APP_ORIGIN;
         const fullUrl = `${baseUrl}${link.landingPath}?ref=${link.code}`;
 
         return success({ link: { ...link, fullUrl } }, 201);

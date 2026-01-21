@@ -43,7 +43,7 @@ export default function PartnersPage() {
                     </p>
                     <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
                         <a
-                            href="mailto:parcerias@ritmo.app?subject=Pedido%20de%20link%20de%20parceiro"
+                            href="mailto:parcerias@useritmo.pt?subject=Pedido%20de%20link%20de%20parceiro"
                             className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-primary)] px-6 py-3 font-medium text-white transition-colors hover:bg-[var(--color-primary)]/90"
                         >
                             <Mail className="h-5 w-5" />
@@ -224,7 +224,7 @@ export default function PartnersPage() {
                     </p>
                     <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
                         <a
-                            href="mailto:parcerias@ritmo.app?subject=Pedido%20de%20link%20de%20parceiro&body=Olá,%0A%0AGostava de me tornar parceiro Ritmo.%0A%0ANome da empresa:%0AEmail de contacto:%0A%0AObrigado!"
+                            href="mailto:parcerias@useritmo.pt?subject=Pedido%20de%20link%20de%20parceiro&body=Olá,%0A%0AGostava de me tornar parceiro Ritmo.%0A%0ANome da empresa:%0AEmail de contacto:%0A%0AObrigado!"
                             className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-primary)] px-8 py-4 text-lg font-medium text-white transition-colors hover:bg-[var(--color-primary)]/90"
                         >
                             <Mail className="h-5 w-5" />

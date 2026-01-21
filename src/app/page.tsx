@@ -557,7 +557,7 @@ export default function LandingPage() {
                                         SLA e suporte dedicado
                                     </li>
                                 </ul>
-                                <a href="mailto:ola@ritmo.app" className="mt-auto">
+                                <a href="mailto:ritmo@useritmo.pt" className="mt-auto">
                                     <Button variant="outline" className="w-full rounded-full text-sm h-10 border-zinc-300 hover:bg-zinc-50">
                                         Falar connosco
                                     </Button>

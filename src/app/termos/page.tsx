@@ -102,10 +102,10 @@ export default function TermosPage() {
                         <p>
                             Para questões sobre estes termos:{" "}
                             <a
-                                href="mailto:geral@ritmo.app?subject=Termos"
+                                href="mailto:geral@useritmo.pt?subject=Termos"
                                 className="text-[var(--color-primary)] hover:underline"
                             >
-                                geral@ritmo.app
+                                geral@useritmo.pt
                             </a>
                         </p>
                     </section>

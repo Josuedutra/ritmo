@@ -14,12 +14,13 @@
 
 import { createHmac, createHash, timingSafeEqual } from "crypto";
 import { logger } from "./logger";
+import { INBOUND_DOMAIN as CONFIG_INBOUND_DOMAIN } from "./config";
 
 const log = logger.child({ service: "inbound" });
 
 // Environment config
 const MAILGUN_SIGNING_KEY = process.env.MAILGUN_SIGNING_KEY;
-const INBOUND_DOMAIN = process.env.INBOUND_DOMAIN || "inbound.ritmo.app";
+const INBOUND_DOMAIN = CONFIG_INBOUND_DOMAIN;
 
 // Constants
 const MAX_ATTACHMENT_SIZE = 15 * 1024 * 1024; // 15MB

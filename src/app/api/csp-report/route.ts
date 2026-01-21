@@ -6,15 +6,25 @@
  *
  * P0 Security Hardening.
  *
- * SECURITY: Only log sanitized/truncated fields to avoid logging sensitive URLs.
+ * SECURITY:
+ * - Only log sanitized/truncated fields to avoid logging sensitive URLs
+ * - Rate limited (fail-open) to prevent log spam from attackers
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
+import { rateLimit, getClientIp } from "@/lib/security/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 const log = logger.child({ route: "api/csp-report" });
+
+// Rate limit config for CSP reports: 120/min per IP (fail-open)
+const CSP_RATE_LIMIT = {
+    limit: 120,
+    windowSec: 60,
+    failMode: "fail-open" as const,
+};
 
 // Maximum length for URI fields to prevent logging sensitive data
 const MAX_URI_LENGTH = 100;
@@ -37,6 +47,18 @@ function sanitizeUri(uri: string | undefined | null): string | null {
 }
 
 export async function POST(request: NextRequest) {
+    // Rate limit to prevent log spam (fail-open - don't block legitimate reports)
+    const ip = getClientIp(request);
+    const rateLimitResult = await rateLimit({
+        key: `csp-report:${ip}`,
+        ...CSP_RATE_LIMIT,
+    });
+
+    if (!rateLimitResult.allowed) {
+        // Silently accept but don't log (spam protection)
+        return NextResponse.json({ received: true });
+    }
+
     try {
         const report = await request.json();
 

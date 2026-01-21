@@ -144,7 +144,7 @@ jobs:
             -H "Authorization: Bearer $RESEND_API_KEY" \
             -H "Content-Type: application/json" \
             -d "{
-              \"from\": \"Ritmo Ops <ops@ritmo.app>\",
+              \"from\": \"Ritmo Ops <ops@useritmo.pt>\",
               \"to\": \"$ALERT_EMAIL\",
               \"subject\": \"$SUBJECT\",
               \"html\": \"<html><body style='font-family: sans-serif;'>$MESSAGE<hr><p><small>Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)<br>Workflow: $GITHUB_RUN_ID</small></p></body></html>\"

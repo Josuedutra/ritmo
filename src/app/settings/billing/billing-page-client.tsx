@@ -452,7 +452,7 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                             <Button
                                 variant="outline"
                                 className="w-full"
-                                onClick={() => window.location.href = "mailto:ola@ritmo.app?subject=Plano%20Early%20Access"}
+                                onClick={() => window.location.href = "mailto:ritmo@useritmo.pt?subject=Plano%20Early%20Access"}
                             >
                                 Contactar suporte
                             </Button>

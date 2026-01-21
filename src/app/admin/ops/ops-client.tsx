@@ -93,6 +93,13 @@ interface StripeResponse {
     };
 }
 
+interface SentryTestResult {
+    ok: boolean;
+    requestId: string;
+    sentryEventId: string;
+    message: string;
+}
+
 export function OpsClient() {
     const [opsToken, setOpsToken] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -103,6 +110,11 @@ export function OpsClient() {
     const [cron, setCron] = useState<CronResponse | null>(null);
     const [inbound, setInbound] = useState<InboundResponse | null>(null);
     const [stripe, setStripe] = useState<StripeResponse | null>(null);
+
+    // Sentry test state
+    const [sentryLoading, setSentryLoading] = useState(false);
+    const [sentryResult, setSentryResult] = useState<SentryTestResult | null>(null);
+    const [sentryError, setSentryError] = useState<string | null>(null);
 
     const fetchData = useCallback(async () => {
         if (!opsToken) {
@@ -158,6 +170,34 @@ export function OpsClient() {
         const interval = setInterval(fetchData, 30000);
         return () => clearInterval(interval);
     }, [opsToken, fetchData]);
+
+    // Sentry test function
+    const testSentry = useCallback(async () => {
+        setSentryLoading(true);
+        setSentryError(null);
+        setSentryResult(null);
+
+        try {
+            const res = await fetch("/api/admin/sentry-test");
+
+            if (!res.ok) {
+                if (res.status === 401) {
+                    setSentryError("Não autorizado - login como admin necessário");
+                } else {
+                    const data = await res.json();
+                    setSentryError(data.error || `Erro ${res.status}`);
+                }
+                return;
+            }
+
+            const data: SentryTestResult = await res.json();
+            setSentryResult(data);
+        } catch (err) {
+            setSentryError(err instanceof Error ? err.message : "Erro de rede");
+        } finally {
+            setSentryLoading(false);
+        }
+    }, []);
 
     return (
         <div className="space-y-6">
@@ -436,6 +476,65 @@ export function OpsClient() {
                     </div>
                 </div>
             )}
+
+            {/* Sentry Test Card */}
+            <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-4">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h3 className="text-sm font-medium text-[var(--color-muted-foreground)]">
+                            Sentry Integration
+                        </h3>
+                        <p className="mt-1 text-xs text-[var(--color-muted-foreground)]">
+                            Envia um evento de teste para verificar a integração Sentry
+                        </p>
+                    </div>
+                    <button
+                        onClick={testSentry}
+                        disabled={sentryLoading}
+                        className="rounded bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50"
+                    >
+                        {sentryLoading ? "A testar..." : "Testar Sentry"}
+                    </button>
+                </div>
+
+                {/* Sentry Test Result */}
+                {sentryResult && (
+                    <div className="mt-4 rounded border border-green-500/30 bg-green-500/10 p-3">
+                        <div className="flex items-center gap-2">
+                            <span className="text-green-600">✓</span>
+                            <span className="text-sm font-medium text-green-600">
+                                Evento enviado com sucesso
+                            </span>
+                        </div>
+                        <div className="mt-2 space-y-1 text-xs">
+                            <div className="flex gap-2">
+                                <span className="text-[var(--color-muted-foreground)]">Event ID:</span>
+                                <code className="font-mono text-green-600">
+                                    {sentryResult.sentryEventId}
+                                </code>
+                            </div>
+                            <div className="flex gap-2">
+                                <span className="text-[var(--color-muted-foreground)]">Request ID:</span>
+                                <code className="font-mono">{sentryResult.requestId}</code>
+                            </div>
+                        </div>
+                        <p className="mt-2 text-xs text-[var(--color-muted-foreground)]">
+                            Verifique no dashboard Sentry: procure por &quot;sentry_test_ok&quot;
+                        </p>
+                    </div>
+                )}
+
+                {/* Sentry Test Error */}
+                {sentryError && (
+                    <div className="mt-4 rounded border border-red-500/30 bg-red-500/10 p-3">
+                        <div className="flex items-center gap-2">
+                            <span className="text-red-600">✗</span>
+                            <span className="text-sm font-medium text-red-600">Erro no teste</span>
+                        </div>
+                        <p className="mt-1 text-xs text-red-600">{sentryError}</p>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

@@ -25,7 +25,7 @@ SELECT id, name, stripe_price_id FROM plans;
 ### Configuração no Dashboard Stripe
 
 - [ ] Webhook configurado para:
-  - URL: `https://app.ritmo.app/api/webhooks/stripe`
+  - URL: `https://app.useritmo.pt/api/webhooks/stripe`
   - Eventos: `checkout.session.completed`, `customer.subscription.*`, `invoice.payment_*`
 - [ ] URLs de retorno do Checkout configuradas para domínio final
 - [ ] Customer Portal ativado e configurado
@@ -43,7 +43,7 @@ SELECT id, name, stripe_price_id FROM plans;
 
 ### Configuração
 
-- [ ] Route ativa no Mailgun apontando para `https://app.ritmo.app/api/inbound/mailgun`
+- [ ] Route ativa no Mailgun apontando para `https://app.useritmo.pt/api/inbound/mailgun`
 - [ ] `MAILGUN_SIGNING_KEY` configurado no Vercel
 
 ### Teste
@@ -121,7 +121,7 @@ DATABASE_URL=postgresql://...
 
 # Auth
 NEXTAUTH_SECRET=<random-secret>
-NEXTAUTH_URL=https://app.ritmo.app
+NEXTAUTH_URL=https://app.useritmo.pt
 
 # Stripe
 STRIPE_SECRET_KEY=sk_live_...

@@ -176,10 +176,10 @@ export default function CookiesPage() {
                                 Se tiver dúvidas sobre a nossa utilização de cookies, pode contactar-nos
                                 através de{" "}
                                 <a
-                                    href="mailto:ola@ritmo.app"
+                                    href="mailto:ritmo@useritmo.pt"
                                     className="text-blue-600 hover:underline"
                                 >
-                                    ola@ritmo.app
+                                    ritmo@useritmo.pt
                                 </a>
                                 .
                             </p>

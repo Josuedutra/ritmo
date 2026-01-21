@@ -59,7 +59,7 @@ function buildContactUrl(organizationId?: string): string {
     const body = encodeURIComponent(
         `Olá,\n\nGostaria de saber mais sobre o plano Pro+.\n\nOrganização: ${organizationId || "N/A"}\n\nObrigado!`
     );
-    return `mailto:ola@ritmo.app?subject=${subject}&body=${body}`;
+    return `mailto:ritmo@useritmo.pt?subject=${subject}&body=${body}`;
 }
 
 /**

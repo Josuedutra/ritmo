@@ -17,6 +17,7 @@ import nodemailer from "nodemailer";
 import { prisma } from "./prisma";
 import { logger } from "./logger";
 import { createUnsubscribeToken, decryptCredentialWithFallback } from "./tokens";
+import { PUBLIC_APP_URL, DEFAULT_EMAIL_FROM } from "./config";
 
 // Types
 export interface SendEmailParams {
@@ -50,7 +51,7 @@ interface OrgSmtpConfig {
 
 // Environment config for Resend (default provider)
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const RESEND_FROM = process.env.RESEND_FROM || process.env.EMAIL_FROM || "Ritmo <noreply@ritmo.app>";
+const RESEND_FROM = DEFAULT_EMAIL_FROM;
 
 const log = logger.child({ service: "email" });
 
@@ -143,9 +144,8 @@ async function getOrgSmtpConfig(organizationId: string): Promise<OrgSmtpConfig |
  * Build opt-out link for email footer (with signed token)
  */
 function buildOptOutLink(organizationId: string, email: string): string {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://ritmo.app";
     const token = createUnsubscribeToken(organizationId, email);
-    return `${baseUrl}/unsubscribe?t=${token}`;
+    return `${PUBLIC_APP_URL}/unsubscribe?t=${token}`;
 }
 
 /**

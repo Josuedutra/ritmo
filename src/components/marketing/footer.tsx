@@ -27,7 +27,7 @@ export function Footer() {
                     >
                         LinkedIn
                     </a>
-                    <a href="mailto:ola@ritmo.app" className="hover:text-black transition-colors">
+                    <a href="mailto:ritmo@useritmo.pt" className="hover:text-black transition-colors">
                         Contacto
                     </a>
                 </div>

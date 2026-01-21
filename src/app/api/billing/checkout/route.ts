@@ -9,6 +9,7 @@ import {
     RateLimitConfigs,
     rateLimitedResponse,
 } from "@/lib/security/rate-limit";
+import { APP_ORIGIN } from "@/lib/config";
 
 // Allow hidden plans checkout only if this env var is set (for admin/internal use)
 const ALLOW_HIDDEN_PLANS_CHECKOUT = process.env.ALLOW_HIDDEN_PLANS_CHECKOUT === "true";
@@ -105,9 +106,8 @@ export async function POST(request: NextRequest) {
         }
 
         // Build success and cancel URLs
-        const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
-        const successUrl = `${baseUrl}/settings/billing?success=true&session_id={CHECKOUT_SESSION_ID}`;
-        const cancelUrl = `${baseUrl}/settings/billing?canceled=true`;
+        const successUrl = `${APP_ORIGIN}/settings/billing?success=true&session_id={CHECKOUT_SESSION_ID}`;
+        const cancelUrl = `${APP_ORIGIN}/settings/billing?canceled=true`;
 
         const result = await createCheckoutSession(
             session.user.organizationId,

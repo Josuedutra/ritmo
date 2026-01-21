@@ -79,6 +79,9 @@ function markShown(reason: UpgradeReason, location: string): void {
 /**
  * Track upgrade prompt events via API
  * Non-blocking - errors are silently ignored
+ *
+ * Uses keepalive: true for "clicked" events to ensure tracking
+ * completes even when page navigates away immediately after.
  */
 async function trackUpgradeEvent(
     event: "shown" | "clicked",
@@ -90,11 +93,19 @@ async function trackUpgradeEvent(
     }
 ): Promise<void> {
     try {
-        await fetch("/api/tracking/upgrade-prompt", {
+        // Use keepalive for clicks to survive page navigation
+        const options: RequestInit = {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ event, reason, location, ...extra }),
-        });
+        };
+
+        // keepalive ensures the request completes even if page unloads
+        if (event === "clicked") {
+            options.keepalive = true;
+        }
+
+        await fetch("/api/tracking/upgrade-prompt", options);
     } catch {
         // Silently ignore tracking errors
     }

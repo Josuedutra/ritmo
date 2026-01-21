@@ -8,6 +8,7 @@ import {
     RateLimitConfigs,
     rateLimitedResponse,
 } from "@/lib/security/rate-limit";
+import { APP_ORIGIN } from "@/lib/config";
 
 /**
  * POST /api/billing/portal
@@ -72,7 +73,7 @@ export async function POST() {
         }
 
         // Get the return URL from the request origin or use a default
-        const returnUrl = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/settings/billing`;
+        const returnUrl = `${APP_ORIGIN}/settings/billing`;
 
         const result = await createCustomerPortalSession(
             subscription.stripeCustomerId,
