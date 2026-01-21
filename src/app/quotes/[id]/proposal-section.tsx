@@ -3,9 +3,10 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent, Button, Input, Badge, toast } from "@/components/ui";
+import { UpgradePrompt, UPGRADE_PROMPTS } from "@/components/billing/upgrade-prompt";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
-import { FileText, Upload, ExternalLink, Trash2, Link as LinkIcon, Save, Copy, Check, CheckCircle2 } from "lucide-react";
+import { FileText, Upload, ExternalLink, Trash2, Link as LinkIcon, Save, Copy, Check, CheckCircle2, AlertTriangle } from "lucide-react";
 
 // Inbound domain for BCC addresses
 const INBOUND_DOMAIN = process.env.NEXT_PUBLIC_INBOUND_DOMAIN || "inbound.ritmo.app";
@@ -20,7 +21,11 @@ interface Quote {
         filename: string;
         sizeBytes: number;
         createdAt: string;
+        expiresAt: string | null;
+        deletedAt: string | null;
     } | null;
+    // P1-UPGRADE-PROMPTS: Ingest status from inbound processing
+    ingestStatus?: "pending" | "processed" | "rejected_quota_exceeded" | "rejected_other" | null;
 }
 
 interface ProposalSectionProps {
@@ -167,11 +172,17 @@ export function ProposalSection({ quote }: ProposalSectionProps) {
         }
     };
 
-    const hasProposal = quote.proposalFile || quote.proposalLink;
+    // Check if proposal file is expired or deleted
+    const isFileExpired = quote.proposalFile && (
+        quote.proposalFile.deletedAt !== null ||
+        (quote.proposalFile.expiresAt && new Date(quote.proposalFile.expiresAt) < new Date())
+    );
+
+    const hasProposal = (quote.proposalFile && !isFileExpired) || quote.proposalLink;
 
     // Determine proposal source for display
     const getProposalSource = () => {
-        if (quote.proposalFile) return "PDF carregado";
+        if (quote.proposalFile && !isFileExpired) return "PDF carregado";
         if (quote.proposalLink) return "Link externo";
         return null;
     };
@@ -185,7 +196,13 @@ export function ProposalSection({ quote }: ProposalSectionProps) {
                         Proposta
                     </CardTitle>
                     {/* P0-02: Status badge when proposal exists */}
-                    {hasProposal && (
+                    {isFileExpired && (
+                        <Badge variant="destructive" className="gap-1">
+                            <AlertTriangle className="h-3 w-3" />
+                            Expirado
+                        </Badge>
+                    )}
+                    {hasProposal && !isFileExpired && (
                         <Badge variant="success" className="gap-1">
                             <CheckCircle2 className="h-3 w-3" />
                             Disponível
@@ -252,8 +269,39 @@ export function ProposalSection({ quote }: ProposalSectionProps) {
                     </div>
                 )}
 
+                {/* P1-UPGRADE-PROMPTS: Storage quota exceeded notice */}
+                {quote.ingestStatus === "rejected_quota_exceeded" && (
+                    <UpgradePrompt
+                        reason="storage_quota"
+                        location="proposal_section"
+                        variant="inline"
+                        {...UPGRADE_PROMPTS.storage_quota}
+                    />
+                )}
+
+                {/* P1-UPGRADE-PROMPTS: Expired file notice with retention upsell */}
+                {isFileExpired && (
+                    <div className="space-y-3">
+                        <UpgradePrompt
+                            reason="retention_expired"
+                            location="proposal_section"
+                            variant="inline"
+                            {...UPGRADE_PROMPTS.retention_expired}
+                        />
+                        <Button
+                            variant="outline"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={uploading}
+                            className="w-full gap-2"
+                        >
+                            <Upload className="h-4 w-4" />
+                            {uploading ? "A carregar..." : "Carregar novo PDF"}
+                        </Button>
+                    </div>
+                )}
+
                 {/* No proposal - show add options */}
-                {!hasProposal && !showLinkEdit && (
+                {!hasProposal && !isFileExpired && !showLinkEdit && (
                     <div className="space-y-2">
                         <Button
                             variant="outline"

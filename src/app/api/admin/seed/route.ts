@@ -1,43 +1,36 @@
 /**
  * POST /api/admin/seed
  *
- * TEMPORARY endpoint to seed the database in production.
- * Protected by ADMIN_SEED_SECRET environment variable.
+ * Database seeding endpoint - ONLY available in development.
  *
- * Usage:
- * curl -X POST https://ritmo.app/api/admin/seed \
+ * SECURITY (P0 Security Hardening):
+ * - PRODUCTION: Returns 404 (endpoint does not exist)
+ * - DEVELOPMENT: Requires ADMIN_SEED_SECRET header
+ *
+ * Usage (dev only):
+ * curl -X POST http://localhost:3000/api/admin/seed \
  *   -H "Authorization: Bearer YOUR_ADMIN_SEED_SECRET"
- *
- * SECURITY:
- * - Set ADMIN_SEED_ENABLED=true to enable (disabled by default in production)
- * - Requires ADMIN_SEED_SECRET header
- * - After seeding, set ADMIN_SEED_ENABLED=false or remove the env var
- *
- * IMPORTANT: Remove this file or disable after seeding production!
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 
-export async function POST(request: NextRequest) {
-    // Check if endpoint is enabled (disabled by default in production)
-    const isEnabled = process.env.ADMIN_SEED_ENABLED === "true";
-    const isProduction = process.env.NODE_ENV === "production";
+const log = logger.child({ route: "api/admin/seed" });
 
-    if (isProduction && !isEnabled) {
-        logger.warn({ endpoint: "/api/admin/seed" }, "Seed endpoint disabled in production");
-        return NextResponse.json(
-            { error: "Endpoint disabled. Set ADMIN_SEED_ENABLED=true to enable." },
-            { status: 403 }
-        );
+export async function POST(request: NextRequest) {
+    // P0 Security: In production, this endpoint does not exist
+    if (process.env.NODE_ENV === "production") {
+        log.warn("Seed endpoint accessed in production - returning 404");
+        return new NextResponse(null, { status: 404 });
     }
 
-    // Verify secret
+    // Development: Verify secret
     const authHeader = request.headers.get("authorization");
     const secret = process.env.ADMIN_SEED_SECRET;
 
     if (!secret) {
+        log.error("ADMIN_SEED_SECRET not configured");
         return NextResponse.json(
             { error: "ADMIN_SEED_SECRET not configured" },
             { status: 500 }
@@ -45,17 +38,16 @@ export async function POST(request: NextRequest) {
     }
 
     if (authHeader !== `Bearer ${secret}`) {
-        logger.warn({ endpoint: "/api/admin/seed" }, "Unauthorized seed attempt");
+        log.warn("Unauthorized seed attempt");
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    logger.info({ endpoint: "/api/admin/seed" }, "Seed endpoint called (authorized)");
+    log.info("Seed endpoint called (authorized - dev mode)");
 
     try {
         console.log("🌱 Seeding database...");
 
         // First, update any existing organizations missing shortId
-        // This handles the migration case where shortId was added as required
         await prisma.$executeRaw`
             UPDATE organizations
             SET short_id = CONCAT('org_', gen_random_uuid()::text)
@@ -64,7 +56,7 @@ export async function POST(request: NextRequest) {
 
         // Create demo organization with trial
         const trialEndsAt = new Date();
-        trialEndsAt.setDate(trialEndsAt.getDate() + 14); // 14-day trial
+        trialEndsAt.setDate(trialEndsAt.getDate() + 14);
 
         const org = await prisma.organization.upsert({
             where: { slug: "demo" },
@@ -78,7 +70,6 @@ export async function POST(request: NextRequest) {
                 sendWindowEnd: "18:00",
                 emailCooldownHours: 48,
                 bccAddress: "bcc+demo@inbound.ritmo.app",
-                // Trial setup (P0)
                 trialEndsAt,
                 trialSentLimit: 20,
                 trialSentUsed: 0,
@@ -128,7 +119,7 @@ export async function POST(request: NextRequest) {
 
         console.log(`✅ Subscription created`);
 
-        // Create sample contact (use email as unique identifier instead of hardcoded id)
+        // Create sample contact
         const contact = await prisma.contact.upsert({
             where: {
                 id: (
@@ -278,4 +269,12 @@ Teve oportunidade de analisar? Há alguma questão que possa esclarecer?"
             { status: 500 }
         );
     }
+}
+
+// Also block GET requests
+export async function GET() {
+    if (process.env.NODE_ENV === "production") {
+        return new NextResponse(null, { status: 404 });
+    }
+    return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }

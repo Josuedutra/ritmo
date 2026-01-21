@@ -27,7 +27,19 @@ import {
     maskEmail,
 } from "@/lib/inbound";
 import { createClient } from "@supabase/supabase-js";
-import { canUseBccInbound } from "@/lib/entitlements";
+import {
+    canUseBccInbound,
+    checkStorageGates,
+    checkAndReserveStorageQuota,
+    getRetentionPolicy,
+} from "@/lib/entitlements";
+import {
+    rateLimit,
+    getClientIp,
+    RateLimitConfigs,
+    rateLimitedResponse,
+} from "@/lib/security/rate-limit";
+import { setSentryRequestContext } from "@/lib/observability/sentry-context";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
@@ -52,6 +64,21 @@ function getStorageClient() {
  */
 export async function POST(request: NextRequest) {
     const startTime = Date.now();
+
+    // P0 Observability: Set Sentry context
+    setSentryRequestContext(request);
+
+    // P0 Security: Rate limiting per IP
+    const ip = getClientIp(request);
+    const rateLimitResult = await rateLimit({
+        key: `inbound:ip:${ip}`,
+        ...RateLimitConfigs.inboundPerIp,
+    });
+
+    if (!rateLimitResult.allowed) {
+        log.warn({ ip }, "Inbound rate limited by IP");
+        return rateLimitedResponse(rateLimitResult.retryAfterSec);
+    }
 
     try {
         // Parse multipart form data
@@ -146,6 +173,17 @@ export async function POST(request: NextRequest) {
 
             log.warn({ id: ingestion.id, orgShortId }, "Unmatched inbound - org not found");
             return NextResponse.json({ status: "unmatched", id: ingestion.id });
+        }
+
+        // P0 Security: Rate limiting per org (200 per hour)
+        const orgRateLimitResult = await rateLimit({
+            key: `inbound:org:${org.id}`,
+            ...RateLimitConfigs.inboundPerOrg,
+        });
+
+        if (!orgRateLimitResult.allowed) {
+            log.warn({ orgId: org.id }, "Inbound rate limited by org");
+            return rateLimitedResponse(orgRateLimitResult.retryAfterSec);
         }
 
         // P0-04: Check if org has BCC inbound feature enabled (paid/trial only)
@@ -260,6 +298,139 @@ export async function POST(request: NextRequest) {
                     continue;
                 }
 
+                // P0-V7: Check size and MIME type first (no DB needed)
+                // Use checkStorageGates for MIME check only, then atomic reservation
+                const storageCheck = await checkStorageGates(
+                    org.id,
+                    attachment.size,
+                    attachment.type
+                );
+
+                if (!storageCheck.allowed) {
+                    // P0-STO-FIX-03: For MIME rejection, skip this attachment but continue
+                    // to process other attachments or extract links from body
+                    if (storageCheck.reason === "MIME_TYPE_REJECTED") {
+                        log.info({
+                            id: ingestion.id,
+                            filename: attachment.name,
+                            reason: storageCheck.reason,
+                        }, "Attachment skipped - non-PDF, will try to extract link");
+                        continue;
+                    }
+
+                    // For SIZE_EXCEEDED, reject and create task (no quota reservation needed)
+                    if (storageCheck.reason === "SIZE_EXCEEDED") {
+                        await prisma.inboundIngestion.update({
+                            where: { id: ingestion.id },
+                            data: {
+                                status: "rejected_size_exceeded",
+                                errorMessage: storageCheck.message,
+                                processedAt: new Date(),
+                            },
+                        });
+
+                        // P0-STO-FIX-04: Check for existing pending task before creating
+                        const existingTask = await prisma.task.findFirst({
+                            where: {
+                                organizationId: org.id,
+                                quoteId: quote.id,
+                                type: "upload_rejected",
+                                status: "pending",
+                                createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }, // Last 24h
+                            },
+                        });
+
+                        if (!existingTask) {
+                            await prisma.task.create({
+                                data: {
+                                    organizationId: org.id,
+                                    quoteId: quote.id,
+                                    type: "upload_rejected",
+                                    title: "Upload rejeitado: Ficheiro demasiado grande",
+                                    description: storageCheck.message,
+                                    priority: "LOW",
+                                    status: "pending",
+                                },
+                            });
+                        }
+
+                        log.info({
+                            id: ingestion.id,
+                            quoteId: quote.id,
+                            filename: attachment.name,
+                            reason: storageCheck.reason,
+                            taskCreated: !existingTask,
+                        }, "Attachment rejected - size exceeded");
+
+                        return NextResponse.json({
+                            status: "rejected",
+                            id: ingestion.id,
+                            reason: storageCheck.reason.toLowerCase(),
+                            message: storageCheck.message,
+                        });
+                    }
+                }
+
+                // P0-V7: Atomic quota reservation (race-condition safe)
+                // This reserves space BEFORE upload - pessimistic reservation
+                const quotaReservation = await checkAndReserveStorageQuota(
+                    org.id,
+                    attachment.size,
+                    attachment.type
+                );
+
+                if (!quotaReservation.allowed) {
+                    // QUOTA_EXCEEDED - reject and create task
+                    await prisma.inboundIngestion.update({
+                        where: { id: ingestion.id },
+                        data: {
+                            status: "rejected_quota_exceeded",
+                            errorMessage: quotaReservation.message,
+                            processedAt: new Date(),
+                        },
+                    });
+
+                    const existingTask = await prisma.task.findFirst({
+                        where: {
+                            organizationId: org.id,
+                            quoteId: quote.id,
+                            type: "upload_rejected",
+                            status: "pending",
+                            createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+                        },
+                    });
+
+                    if (!existingTask) {
+                        await prisma.task.create({
+                            data: {
+                                organizationId: org.id,
+                                quoteId: quote.id,
+                                type: "upload_rejected",
+                                title: "Upload rejeitado: Quota excedida",
+                                description: quotaReservation.message,
+                                priority: "LOW",
+                                status: "pending",
+                            },
+                        });
+                    }
+
+                    log.info({
+                        id: ingestion.id,
+                        quoteId: quote.id,
+                        filename: attachment.name,
+                        reason: quotaReservation.reason,
+                        taskCreated: !existingTask,
+                    }, "Attachment rejected - quota exceeded");
+
+                    return NextResponse.json({
+                        status: "rejected",
+                        id: ingestion.id,
+                        reason: quotaReservation.reason.toLowerCase(),
+                        message: quotaReservation.message,
+                    });
+                }
+
+                // P0-V7: Quota is now reserved. If upload fails, we MUST call rollback.
                 // Process PDF attachment
                 try {
                     const buffer = Buffer.from(await attachment.arrayBuffer());
@@ -268,7 +439,8 @@ export async function POST(request: NextRequest) {
                     const storage = getStorageClient();
 
                     if (!storage) {
-                        log.warn({ id: ingestion.id }, "Storage not configured - skipping attachment");
+                        log.warn({ id: ingestion.id }, "Storage not configured - rolling back quota");
+                        await quotaReservation.rollback();
                         continue;
                     }
 
@@ -282,11 +454,16 @@ export async function POST(request: NextRequest) {
                         });
 
                     if (uploadError) {
-                        log.error({ id: ingestion.id, error: uploadError.message }, "Attachment upload failed");
+                        // P0-V7: Upload failed - rollback quota reservation
+                        log.error({ id: ingestion.id, error: uploadError.message }, "Attachment upload failed - rolling back quota");
+                        await quotaReservation.rollback();
                         continue;
                     }
 
-                    // Create Attachment record
+                    // Get retention policy for expiration date
+                    const retentionPolicy = await getRetentionPolicy(org.id);
+
+                    // Create Attachment record with expiration
                     const attachmentRecord = await prisma.attachment.create({
                         data: {
                             organizationId: org.id,
@@ -294,8 +471,12 @@ export async function POST(request: NextRequest) {
                             contentType: "application/pdf",
                             sizeBytes: BigInt(attachment.size),
                             storagePath,
+                            expiresAt: retentionPolicy.expiresAt,
                         },
                     });
+
+                    // P0-V7: Storage usage was already incremented by atomic reservation
+                    // No need to call incrementStorageUsage() separately
 
                     // Update quote with proposal file
                     await prisma.quote.update({
@@ -323,11 +504,14 @@ export async function POST(request: NextRequest) {
                         quoteId: quote.id,
                         attachmentId: attachmentRecord.id,
                         filename: attachment.name,
+                        expiresAt: retentionPolicy.expiresAt,
                     }, "PDF attachment processed");
 
                     break; // Only process first valid PDF
                 } catch (err) {
-                    log.error({ id: ingestion.id, error: err }, "Attachment processing error");
+                    // P0-V7: Any error during processing - rollback quota
+                    log.error({ id: ingestion.id, error: err }, "Attachment processing error - rolling back quota");
+                    await quotaReservation.rollback();
                 }
             }
         }

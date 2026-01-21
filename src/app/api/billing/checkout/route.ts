@@ -4,6 +4,11 @@ import { getApiSession, unauthorized, badRequest, serverError } from "@/lib/api-
 import { prisma } from "@/lib/prisma";
 import { createCheckoutSession, getPlanById, isPlanPublic } from "@/lib/stripe";
 import { logger } from "@/lib/logger";
+import {
+    rateLimit,
+    RateLimitConfigs,
+    rateLimitedResponse,
+} from "@/lib/security/rate-limit";
 
 // Allow hidden plans checkout only if this env var is set (for admin/internal use)
 const ALLOW_HIDDEN_PLANS_CHECKOUT = process.env.ALLOW_HIDDEN_PLANS_CHECKOUT === "true";
@@ -17,6 +22,9 @@ const checkoutSchema = z.object({
  *
  * Creates a Stripe Checkout session for a subscription plan.
  * Requires admin role.
+ *
+ * Security (P0 Security Hardening):
+ * - Rate limited: 20 requests per 10 minutes per org
  */
 export async function POST(request: NextRequest) {
     const log = logger.child({ endpoint: "billing/checkout" });
@@ -25,6 +33,17 @@ export async function POST(request: NextRequest) {
         const session = await getApiSession();
         if (!session) {
             return unauthorized();
+        }
+
+        // P0 Security: Rate limiting per org
+        const rateLimitResult = await rateLimit({
+            key: `billing:${session.user.organizationId}`,
+            ...RateLimitConfigs.billing,
+        });
+
+        if (!rateLimitResult.allowed) {
+            log.warn({ orgId: session.user.organizationId }, "Billing rate limited");
+            return rateLimitedResponse(rateLimitResult.retryAfterSec);
         }
 
         // Check admin role

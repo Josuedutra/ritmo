@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardContent, Button } from "@/components/ui";
 import {
@@ -13,6 +13,39 @@ import {
     Minus,
     AlertCircle,
 } from "lucide-react";
+
+// P1-UPGRADE-PROMPTS: Track benchmark locked event
+async function trackBenchmarkLocked(): Promise<void> {
+    try {
+        await fetch("/api/tracking/upgrade-prompt", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                event: "shown",
+                reason: "benchmark_locked",
+                location: "benchmark_card",
+            }),
+        });
+    } catch {
+        // Silently ignore
+    }
+}
+
+async function trackBenchmarkClicked(): Promise<void> {
+    try {
+        await fetch("/api/tracking/upgrade-prompt", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                event: "clicked",
+                reason: "benchmark_locked",
+                location: "benchmark_card",
+            }),
+        });
+    } catch {
+        // Silently ignore
+    }
+}
 
 interface MetricPercentiles {
     value: number;
@@ -89,6 +122,18 @@ export function BenchmarkCard() {
         );
     }
 
+    // P1-UPGRADE-PROMPTS: Track when forbidden teaser is shown
+    useEffect(() => {
+        if (forbidden) {
+            trackBenchmarkLocked();
+        }
+    }, [forbidden]);
+
+    // P1-UPGRADE-PROMPTS: Handle CTA click
+    const handleUpgradeClick = useCallback(() => {
+        trackBenchmarkClicked();
+    }, []);
+
     // Forbidden - show upgrade teaser
     if (forbidden) {
         return (
@@ -112,9 +157,9 @@ export function BenchmarkCard() {
                         <p className="mb-4 text-xs text-[var(--color-muted-foreground)]">
                             Veja como está a performar vs. outras empresas do seu setor
                         </p>
-                        <Link href="/settings/billing">
+                        <Link href="/settings/billing" onClick={handleUpgradeClick}>
                             <Button size="sm" variant="outline" className="gap-1">
-                                Atualizar para Pro
+                                Desbloquear Benchmark
                                 <ArrowRight className="h-3 w-3" />
                             </Button>
                         </Link>

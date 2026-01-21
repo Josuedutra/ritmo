@@ -49,6 +49,8 @@ async function getQuote(id: string, organizationId: string) {
                     contentType: true,
                     sizeBytes: true,
                     createdAt: true,
+                    expiresAt: true,
+                    deletedAt: true,
                 },
             },
             createdBy: {
@@ -259,6 +261,8 @@ export default async function QuoteDetailPage({ params }: PageProps) {
             filename: quote.proposalFile.filename,
             sizeBytes: Number(quote.proposalFile.sizeBytes),
             createdAt: quote.proposalFile.createdAt.toISOString(),
+            expiresAt: quote.proposalFile.expiresAt?.toISOString() ?? null,
+            deletedAt: quote.proposalFile.deletedAt?.toISOString() ?? null,
         } : null,
     };
 

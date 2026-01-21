@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { TRIAL_LIMIT, TRIAL_DURATION_DAYS } from "@/lib/entitlements";
+import { TRIAL_LIMIT, TRIAL_DURATION_DAYS, PLAN_LIMITS } from "@/lib/entitlements";
 import { trackEvent, ProductEventNames } from "@/lib/product-events";
 import {
     REFERRAL_COOKIE_NAME,
@@ -9,6 +9,12 @@ import {
     decodeCookiePayload,
     isReferralCookieValid,
 } from "@/app/api/referrals/capture/route";
+import {
+    rateLimit,
+    getClientIp,
+    RateLimitConfigs,
+    rateLimitedResponse,
+} from "@/lib/security/rate-limit";
 
 /**
  * POST /api/auth/signup
@@ -19,8 +25,22 @@ import {
  * - Validates cookie expiry (30 days from capture)
  * - Blocks self-referral (partner.contactEmail === signup email)
  * - Creates DISQUALIFIED attribution for blocked referrals
+ *
+ * Security (P0 Security Hardening):
+ * - Rate limited: 10 requests per 10 minutes per IP
  */
 export async function POST(request: NextRequest) {
+    // P0 Security: Rate limiting
+    const ip = getClientIp(request);
+    const rateLimitResult = await rateLimit({
+        key: `signup:${ip}`,
+        ...RateLimitConfigs.signup,
+    });
+
+    if (!rateLimitResult.allowed) {
+        return rateLimitedResponse(rateLimitResult.retryAfterSec);
+    }
+
     try {
         const body = await request.json();
         const { email, password, name, companyName } = body;
@@ -77,6 +97,7 @@ export async function POST(request: NextRequest) {
         // Create organization and user in a transaction
         const result = await prisma.$transaction(async (tx) => {
             // Create organization with trial defaults
+            // P0-MC-01: Trial gets Starter-level storage quota (5 GB)
             const organization = await tx.organization.create({
                 data: {
                     name: companyName || `Empresa de ${name || email.split("@")[0]}`,
@@ -87,6 +108,9 @@ export async function POST(request: NextRequest) {
                     trialSentUsed: 0,
                     autoEmailEnabled: true,
                     bccInboundEnabled: true,
+                    // P0-MC-01: Explicit storage quota for trial (Starter-level)
+                    storageQuotaBytes: BigInt(PLAN_LIMITS.starter.storageQuotaBytes),
+                    storageUsedBytes: BigInt(0),
                     // Onboarding not completed
                     onboardingCompleted: false,
                     onboardingState: {

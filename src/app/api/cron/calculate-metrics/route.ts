@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 import { calculateAllOrgMetricsForDate } from "@/lib/org-metrics";
+import { setSentryRequestContext } from "@/lib/observability/sentry-context";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -19,6 +20,7 @@ export const maxDuration = 60;
  */
 export async function POST(request: NextRequest) {
     const log = logger.child({ endpoint: "cron/calculate-metrics" });
+    setSentryRequestContext(request);
 
     // Validate CRON_SECRET
     const authHeader = request.headers.get("authorization");

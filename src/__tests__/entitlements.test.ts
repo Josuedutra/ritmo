@@ -9,7 +9,13 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { calculateEntitlements, FREE_TIER_LIMIT, TRIAL_LIMIT } from "@/lib/entitlements";
+import { calculateEntitlements, FREE_TIER_LIMIT, TRIAL_LIMIT, PLAN_LIMITS } from "@/lib/entitlements";
+
+// Default storage fields for test org data
+const DEFAULT_STORAGE = {
+    storageUsedBytes: BigInt(0),
+    storageQuotaBytes: BigInt(PLAN_LIMITS.starter.storageQuotaBytes),
+};
 
 describe("Entitlements System", () => {
     const now = new Date("2024-06-15T10:00:00Z");
@@ -26,8 +32,10 @@ describe("Entitlements System", () => {
                 subscription: {
                     status: "active",
                     quotesLimit: 100,
-                    plan: { name: "Pro", monthlyQuoteLimit: 100 },
+                    planId: "pro",
+                    plan: { id: "pro", name: "Pro", monthlyQuoteLimit: 100, maxUsers: 5 },
                 },
+                ...DEFAULT_STORAGE,
             };
 
             const entitlements = calculateEntitlements(org, 10, now);
@@ -48,6 +56,7 @@ describe("Entitlements System", () => {
                 autoEmailEnabled: true,
                 bccInboundEnabled: true,
                 subscription: null,
+                ...DEFAULT_STORAGE,
             };
 
             const entitlements = calculateEntitlements(org, 5, now);
@@ -71,6 +80,7 @@ describe("Entitlements System", () => {
                 autoEmailEnabled: true, // DB still has true but should be overridden
                 bccInboundEnabled: true,
                 subscription: null,
+                ...DEFAULT_STORAGE,
             };
 
             const entitlements = calculateEntitlements(org, 3, now);
@@ -95,6 +105,7 @@ describe("Entitlements System", () => {
                 autoEmailEnabled: true,
                 bccInboundEnabled: true,
                 subscription: null,
+                ...DEFAULT_STORAGE,
             };
 
             const beforeEntitlements = calculateEntitlements(orgBeforeTrial, 0, now);
@@ -120,6 +131,7 @@ describe("Entitlements System", () => {
                 autoEmailEnabled: true,
                 bccInboundEnabled: true,
                 subscription: null,
+                ...DEFAULT_STORAGE,
             };
 
             const entitlements = calculateEntitlements(org, 3, now);
@@ -141,6 +153,7 @@ describe("Entitlements System", () => {
                 autoEmailEnabled: false,
                 bccInboundEnabled: false,
                 subscription: null,
+                ...DEFAULT_STORAGE,
             };
 
             const entitlements = calculateEntitlements(org, 3, now); // 3 used, FREE_TIER_LIMIT is 5
@@ -158,6 +171,7 @@ describe("Entitlements System", () => {
                 autoEmailEnabled: false,
                 bccInboundEnabled: false,
                 subscription: null,
+                ...DEFAULT_STORAGE,
             };
 
             const entitlements = calculateEntitlements(org, 5, now); // 5 used = FREE_TIER_LIMIT
@@ -177,6 +191,7 @@ describe("Entitlements System", () => {
                 autoEmailEnabled: true,
                 bccInboundEnabled: true,
                 subscription: null,
+                ...DEFAULT_STORAGE,
             };
 
             const entitlements = calculateEntitlements(org, 0, now);
@@ -197,8 +212,10 @@ describe("Entitlements System", () => {
                 subscription: {
                     status: "cancelled",
                     quotesLimit: 100,
-                    plan: { name: "Pro", monthlyQuoteLimit: 100 },
+                    planId: "pro",
+                    plan: { id: "pro", name: "Pro", monthlyQuoteLimit: 100, maxUsers: 5 },
                 },
+                ...DEFAULT_STORAGE,
             };
 
             const entitlements = calculateEntitlements(org, 5, now);
@@ -219,8 +236,10 @@ describe("Entitlements System", () => {
                 subscription: {
                     status: "past_due",
                     quotesLimit: 100,
-                    plan: { name: "Pro", monthlyQuoteLimit: 100 },
+                    planId: "pro",
+                    plan: { id: "pro", name: "Pro", monthlyQuoteLimit: 100, maxUsers: 5 },
                 },
+                ...DEFAULT_STORAGE,
             };
 
             const entitlements = calculateEntitlements(org, 5, now);
@@ -256,8 +275,10 @@ describe("Cron AUTO_EMAIL Gating", () => {
             subscription: {
                 status: "active",
                 quotesLimit: 100,
-                plan: { name: "Pro", monthlyQuoteLimit: 100 },
+                planId: "pro",
+                plan: { id: "pro", name: "Pro", monthlyQuoteLimit: 100, maxUsers: 5 },
             },
+            ...DEFAULT_STORAGE,
         };
         const paidEntitlements = calculateEntitlements(paidOrg, 0, now);
         expect(paidEntitlements.autoEmailEnabled).toBe(true);
@@ -271,6 +292,7 @@ describe("Cron AUTO_EMAIL Gating", () => {
             autoEmailEnabled: true,
             bccInboundEnabled: true,
             subscription: null,
+            ...DEFAULT_STORAGE,
         };
         const trialEntitlements = calculateEntitlements(trialOrg, 0, now);
         expect(trialEntitlements.autoEmailEnabled).toBe(true);
@@ -284,6 +306,7 @@ describe("Cron AUTO_EMAIL Gating", () => {
             autoEmailEnabled: true, // DB value ignored
             bccInboundEnabled: true,
             subscription: null,
+            ...DEFAULT_STORAGE,
         };
         const freeEntitlements = calculateEntitlements(freeOrg, 0, now);
         expect(freeEntitlements.autoEmailEnabled).toBe(false);
@@ -303,6 +326,7 @@ describe("BCC Inbound Gating", () => {
             autoEmailEnabled: false,
             bccInboundEnabled: false,
             subscription: null,
+            ...DEFAULT_STORAGE,
         };
         const freeEntitlements = calculateEntitlements(freeOrg, 0, now);
         expect(freeEntitlements.bccInboundEnabled).toBe(false);
@@ -316,6 +340,7 @@ describe("BCC Inbound Gating", () => {
             autoEmailEnabled: true,
             bccInboundEnabled: true,
             subscription: null,
+            ...DEFAULT_STORAGE,
         };
         const trialEntitlements = calculateEntitlements(trialOrg, 0, now);
         expect(trialEntitlements.bccInboundEnabled).toBe(true);

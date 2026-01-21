@@ -1,0 +1,186 @@
+# P0 Observability: Uptime Monitoring Workflow (P0-OBS-FIX)
+#
+# Runs every 5 minutes to check health metrics.
+# Sends email alert via Resend if issues detected.
+#
+# Coverage-aware alerting:
+# - Only evaluates thresholds when coverage.<domain> == true
+# - If coverage is false, logs "metrics not available" and continues
+# - Prevents false positives/negatives from missing data sources
+#
+# Required secrets:
+# - OPS_TOKEN: Token for /api/ops/* endpoints
+# - RESEND_API_KEY: Resend API key for email alerts
+# - ALERT_EMAIL: Email address to receive alerts (or multiple, comma-separated)
+# - PRODUCTION_URL: Base URL of production deployment (e.g., https://app.ritmo.pt)
+
+name: Uptime Monitor
+
+on:
+  schedule:
+    # Run every 5 minutes
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+    # Allow manual trigger for testing
+
+env:
+  PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+  OPS_TOKEN: ${{ secrets.OPS_TOKEN }}
+  RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+  ALERT_EMAIL: ${{ secrets.ALERT_EMAIL }}
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: Check metrics endpoint
+        id: metrics
+        run: |
+          # Call metrics endpoint
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -H "x-ops-token: $OPS_TOKEN" \
+            "$PRODUCTION_URL/api/ops/metrics" \
+            --max-time 30)
+
+          # Extract HTTP status code (last line)
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+
+          # Extract body (all but last line)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response: $BODY"
+
+          # Save for later steps
+          echo "http_code=$HTTP_CODE" >> $GITHUB_OUTPUT
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "$BODY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          # Check if endpoint is reachable
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "status=endpoint_error" >> $GITHUB_OUTPUT
+            exit 0  # Don't fail the step, handle in alert step
+          fi
+
+          # Parse coverage fields
+          COVERAGE_INBOUND=$(echo "$BODY" | jq -r '.coverage.inbound // false')
+          COVERAGE_STRIPE=$(echo "$BODY" | jq -r '.coverage.stripe // false')
+          COVERAGE_CRON=$(echo "$BODY" | jq -r '.coverage.cron // false')
+
+          echo "Coverage - Inbound: $COVERAGE_INBOUND, Stripe: $COVERAGE_STRIPE, Cron: $COVERAGE_CRON"
+          echo "coverage_inbound=$COVERAGE_INBOUND" >> $GITHUB_OUTPUT
+          echo "coverage_stripe=$COVERAGE_STRIPE" >> $GITHUB_OUTPUT
+          echo "coverage_cron=$COVERAGE_CRON" >> $GITHUB_OUTPUT
+
+          # Parse healthy field from JSON
+          # Note: healthy field already considers coverage in the metrics endpoint
+          HEALTHY=$(echo "$BODY" | jq -r '.healthy // false')
+
+          # Get alert count
+          ALERT_COUNT=$(echo "$BODY" | jq -r '.alerts | length')
+
+          if [ "$HEALTHY" = "true" ]; then
+            echo "status=healthy" >> $GITHUB_OUTPUT
+          elif [ "$ALERT_COUNT" = "0" ]; then
+            # No alerts but not healthy could mean metrics unavailable
+            echo "status=healthy" >> $GITHUB_OUTPUT
+            echo "Note: No alerts triggered (metrics may be unavailable due to coverage)"
+          else
+            echo "status=unhealthy" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Log coverage status
+        run: |
+          BODY='${{ steps.metrics.outputs.body }}'
+
+          echo "=== Coverage Status ==="
+          echo "Inbound: ${{ steps.metrics.outputs.coverage_inbound }}"
+          echo "Stripe: ${{ steps.metrics.outputs.coverage_stripe }}"
+          echo "Cron: ${{ steps.metrics.outputs.coverage_cron }}"
+
+          # Log metrics not available warnings
+          if [ "${{ steps.metrics.outputs.coverage_inbound }}" != "true" ]; then
+            echo "⚠️ Inbound metrics not available - threshold checks skipped"
+          fi
+          if [ "${{ steps.metrics.outputs.coverage_stripe }}" != "true" ]; then
+            echo "⚠️ Stripe metrics not available - threshold checks skipped"
+          fi
+          if [ "${{ steps.metrics.outputs.coverage_cron }}" != "true" ]; then
+            echo "⚠️ Cron metrics not available - threshold checks skipped"
+          fi
+
+      - name: Send alert if unhealthy
+        if: steps.metrics.outputs.status == 'unhealthy' || steps.metrics.outputs.status == 'endpoint_error'
+        run: |
+          STATUS="${{ steps.metrics.outputs.status }}"
+          HTTP_CODE="${{ steps.metrics.outputs.http_code }}"
+          BODY='${{ steps.metrics.outputs.body }}'
+
+          # Build alert message
+          if [ "$STATUS" = "endpoint_error" ]; then
+            SUBJECT="🚨 Ritmo: Metrics endpoint unreachable (HTTP $HTTP_CODE)"
+            MESSAGE="<h2>Endpoint Error</h2><p>The metrics endpoint returned HTTP $HTTP_CODE.</p><pre>$BODY</pre>"
+          else
+            # Extract coverage info
+            COVERAGE_INFO="<h3>Coverage Status</h3><ul>"
+            COVERAGE_INFO+="<li>Inbound: ${{ steps.metrics.outputs.coverage_inbound }}</li>"
+            COVERAGE_INFO+="<li>Stripe: ${{ steps.metrics.outputs.coverage_stripe }}</li>"
+            COVERAGE_INFO+="<li>Cron: ${{ steps.metrics.outputs.coverage_cron }}</li></ul>"
+
+            # Extract alerts from response
+            ALERTS=$(echo "$BODY" | jq -r '.alerts[]? | "• \(.code): \(.message)"' | tr '\n' '<br>')
+            if [ -z "$ALERTS" ]; then
+              ALERTS="Unknown issue - check metrics endpoint response"
+            fi
+            SUBJECT="⚠️ Ritmo: Health check failed"
+            MESSAGE="<h2>Active Alerts</h2><p>$ALERTS</p>$COVERAGE_INFO<h3>Full Response</h3><pre>$(echo "$BODY" | jq '.')</pre>"
+          fi
+
+          # Send email via Resend
+          curl -X POST https://api.resend.com/emails \
+            -H "Authorization: Bearer $RESEND_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"from\": \"Ritmo Ops <ops@ritmo.app>\",
+              \"to\": \"$ALERT_EMAIL\",
+              \"subject\": \"$SUBJECT\",
+              \"html\": \"<html><body style='font-family: sans-serif;'>$MESSAGE<hr><p><small>Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)<br>Workflow: $GITHUB_RUN_ID</small></p></body></html>\"
+            }"
+
+          echo "Alert sent to $ALERT_EMAIL"
+
+      - name: Log result
+        run: |
+          echo "=== Health Check Summary ==="
+          echo "Status: ${{ steps.metrics.outputs.status }}"
+          echo "HTTP code: ${{ steps.metrics.outputs.http_code }}"
+          echo "Coverage - Inbound: ${{ steps.metrics.outputs.coverage_inbound }}, Stripe: ${{ steps.metrics.outputs.coverage_stripe }}, Cron: ${{ steps.metrics.outputs.coverage_cron }}"
+
+  # Additional check for specific endpoints (optional, runs less frequently)
+  detailed-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    # Only run every 15 minutes (skip if minute doesn't end in 0 or 5 followed by 0)
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && contains('0,15,30,45', format('{0}', github.event.schedule)))
+
+    steps:
+      - name: Check cron endpoint
+        run: |
+          curl -sf -H "x-ops-token: $OPS_TOKEN" \
+            "$PRODUCTION_URL/api/ops/cron" \
+            --max-time 30 | jq '.'
+
+      - name: Check inbound endpoint
+        run: |
+          curl -sf -H "x-ops-token: $OPS_TOKEN" \
+            "$PRODUCTION_URL/api/ops/inbound" \
+            --max-time 30 | jq '.'
+
+      - name: Check stripe endpoint
+        run: |
+          curl -sf -H "x-ops-token: $OPS_TOKEN" \
+            "$PRODUCTION_URL/api/ops/stripe" \
+            --max-time 30 | jq '.'

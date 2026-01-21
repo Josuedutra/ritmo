@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { logger, AppLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { trackEvent, ProductEventNames } from "@/lib/product-events";
+import { getStorageQuotaForPlan, PLAN_LIMITS } from "@/lib/entitlements";
 import Stripe from "stripe";
 
 export const dynamic = "force-dynamic";
@@ -53,6 +54,18 @@ export async function POST(request: NextRequest) {
     } catch (err) {
         const message = err instanceof Error ? err.message : "Unknown error";
         log.error({ error: message }, "Webhook signature verification failed");
+
+        // P1-STRIPE-OBS-01: Track signature verification failure
+        trackEvent(ProductEventNames.STRIPE_WEBHOOK_FAILED, {
+            organizationId: null,
+            userId: null,
+            props: {
+                stage: "signature_verification",
+                reason: "invalid_signature",
+                errorMessage: message.substring(0, 200), // Truncate for safety
+            },
+        });
+
         return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
     }
 
@@ -140,10 +153,35 @@ export async function POST(request: NextRequest) {
             },
         });
 
+        // P1-STRIPE-OBS-01: Track successful processing
+        trackEvent(ProductEventNames.STRIPE_WEBHOOK_PROCESSED, {
+            organizationId: null, // Could be resolved from event, but not critical
+            userId: null,
+            props: {
+                eventType: event.type,
+                stripeEventId: event.id,
+            },
+        });
+
         return NextResponse.json({ received: true });
     } catch (error) {
         const message = error instanceof Error ? error.message : "Unknown error";
+        const errorCode = error instanceof Error && "code" in error ? (error as { code?: string }).code : undefined;
         log.error({ error: message, eventId: event.id }, "Error processing webhook");
+
+        // P1-STRIPE-OBS-01: Track processing failure
+        trackEvent(ProductEventNames.STRIPE_WEBHOOK_FAILED, {
+            organizationId: null,
+            userId: null,
+            props: {
+                stage: "processing",
+                eventType: event.type,
+                stripeEventId: event.id,
+                errorMessage: message.substring(0, 200), // Truncate for safety, no PII
+                errorCode: errorCode || null,
+            },
+        });
+
         return NextResponse.json({ error: "Processing error" }, { status: 500 });
     }
 }
@@ -206,9 +244,16 @@ async function handleCheckoutCompleted(
         },
     });
 
+    // P0-MC-01: Sync storage quota with new plan
+    const storageQuotaBytes = getStorageQuotaForPlan(finalPlanId);
+    await prisma.organization.update({
+        where: { id: organizationId },
+        data: { storageQuotaBytes: BigInt(storageQuotaBytes) },
+    });
+
     log.info(
-        { organizationId, planId: finalPlanId },
-        "Subscription created from checkout"
+        { organizationId, planId: finalPlanId, storageQuotaBytes },
+        "Subscription created from checkout - storage quota synced"
     );
 }
 
@@ -250,9 +295,16 @@ async function handleSubscriptionCreated(
         },
     });
 
+    // P0-MC-01: Sync storage quota with new plan
+    const storageQuotaBytes = getStorageQuotaForPlan(planId);
+    await prisma.organization.update({
+        where: { id: existingSubscription.organizationId },
+        data: { storageQuotaBytes: BigInt(storageQuotaBytes) },
+    });
+
     log.info(
-        { organizationId: existingSubscription.organizationId, planId },
-        "Subscription created event processed"
+        { organizationId: existingSubscription.organizationId, planId, storageQuotaBytes },
+        "Subscription created event processed - storage quota synced"
     );
 }
 
@@ -300,13 +352,21 @@ async function handleSubscriptionUpdated(
         },
     });
 
+    // P0-MC-01: Sync storage quota with updated plan
+    const storageQuotaBytes = getStorageQuotaForPlan(planId);
+    await prisma.organization.update({
+        where: { id: existingSubscription.organizationId },
+        data: { storageQuotaBytes: BigInt(storageQuotaBytes) },
+    });
+
     log.info(
         {
             organizationId: existingSubscription.organizationId,
             planId,
             status: subscription.status,
+            storageQuotaBytes,
         },
-        "Subscription updated"
+        "Subscription updated - storage quota synced"
     );
 }
 
@@ -345,9 +405,16 @@ async function handleSubscriptionDeleted(
         },
     });
 
+    // P0-MC-01: Sync storage quota to free tier
+    const storageQuotaBytes = PLAN_LIMITS.free.storageQuotaBytes;
+    await prisma.organization.update({
+        where: { id: existingSubscription.organizationId },
+        data: { storageQuotaBytes: BigInt(storageQuotaBytes) },
+    });
+
     log.info(
-        { organizationId: existingSubscription.organizationId },
-        "Subscription cancelled - downgraded to free"
+        { organizationId: existingSubscription.organizationId, storageQuotaBytes },
+        "Subscription cancelled - downgraded to free, storage quota synced"
     );
 }
 

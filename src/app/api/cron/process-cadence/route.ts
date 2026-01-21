@@ -6,6 +6,13 @@ import { toZonedTime } from "date-fns-tz";
 import { endOfDay, startOfDay } from "date-fns";
 import { sendCadenceEmail, hasEmailCapability, isEmailSuppressed } from "@/lib/email";
 import { canUseAutoEmail } from "@/lib/entitlements";
+import {
+    rateLimit,
+    getClientIp,
+    RateLimitConfigs,
+    rateLimitedResponse,
+} from "@/lib/security/rate-limit";
+import { setSentryRequestContext } from "@/lib/observability/sentry-context";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60; // Vercel Pro: 60s max
@@ -56,6 +63,19 @@ interface ProcessResult {
 export async function POST(request: NextRequest) {
     const log = logger.child({ endpoint: "cron/process-cadence" });
     const startTime = Date.now();
+    setSentryRequestContext(request);
+
+    // P0 Security: Rate limiting per IP
+    const ip = getClientIp(request);
+    const rateLimitResult = await rateLimit({
+        key: `cron:${ip}`,
+        ...RateLimitConfigs.cron,
+    });
+
+    if (!rateLimitResult.allowed) {
+        log.warn({ ip }, "Cron rate limited");
+        return rateLimitedResponse(rateLimitResult.retryAfterSec);
+    }
 
     // Validate CRON_SECRET
     const authHeader = request.headers.get("authorization");

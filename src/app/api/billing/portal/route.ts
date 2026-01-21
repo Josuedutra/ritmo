@@ -3,12 +3,20 @@ import { getApiSession, unauthorized, serverError } from "@/lib/api-utils";
 import { prisma } from "@/lib/prisma";
 import { createCustomerPortalSession } from "@/lib/stripe";
 import { logger } from "@/lib/logger";
+import {
+    rateLimit,
+    RateLimitConfigs,
+    rateLimitedResponse,
+} from "@/lib/security/rate-limit";
 
 /**
  * POST /api/billing/portal
  *
  * Creates a Stripe Customer Portal session for the organization.
  * Requires admin role.
+ *
+ * Security (P0 Security Hardening):
+ * - Rate limited: 20 requests per 10 minutes per org
  */
 export async function POST() {
     const log = logger.child({ endpoint: "billing/portal" });
@@ -17,6 +25,17 @@ export async function POST() {
         const session = await getApiSession();
         if (!session) {
             return unauthorized();
+        }
+
+        // P0 Security: Rate limiting per org
+        const rateLimitResult = await rateLimit({
+            key: `billing:${session.user.organizationId}`,
+            ...RateLimitConfigs.billing,
+        });
+
+        if (!rateLimitResult.allowed) {
+            log.warn({ orgId: session.user.organizationId }, "Billing portal rate limited");
+            return rateLimitedResponse(rateLimitResult.retryAfterSec);
         }
 
         // Check admin role

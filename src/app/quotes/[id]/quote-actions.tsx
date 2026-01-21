@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button, toast } from "@/components/ui";
+import { UpgradePrompt, UPGRADE_PROMPTS } from "@/components/billing/upgrade-prompt";
 import {
     Send,
     RotateCcw,
@@ -246,41 +247,36 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
     const isDraft = quote.businessStatus === "draft";
     const isFinished = quote.businessStatus === "won" || quote.businessStatus === "lost";
 
-    const getErrorTitle = () => {
-        if (limitError?.action === "update_payment") return "Pagamento em atraso.";
-        if (limitError?.action === "reactivate_subscription") return "Subscrição cancelada.";
-        return "Limite de envios atingido.";
-    };
-
-    const getErrorDescription = () => {
-        if (limitError?.action === "update_payment") return "Atualize o método de pagamento para continuar.";
-        if (limitError?.action === "reactivate_subscription") return "Reative o plano para continuar.";
-        return "Atualize o plano para continuar a enviar orçamentos.";
-    };
-
-    const getErrorCTA = () => {
-        return "Gerir plano →";
+    // P1-UPGRADE-PROMPTS: Get upgrade prompt config based on error type
+    const getUpgradePromptConfig = () => {
+        if (limitError?.action === "update_payment") {
+            return {
+                title: "Pagamento em atraso",
+                message: "Atualize o método de pagamento para continuar a enviar orçamentos.",
+                ctaLabel: "Atualizar pagamento",
+            };
+        }
+        if (limitError?.action === "reactivate_subscription") {
+            return {
+                title: "Subscrição cancelada",
+                message: "Reative o seu plano para continuar a usar o Ritmo.",
+                ctaLabel: "Reativar plano",
+            };
+        }
+        return UPGRADE_PROMPTS.send_limit;
     };
 
     return (
         <div className="space-y-3">
-            {/* Limit/payment error */}
+            {/* P1-UPGRADE-PROMPTS: Send limit / payment error */}
             {limitError && (
-                <div className="flex items-start gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3">
-                    <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
-                    <div className="flex-1">
-                        <p className="text-sm font-medium text-red-500">{getErrorTitle()}</p>
-                        <p className="mt-0.5 text-sm text-[var(--color-muted-foreground)]">
-                            {getErrorDescription()}
-                        </p>
-                        <Link
-                            href="/settings/billing"
-                            className="mt-2 inline-flex items-center text-sm font-medium text-red-500 hover:underline"
-                        >
-                            {getErrorCTA()}
-                        </Link>
-                    </div>
-                </div>
+                <UpgradePrompt
+                    reason="send_limit"
+                    location="quote_actions"
+                    variant="inline"
+                    {...getUpgradePromptConfig()}
+                    onDismiss={() => setLimitError(null)}
+                />
             )}
 
             {/* P1-02: Primary actions row */}

@@ -25,12 +25,17 @@ export const TRIAL_DURATION_DAYS = 14;
 export const MAX_RESENDS_PER_MONTH = 2;
 
 // Plan limits (single source of truth for UI consistency)
+// Storage quotas and retention aligned with P0-STO-FIX-01 decisions
 export const PLAN_LIMITS = {
-    free: { monthlyQuotes: 5, maxUsers: 1, price: 0 },
-    starter: { monthlyQuotes: 80, maxUsers: 2, price: 3900 },
-    pro: { monthlyQuotes: 250, maxUsers: 5, price: 9900 },
-    enterprise: { monthlyQuotes: 1000, maxUsers: 999, price: 0 },
+    free: { monthlyQuotes: 5, maxUsers: 1, price: 0, storageQuotaBytes: 100 * 1024 * 1024, retentionDays: 30 }, // 100 MB, 30 days
+    starter: { monthlyQuotes: 80, maxUsers: 2, price: 3900, storageQuotaBytes: 5 * 1024 * 1024 * 1024, retentionDays: 180 }, // 5 GB, 180 days
+    pro: { monthlyQuotes: 250, maxUsers: 5, price: 9900, storageQuotaBytes: 20 * 1024 * 1024 * 1024, retentionDays: 365 }, // 20 GB, 365 days
+    enterprise: { monthlyQuotes: 1000, maxUsers: 999, price: 0, storageQuotaBytes: 50 * 1024 * 1024 * 1024, retentionDays: 730 }, // 50 GB, 2 years
 } as const;
+
+// Storage constants
+export const MAX_ATTACHMENT_SIZE_BYTES = 15 * 1024 * 1024; // 15 MB
+export const ALLOWED_MIME_TYPES = ["application/pdf"] as const;
 
 export interface Entitlements {
     // Tier info
@@ -43,6 +48,12 @@ export interface Entitlements {
     quotesUsed: number;
     quotesRemaining: number;
     maxUsers: number;
+
+    // Storage limits (P0)
+    storageQuotaBytes: number;
+    storageUsedBytes: number;
+    storageRemainingBytes: number;
+    retentionDays: number;
 
     // Trial-specific
     trialActive: boolean;
@@ -73,6 +84,8 @@ interface OrgData {
     trialSentUsed: number;
     autoEmailEnabled: boolean;
     bccInboundEnabled: boolean;
+    storageUsedBytes: bigint;
+    storageQuotaBytes: bigint;
     subscription: {
         status: string;
         quotesLimit: number;
@@ -103,6 +116,8 @@ export async function getEntitlements(organizationId: string): Promise<Entitleme
             trialSentUsed: true,
             autoEmailEnabled: true,
             bccInboundEnabled: true,
+            storageUsedBytes: true,
+            storageQuotaBytes: true,
             subscription: {
                 include: {
                     plan: {
@@ -166,6 +181,8 @@ export function calculateEntitlements(
     let maxUsers: number;
     let autoEmailEnabled: boolean;
     let bccInboundEnabled: boolean;
+    let storageQuotaBytes: number;
+    let retentionDays: number;
 
     if (hasActiveSubscription) {
         // Paid tier - use subscription limits
@@ -178,8 +195,12 @@ export function calculateEntitlements(
         // Paid plans get automation features
         autoEmailEnabled = true;
         bccInboundEnabled = true;
+        // Storage limits based on plan
+        const planKey = (planId as keyof typeof PLAN_LIMITS) ?? "starter";
+        storageQuotaBytes = PLAN_LIMITS[planKey]?.storageQuotaBytes ?? PLAN_LIMITS.starter.storageQuotaBytes;
+        retentionDays = PLAN_LIMITS[planKey]?.retentionDays ?? PLAN_LIMITS.starter.retentionDays;
     } else if (trialActive) {
-        // Trial tier - use trial limits
+        // Trial tier - use trial limits (same as starter for storage)
         tier = "trial";
         effectivePlanLimit = org.trialSentLimit;
         quotesUsed = org.trialSentUsed;
@@ -189,6 +210,9 @@ export function calculateEntitlements(
         // Trial gets automation features
         autoEmailEnabled = true;
         bccInboundEnabled = true;
+        // Trial gets starter-level storage
+        storageQuotaBytes = PLAN_LIMITS.starter.storageQuotaBytes;
+        retentionDays = PLAN_LIMITS.starter.retentionDays;
     } else {
         // Free tier - limited, no automation
         tier = "free";
@@ -200,6 +224,9 @@ export function calculateEntitlements(
         // Free tier has NO automation
         autoEmailEnabled = false;
         bccInboundEnabled = false;
+        // Free tier storage limits
+        storageQuotaBytes = PLAN_LIMITS.free.storageQuotaBytes;
+        retentionDays = PLAN_LIMITS.free.retentionDays;
     }
 
     const quotesRemaining = Math.max(0, effectivePlanLimit - quotesUsed);
@@ -215,6 +242,10 @@ export function calculateEntitlements(
         planName,
     });
 
+    // Storage calculations
+    const storageUsedBytes = Number(org.storageUsedBytes);
+    const storageRemainingBytes = Math.max(0, storageQuotaBytes - storageUsedBytes);
+
     return {
         tier,
         planName,
@@ -223,6 +254,10 @@ export function calculateEntitlements(
         quotesUsed,
         quotesRemaining,
         maxUsers,
+        storageQuotaBytes,
+        storageUsedBytes,
+        storageRemainingBytes,
+        retentionDays,
         trialActive,
         trialEndsAt: org.trialEndsAt,
         trialDaysRemaining,
@@ -325,6 +360,10 @@ function getDefaultEntitlements(): Entitlements {
         quotesUsed: 0,
         quotesRemaining: FREE_TIER_LIMIT,
         maxUsers: FREE_MAX_USERS,
+        storageQuotaBytes: PLAN_LIMITS.free.storageQuotaBytes,
+        storageUsedBytes: 0,
+        storageRemainingBytes: PLAN_LIMITS.free.storageQuotaBytes,
+        retentionDays: PLAN_LIMITS.free.retentionDays,
         trialActive: false,
         trialEndsAt: null,
         trialDaysRemaining: null,
@@ -529,4 +568,277 @@ export async function canReassignOwner(organizationId: string): Promise<{
         allowed,
         planRequired: allowed ? "" : "Pro",
     };
+}
+
+// ============================================================================
+// STORAGE GUARDRAILS (P0)
+// ============================================================================
+
+export type StorageCheckResult = {
+    allowed: true;
+} | {
+    allowed: false;
+    reason: "SIZE_EXCEEDED" | "MIME_TYPE_REJECTED" | "QUOTA_EXCEEDED";
+    message: string;
+};
+
+/**
+ * Check if an attachment can be uploaded based on size, MIME type, and quota.
+ * Used by Mailgun inbound webhook to gate uploads.
+ *
+ * Note: This performs a read-only check. For atomic quota reservation,
+ * use checkAndReserveStorageQuota() instead.
+ */
+export async function checkStorageGates(
+    organizationId: string,
+    sizeBytes: number,
+    mimeType: string
+): Promise<StorageCheckResult> {
+    // Gate 1: Size check (15 MB max)
+    if (sizeBytes > MAX_ATTACHMENT_SIZE_BYTES) {
+        return {
+            allowed: false,
+            reason: "SIZE_EXCEEDED",
+            message: `Ficheiro excede o limite de ${MAX_ATTACHMENT_SIZE_BYTES / (1024 * 1024)} MB.`,
+        };
+    }
+
+    // Gate 2: MIME type check (only PDF allowed)
+    if (!ALLOWED_MIME_TYPES.includes(mimeType as typeof ALLOWED_MIME_TYPES[number])) {
+        return {
+            allowed: false,
+            reason: "MIME_TYPE_REJECTED",
+            message: `Tipo de ficheiro não suportado: ${mimeType}. Apenas PDF é permitido.`,
+        };
+    }
+
+    // Gate 3: Quota check
+    const entitlements = await getEntitlements(organizationId);
+    if (entitlements.storageUsedBytes + sizeBytes > entitlements.storageQuotaBytes) {
+        return {
+            allowed: false,
+            reason: "QUOTA_EXCEEDED",
+            message: `Quota de armazenamento excedida. Limite: ${formatBytes(entitlements.storageQuotaBytes)}, Usado: ${formatBytes(entitlements.storageUsedBytes)}.`,
+        };
+    }
+
+    return { allowed: true };
+}
+
+/**
+ * V7: Atomically reserve storage quota using conditional UPDATE.
+ *
+ * Uses a conditional UPDATE that only succeeds if the quota won't be exceeded.
+ * This is race-condition-safe: concurrent uploads will be properly serialized
+ * by the database, and only requests that fit within quota will succeed.
+ *
+ * Returns { reserved: true, rollback } if reservation succeeded.
+ * Call rollback() if the upload fails to release the reserved space.
+ *
+ * P0-V7: Race condition fix - uses conditional update pattern
+ */
+export async function reserveStorageQuota(
+    organizationId: string,
+    sizeBytes: number
+): Promise<
+    | { reserved: true; rollback: () => Promise<void> }
+    | { reserved: false; reason: "QUOTA_EXCEEDED" | "ORG_NOT_FOUND"; currentUsed: number; quota: number }
+> {
+    try {
+        // Use raw query for conditional update that's race-condition safe
+        // This atomically checks AND updates in a single operation
+        const result = await prisma.$executeRaw`
+            UPDATE "Organization"
+            SET "storageUsedBytes" = "storageUsedBytes" + ${BigInt(sizeBytes)}
+            WHERE id = ${organizationId}
+            AND "storageUsedBytes" + ${BigInt(sizeBytes)} <= "storageQuotaBytes"
+        `;
+
+        if (result === 0) {
+            // No rows updated - either org doesn't exist or quota would be exceeded
+            const org = await prisma.organization.findUnique({
+                where: { id: organizationId },
+                select: { storageUsedBytes: true, storageQuotaBytes: true },
+            });
+
+            if (!org) {
+                return {
+                    reserved: false,
+                    reason: "ORG_NOT_FOUND",
+                    currentUsed: 0,
+                    quota: 0,
+                };
+            }
+
+            return {
+                reserved: false,
+                reason: "QUOTA_EXCEEDED",
+                currentUsed: Number(org.storageUsedBytes),
+                quota: Number(org.storageQuotaBytes),
+            };
+        }
+
+        // Reservation successful - return with rollback function
+        return {
+            reserved: true,
+            rollback: async () => {
+                await prisma.$executeRaw`
+                    UPDATE "Organization"
+                    SET "storageUsedBytes" = GREATEST(0, "storageUsedBytes" - ${BigInt(sizeBytes)})
+                    WHERE id = ${organizationId}
+                `;
+            },
+        };
+    } catch (error) {
+        // If query failed, check org status
+        const org = await prisma.organization.findUnique({
+            where: { id: organizationId },
+            select: { storageUsedBytes: true, storageQuotaBytes: true },
+        });
+
+        return {
+            reserved: false,
+            reason: org ? "QUOTA_EXCEEDED" : "ORG_NOT_FOUND",
+            currentUsed: org ? Number(org.storageUsedBytes) : 0,
+            quota: org ? Number(org.storageQuotaBytes) : 0,
+        };
+    }
+}
+
+/**
+ * V7: Full storage gates check with atomic quota reservation.
+ *
+ * Checks size, MIME type, and atomically reserves quota if all gates pass.
+ * This replaces the old checkStorageGates + incrementStorageUsage pattern.
+ *
+ * P0-V7: Race condition fix
+ */
+export async function checkAndReserveStorageQuota(
+    organizationId: string,
+    sizeBytes: number,
+    mimeType: string
+): Promise<
+    | { allowed: true; rollback: () => Promise<void> }
+    | { allowed: false; reason: "SIZE_EXCEEDED" | "MIME_TYPE_REJECTED" | "QUOTA_EXCEEDED"; message: string }
+> {
+    // Gate 1: Size check (15 MB max) - no DB needed
+    if (sizeBytes > MAX_ATTACHMENT_SIZE_BYTES) {
+        return {
+            allowed: false,
+            reason: "SIZE_EXCEEDED",
+            message: `Ficheiro excede o limite de ${MAX_ATTACHMENT_SIZE_BYTES / (1024 * 1024)} MB.`,
+        };
+    }
+
+    // Gate 2: MIME type check - no DB needed
+    if (!ALLOWED_MIME_TYPES.includes(mimeType as typeof ALLOWED_MIME_TYPES[number])) {
+        return {
+            allowed: false,
+            reason: "MIME_TYPE_REJECTED",
+            message: `Tipo de ficheiro não suportado: ${mimeType}. Apenas PDF é permitido.`,
+        };
+    }
+
+    // Gate 3: Atomic quota reservation (V7 - race-condition safe)
+    const reservation = await reserveStorageQuota(organizationId, sizeBytes);
+
+    if (!reservation.reserved) {
+        return {
+            allowed: false,
+            reason: "QUOTA_EXCEEDED",
+            message: `Quota de armazenamento excedida. Limite: ${formatBytes(reservation.quota)}, Usado: ${formatBytes(reservation.currentUsed)}.`,
+        };
+    }
+
+    return {
+        allowed: true,
+        rollback: reservation.rollback,
+    };
+}
+
+/**
+ * Get retention policy for an organization based on their plan.
+ */
+export async function getRetentionPolicy(organizationId: string): Promise<{
+    retentionDays: number;
+    expiresAt: Date;
+}> {
+    const entitlements = await getEntitlements(organizationId);
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + entitlements.retentionDays);
+
+    return {
+        retentionDays: entitlements.retentionDays,
+        expiresAt,
+    };
+}
+
+/**
+ * Increment organization storage usage after a successful upload.
+ */
+export async function incrementStorageUsage(organizationId: string, sizeBytes: number): Promise<void> {
+    await prisma.organization.update({
+        where: { id: organizationId },
+        data: {
+            storageUsedBytes: { increment: sizeBytes },
+        },
+    });
+}
+
+/**
+ * Decrement organization storage usage after file deletion.
+ * P0-V9: Uses GREATEST(0, ...) to prevent negative values.
+ */
+export async function decrementStorageUsage(organizationId: string, sizeBytes: number): Promise<void> {
+    // Use raw query to ensure storageUsedBytes never goes negative
+    await prisma.$executeRaw`
+        UPDATE "Organization"
+        SET "storageUsedBytes" = GREATEST(0, "storageUsedBytes" - ${BigInt(sizeBytes)})
+        WHERE id = ${organizationId}
+    `;
+}
+
+/**
+ * P0-MC-01: Sync Organization.storageQuotaBytes with plan entitlements.
+ *
+ * Call this after any subscription/plan change to ensure the atomic
+ * quota reservation (V7) uses the correct quota value.
+ *
+ * @returns The new storage quota in bytes
+ */
+export async function syncStorageQuota(organizationId: string): Promise<number> {
+    const entitlements = await getEntitlements(organizationId);
+
+    await prisma.organization.update({
+        where: { id: organizationId },
+        data: {
+            storageQuotaBytes: BigInt(entitlements.storageQuotaBytes),
+        },
+    });
+
+    return entitlements.storageQuotaBytes;
+}
+
+/**
+ * P0-MC-01: Get storage quota for a specific plan.
+ * Used by Stripe webhook to sync quota before getEntitlements has updated data.
+ */
+export function getStorageQuotaForPlan(planId: string | null): number {
+    if (!planId) {
+        return PLAN_LIMITS.free.storageQuotaBytes;
+    }
+
+    const plan = PLAN_LIMITS[planId as keyof typeof PLAN_LIMITS];
+    return plan?.storageQuotaBytes ?? PLAN_LIMITS.starter.storageQuotaBytes;
+}
+
+/**
+ * Format bytes to human-readable string.
+ */
+function formatBytes(bytes: number): string {
+    if (bytes === 0) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }

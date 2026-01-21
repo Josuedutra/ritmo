@@ -14,8 +14,9 @@ interface RouteParams {
     params: Promise<{ id: string }>;
 }
 
-// URL expires after 10 minutes for security
-const URL_EXPIRY_SECONDS = 10 * 60;
+// URL expires after 30 minutes for usability
+// P0-STO-HARDENING: Increased from 10 min to 30 min per spec
+const URL_EXPIRY_SECONDS = 30 * 60;
 
 /**
  * GET /api/quotes/:id/proposal/url

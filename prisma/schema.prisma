@@ -87,6 +87,9 @@ enum IngestStatus {
   failed
   unmatched
   rejected_feature_disabled
+  rejected_size_exceeded
+  rejected_mime_type
+  rejected_quota_exceeded
 }
 
 enum Sector {
@@ -135,6 +138,10 @@ model Organization {
 
   // Sector for benchmark grouping
   sector              Sector?   // Selected during onboarding for benchmark comparisons
+
+  // Storage management (P0)
+  storageUsedBytes    BigInt    @default(0) @map("storage_used_bytes")
+  storageQuotaBytes   BigInt    @default(1073741824) @map("storage_quota_bytes") // 1 GB default
 
   // Priority rules (Pro only - configurable threshold and tags)
   priorityThreshold   Decimal   @default(1000.00) @map("priority_threshold") @db.Decimal(10, 2)  // Value >= this = HIGH
@@ -573,6 +580,10 @@ model Attachment {
   storagePath     String   @map("storage_path")
   uploadedById    String?  @map("uploaded_by")
 
+  // Retention management (P0)
+  expiresAt       DateTime? @map("expires_at")    // When file should be purged
+  deletedAt       DateTime? @map("deleted_at")    // Soft delete timestamp
+
   createdAt       DateTime @default(now()) @map("created_at")
 
   // Relations
@@ -581,6 +592,7 @@ model Attachment {
   quotesAsProposal Quote[]     @relation("ProposalFile")
   inboundIngestions InboundIngestion[]
 
+  @@index([expiresAt, deletedAt])
   @@map("attachments")
 }
 

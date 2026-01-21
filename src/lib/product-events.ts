@@ -43,6 +43,12 @@ export const ProductEventNames = {
     REFERRAL_EXPIRED: "referral_expired",
     // OAuth security tracking
     OAUTH_EMAIL_NOT_VERIFIED: "oauth_email_not_verified",
+    // Stripe webhook observability (P1-STRIPE-OBS-01)
+    STRIPE_WEBHOOK_PROCESSED: "stripe_webhook_processed",
+    STRIPE_WEBHOOK_FAILED: "stripe_webhook_failed",
+    // Upgrade prompts tracking (P1-UPGRADE-PROMPTS)
+    UPGRADE_PROMPT_SHOWN: "upgrade_prompt_shown",
+    UPGRADE_PROMPT_CLICKED: "upgrade_prompt_clicked",
 } as const;
 
 export type ProductEventName = (typeof ProductEventNames)[keyof typeof ProductEventNames];
