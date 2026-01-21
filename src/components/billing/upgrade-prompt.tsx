@@ -132,6 +132,7 @@ export function UpgradePrompt({
     const message = customMessage || preset.message;
     const bullets = customBullets || preset.bullets;
     const recommendedPlan = getRecommendedPlan(reason, currentPlan);
+
     const ctaLabel = customCtaLabel || (recommendedPlan === "pro_plus" ? "Pedir acesso" : preset.ctaLabel);
 
     // Track shown event on mount with dedupe
@@ -148,9 +149,7 @@ export function UpgradePrompt({
 
         setIsLoading(true);
 
-        // Get action type for tracking
-        const actionType: CtaActionType =
-            recommendedPlan === "pro_plus" ? "contact" : "portal";
+        const actionType: CtaActionType = recommendedPlan === "pro_plus" ? "contact" : "portal";
 
         // Track click before action
         await trackUpgradeEvent("clicked", reason, location, {

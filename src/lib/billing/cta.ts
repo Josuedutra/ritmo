@@ -8,6 +8,7 @@
  */
 
 import type { UpgradeReason } from "@/components/billing/upgrade-prompt";
+import { SUPPORT_EMAIL } from "@/lib/config";
 
 export type RecommendedPlan = "starter" | "pro" | "pro_plus";
 export type CtaActionType = "portal" | "checkout" | "contact" | "fallback";
@@ -59,7 +60,7 @@ function buildContactUrl(organizationId?: string): string {
     const body = encodeURIComponent(
         `Olá,\n\nGostaria de saber mais sobre o plano Pro+.\n\nOrganização: ${organizationId || "N/A"}\n\nObrigado!`
     );
-    return `mailto:ritmo@useritmo.pt?subject=${subject}&body=${body}`;
+    return `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`;
 }
 
 /**

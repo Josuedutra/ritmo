@@ -22,9 +22,7 @@ import {
     Check,
     X,
     Clock,
-    Info,
 } from "lucide-react";
-import { PAYMENTS_ENABLED } from "@/lib/config";
 
 interface PlanFeature {
     text: string;
@@ -150,12 +148,6 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
     };
 
     const handleCheckout = async (planId: string) => {
-        // Block checkout if payments are disabled
-        if (!PAYMENTS_ENABLED) {
-            toast.warning("Em breve", "Pagamentos serão ativados em breve. Aproveite o trial gratuito!");
-            return;
-        }
-
         setLoading(planId);
         try {
             const response = await fetch("/api/billing/checkout", {
@@ -304,23 +296,6 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
 
     return (
         <div className="space-y-6">
-            {/* Payments disabled banner */}
-            {!PAYMENTS_ENABLED && (
-                <Card className="border-blue-500/50 bg-blue-500/10">
-                    <CardContent className="flex items-center gap-3 py-4">
-                        <Info className="h-5 w-5 text-blue-500" />
-                        <div>
-                            <p className="font-medium text-blue-700 dark:text-blue-300">
-                                Pagamentos em breve
-                            </p>
-                            <p className="text-sm text-blue-600 dark:text-blue-400">
-                                Estamos a configurar os pagamentos. Por agora, aproveite o trial gratuito.
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
-
             {/* Success/Cancel banners (visual feedback) */}
             {success && (
                 <Card className="border-green-500/50 bg-green-500/10">

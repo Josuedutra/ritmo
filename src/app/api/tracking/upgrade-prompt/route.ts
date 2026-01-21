@@ -39,10 +39,9 @@ export async function POST(request: NextRequest) {
         const { event, reason, location } = parsed.data;
 
         // Track the event
-        const eventName =
-            event === "shown"
-                ? ProductEventNames.UPGRADE_PROMPT_SHOWN
-                : ProductEventNames.UPGRADE_PROMPT_CLICKED;
+        const eventName = event === "shown"
+            ? ProductEventNames.UPGRADE_PROMPT_SHOWN
+            : ProductEventNames.UPGRADE_PROMPT_CLICKED;
 
         await trackEvent(eventName, {
             organizationId: session?.user?.organizationId ?? null,

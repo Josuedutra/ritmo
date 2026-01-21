@@ -483,7 +483,6 @@ export default function LandingPage() {
                                         Começar trial grátis
                                     </Button>
                                 </Link>
-                                <p className="text-xs text-zinc-400 mt-2 text-center">Pagamentos em breve</p>
                             </div>
 
                             {/* Pro Plan */}
@@ -524,7 +523,6 @@ export default function LandingPage() {
                                         Começar trial grátis
                                     </Button>
                                 </Link>
-                                <p className="text-xs text-zinc-400 mt-2 text-center">Pagamentos em breve</p>
                             </div>
 
                             {/* Enterprise Plan */}
