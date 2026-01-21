@@ -80,18 +80,37 @@ export default async function BillingPage() {
             priceMonthly: p.priceMonthly,
             maxUsers: p.maxUsers,
             hasStripePrice: !!p.stripePriceId,
-            // Features based on plan - frozen pricing
+            // Features based on plan - aligned with landing page pricing
             features:
                 p.id === "free"
                     ? [
-                          { text: "Modo manual (tarefas + copiar templates)", enabled: true },
-                          { text: "Sem emails automáticos", enabled: false },
-                          { text: "Sem captura por BCC", enabled: false },
+                          { text: "Cadência e tarefas (manual)", enabled: true },
+                          { text: "Templates e scripts", enabled: true },
+                          { text: "Emails automáticos", enabled: false },
+                          { text: "Captura por BCC", enabled: false },
+                      ]
+                    : p.id === "starter"
+                    ? [
+                          { text: "Emails automáticos (D+1, D+3)", enabled: true },
+                          { text: "D+7 com chamada guiada + proposta a 1 clique", enabled: true },
+                          { text: "Captura de proposta por BCC (PDF/link)", enabled: true },
+                          { text: "Templates por etapa", enabled: true },
+                          { text: "Scoreboard (rotina e consistência)", enabled: true },
+                      ]
+                    : p.id === "pro"
+                    ? [
+                          { text: "Tudo do Starter", enabled: true },
+                          { text: "Benchmark por setor", enabled: true },
+                          { text: "Relatórios (pipeline, aging, follow-up rate)", enabled: true },
+                          { text: "Regras avançadas (prioridade/atribuição)", enabled: true },
+                          { text: "Suporte prioritário", enabled: true },
                       ]
                     : [
-                          { text: "Emails automáticos", enabled: true },
-                          { text: "Captura por BCC", enabled: true },
-                          { text: `Até ${p.maxUsers} utilizadores`, enabled: true },
+                          { text: "Utilizadores ilimitados", enabled: true },
+                          { text: "Onboarding assistido + migração", enabled: true },
+                          { text: "Governance avançada (perfis, auditoria)", enabled: true },
+                          { text: "Integrações/API + export avançado", enabled: true },
+                          { text: "SLA e suporte dedicado", enabled: true },
                       ],
         })),
     };

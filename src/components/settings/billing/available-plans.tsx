@@ -12,26 +12,26 @@ interface Plan {
 
 const PLANS: Plan[] = [
     {
+        id: "free",
+        name: "Gratuito",
+        price: "€0/mês",
+        limit: "5 envios/mês",
+        features: ["Cadência e tarefas (manual)", "Templates e scripts"],
+    },
+    {
         id: "starter",
         name: "Starter",
-        price: "€29/mês",
-        limit: "50 envios/mês",
-        features: ["Emails automáticos", "Captura de proposta por BCC"],
+        price: "€39/mês",
+        limit: "80 envios/mês",
+        features: ["Emails automáticos (D+1, D+3)", "Captura por BCC", "Até 2 utilizadores"],
     },
     {
         id: "pro",
         name: "Pro",
-        price: "€79/mês",
+        price: "€99/mês",
         limit: "250 envios/mês",
-        features: ["Emails automáticos", "Captura de proposta por BCC"],
+        features: ["Tudo do Starter", "Benchmark por setor", "Até 5 utilizadores"],
     },
-    {
-        id: "enterprise",
-        name: "Enterprise",
-        price: "Sob consulta",
-        limit: "Ilimitado",
-        features: ["Emails automáticos", "Captura de proposta por BCC"],
-    }
 ];
 
 interface AvailablePlansProps {
@@ -41,7 +41,7 @@ interface AvailablePlansProps {
 
 export function AvailablePlans({ hasStripeCustomer, currentPlanId }: AvailablePlansProps) {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl">
             {PLANS.map((plan) => (
                 <Card key={plan.id} className={currentPlanId === plan.id ? "border-primary border-2" : ""}>
                     <CardHeader>
