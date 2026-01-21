@@ -75,15 +75,6 @@ export default function LandingPage() {
                         variants={staggerContainer}
                         className="container mx-auto max-w-5xl"
                     >
-                        {/* Tagline */}
-                        <motion.div variants={fadeInUp} className="mb-6 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium bg-blue-50 text-blue-700 border border-blue-100">
-                            <span className="relative flex h-2 w-2">
-                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-500 opacity-75"></span>
-                                <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500"></span>
-                            </span>
-                            Follow-up de orçamentos, sem CRM pesado
-                        </motion.div>
-
                         <motion.h1 variants={fadeInUp} className="mb-8 text-5xl md:text-7xl font-bold tracking-tighter text-zinc-900 leading-[1]">
                             Envie orçamentos como sempre. <br />
                             O Ritmo faz o follow-up.
