@@ -480,9 +480,10 @@ export default function LandingPage() {
                                 </ul>
                                 <Link href="/signup" className="mt-auto">
                                     <Button className="w-full rounded-full bg-gradient-to-r from-blue-400 to-emerald-400 hover:from-blue-500 hover:to-emerald-500 text-sm h-10 shadow-lg shadow-emerald-500/20 text-white border-0">
-                                        Escolher Starter
+                                        Começar trial grátis
                                     </Button>
                                 </Link>
+                                <p className="text-xs text-zinc-400 mt-2 text-center">Pagamentos em breve</p>
                             </div>
 
                             {/* Pro Plan */}
@@ -520,9 +521,10 @@ export default function LandingPage() {
                                 </ul>
                                 <Link href="/signup" className="mt-auto">
                                     <Button variant="outline" className="w-full rounded-full text-sm h-10 border-zinc-300 hover:bg-zinc-50">
-                                        Escolher Pro
+                                        Começar trial grátis
                                     </Button>
                                 </Link>
+                                <p className="text-xs text-zinc-400 mt-2 text-center">Pagamentos em breve</p>
                             </div>
 
                             {/* Enterprise Plan */}

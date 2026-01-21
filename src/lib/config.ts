@@ -33,3 +33,14 @@ export const INBOUND_DOMAIN = process.env.INBOUND_DOMAIN || "inbound.ritmo.app";
  * Default email sender
  */
 export const DEFAULT_EMAIL_FROM = process.env.RESEND_FROM || process.env.EMAIL_FROM || "Ritmo <noreply@useritmo.pt>";
+
+/**
+ * Feature Flags
+ */
+
+/**
+ * Payments enabled flag
+ * Set to "true" when Stripe Live is configured with company fiscal info.
+ * When false, checkout is disabled and users see "Pagamentos em breve".
+ */
+export const PAYMENTS_ENABLED = process.env.NEXT_PUBLIC_PAYMENTS_ENABLED === "true";
