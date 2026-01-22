@@ -131,7 +131,7 @@ export async function GET(request: NextRequest) {
                     id: e.id,
                     stripeEventId: e.stripeEventId,
                     eventType: e.eventType,
-                    at: e.processedAt.toISOString(),
+                    at: e.processedAt?.toISOString() ?? e.claimedAt?.toISOString() ?? new Date().toISOString(),
                 })),
                 alert: shouldAlert,
             },
