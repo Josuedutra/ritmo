@@ -6,7 +6,7 @@
  * Receives emails forwarded from Cloudflare Email Routing via Worker.
  * The Worker parses the email and sends a JSON payload to this endpoint.
  *
- * BCC Format: bcc+{orgShortId}+{quotePublicId}@inbound.useritmo.pt
+ * BCC Format: all+{orgShortId}+{quotePublicId}@inbound.useritmo.pt
  */
 
 import { NextRequest, NextResponse } from "next/server";

@@ -48,7 +48,7 @@ export default async function OnboardingPage() {
         orderBy: { code: "asc" },
     });
 
-    const bccEmail = org.bccAddress || `bcc+${org.shortId}@inbound.ritmo.app`;
+    const bccEmail = org.bccAddress || `all+${org.shortId}@inbound.useritmo.pt`;
 
     return (
         <OnboardingWizard

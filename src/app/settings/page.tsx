@@ -26,9 +26,9 @@ export default async function SettingsPage() {
         where: { organizationId, isActive: true },
     });
 
-    // Build BCC address
-    const bccDomain = process.env.BCC_DOMAIN || "inbound.ritmo.app";
-    const bccAddress = organization.bccAddress || `bcc+${organization.shortId}@${bccDomain}`;
+    // Build BCC address (using "all+" for Cloudflare compatibility)
+    const bccDomain = process.env.BCC_DOMAIN || "inbound.useritmo.pt";
+    const bccAddress = organization.bccAddress || `all+${organization.shortId}@${bccDomain}`;
 
     // Build settings data for client
     const data = {

@@ -16,7 +16,7 @@ interface BccSettingsProps {
 export function BccSettings({ organization, isFree = false }: BccSettingsProps) {
     const { toast } = useToast();
 
-    const bccAddress = organization.bccAddress || `bcc+${organization.id}@inbound.ritmo.app`; // fallback
+    const bccAddress = organization.bccAddress || `all+${organization.id}@inbound.useritmo.pt`; // fallback
     const isEnabled = !isFree && organization.bccInboundEnabled;
 
     function onCopy() {

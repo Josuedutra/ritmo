@@ -1,12 +1,12 @@
 /**
- * Inbound Email Processing - Mailgun Webhook
+ * Inbound Email Processing - Cloudflare Email Workers
  *
  * Handles incoming emails via BCC capture for proposal attachment.
  *
- * BCC Format: bcc+{orgShortId}+{quotePublicId}@inbound.ritmo.app
+ * BCC Format: all+{orgShortId}+{quotePublicId}@inbound.useritmo.pt
  *
  * Features:
- * - Mailgun signature verification (HMAC-SHA256)
+ * - Cloudflare signature verification (HMAC-SHA256)
  * - PDF attachment extraction and storage
  * - Link extraction from email body
  * - Idempotency via providerMessageId
@@ -32,17 +32,21 @@ const SIGNATURE_TIMESTAMP_TOLERANCE = 5 * 60; // 5 minutes in seconds
 
 /**
  * Generate BCC address for a quote
+ *
+ * Uses "all+" prefix for Cloudflare Email Routing compatibility
+ * (Cloudflare routes all+xxx@domain to the "all" address rule)
  */
 export function generateBccAddress(orgShortId: string, quotePublicId: string): string {
-    return `bcc+${orgShortId}+${quotePublicId}@${INBOUND_DOMAIN}`;
+    return `all+${orgShortId}+${quotePublicId}@${INBOUND_DOMAIN}`;
 }
 
 /**
  * Parse BCC address to extract orgShortId and quotePublicId
  *
  * Supports formats:
- * - bcc+orgShortId+quotePublicId@inbound.ritmo.app
- * - BCC+orgShortId+quotePublicId@inbound.ritmo.app (case insensitive local part)
+ * - all+orgShortId+quotePublicId@inbound.useritmo.pt (Cloudflare)
+ * - bcc+orgShortId+quotePublicId@inbound.useritmo.pt (legacy/Mailgun)
+ * - Case insensitive local part
  */
 export function parseBccAddress(address: string): { orgShortId: string; quotePublicId: string } | null {
     if (!address) return null;
@@ -56,10 +60,10 @@ export function parseBccAddress(address: string): { orgShortId: string; quotePub
 
     const localPart = normalized.substring(0, atIndex);
 
-    // Must start with "bcc+"
-    if (!localPart.startsWith("bcc+")) return null;
+    // Must start with "all+" (Cloudflare) or "bcc+" (legacy)
+    if (!localPart.startsWith("all+") && !localPart.startsWith("bcc+")) return null;
 
-    // Split by "+" to get parts: ["bcc", "orgShortId", "quotePublicId"]
+    // Split by "+" to get parts: ["all"/"bcc", "orgShortId", "quotePublicId"]
     const parts = localPart.split("+");
     if (parts.length !== 3) return null;
 

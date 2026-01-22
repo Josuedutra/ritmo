@@ -43,9 +43,9 @@ export function ProposalSection({ quote }: ProposalSectionProps) {
     const [loadingUrl, setLoadingUrl] = useState(false);
     const [bccCopied, setBccCopied] = useState(false);
 
-    // Generate BCC address for this quote
+    // Generate BCC address for this quote (using "all+" for Cloudflare compatibility)
     const bccAddress = quote.orgShortId
-        ? `bcc+${quote.orgShortId}+${quote.publicId}@${INBOUND_DOMAIN}`
+        ? `all+${quote.orgShortId}+${quote.publicId}@${INBOUND_DOMAIN}`
         : null;
 
     const handleCopyBcc = async () => {
