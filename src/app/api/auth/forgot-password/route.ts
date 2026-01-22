@@ -21,8 +21,9 @@ const PASSWORD_RESET_TTL_MINUTES = parseInt(
 
 // Rate limit config for per-email (prevents email bombing)
 const EMAIL_RATE_LIMIT_CONFIG = {
-    maxRequests: 5,       // Max 5 requests per email
-    windowSeconds: 3600,  // Per hour
+    limit: 5,           // Max 5 requests per email
+    windowSec: 3600,    // Per hour
+    failMode: "fail-closed" as const,
 };
 
 // Cooldown between requests to same email (60 seconds)
