@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { logger, AppLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { trackEvent, ProductEventNames } from "@/lib/product-events";
 import { getStorageQuotaForPlan, PLAN_LIMITS } from "@/lib/entitlements";
 import Stripe from "stripe";
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-        apiVersion: "2025-02-24.acacia",
+        apiVersion: "2025-02-24",
     });
 
     const body = await request.text();
@@ -75,18 +76,104 @@ export async function POST(request: NextRequest) {
     );
 
     // =========================================================================
-    // IDEMPOTENCY CHECK
+    // IDEMPOTENCY: "CLAIM" PATTERN WITH STATUS FOR RETRY HANDLING
+    //
+    // Flow:
+    // 1. Try to create event with status=PROCESSING (claim)
+    // 2. If P2002 (already exists):
+    //    - If status=PROCESSED → return 200 {duplicate: true}
+    //    - If status=FAILED → allow reprocessing (update status to PROCESSING)
+    //    - If status=PROCESSING for too long (>5 min) → allow reprocessing
+    // 3. Process handlers
+    // 4. Update status to PROCESSED (success) or FAILED (error)
     // =========================================================================
-    const existingEvent = await prisma.stripeEvent.findUnique({
-        where: { stripeEventId: event.id },
-    });
+    const STALE_PROCESSING_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
 
-    if (existingEvent) {
-        log.info(
-            { eventId: event.id },
-            "Event already processed - skipping (idempotent)"
-        );
-        return NextResponse.json({ received: true, duplicate: true });
+    let existingEvent = null;
+
+    try {
+        await prisma.stripeEvent.create({
+            data: {
+                stripeEventId: event.id,
+                eventType: event.type,
+                status: "PROCESSING",
+                payload: {
+                    livemode: event.livemode,
+                    created: event.created,
+                },
+            },
+        });
+        log.debug({ eventId: event.id }, "Event claimed for processing");
+    } catch (error) {
+        // Check if it's a unique constraint violation (P2002)
+        if (
+            error instanceof Prisma.PrismaClientKnownRequestError &&
+            error.code === "P2002"
+        ) {
+            // Event already exists - check its status
+            existingEvent = await prisma.stripeEvent.findUnique({
+                where: { stripeEventId: event.id },
+            });
+
+            if (!existingEvent) {
+                // Race condition - event was deleted between create and find
+                throw new Error("Event disappeared during claim check");
+            }
+
+            // Already successfully processed - skip
+            if (existingEvent.status === "PROCESSED") {
+                log.info(
+                    { eventId: event.id },
+                    "Event already processed - skipping (idempotent)"
+                );
+                return NextResponse.json({ received: true, duplicate: true });
+            }
+
+            // Failed previously - allow retry
+            if (existingEvent.status === "FAILED") {
+                log.info(
+                    { eventId: event.id, previousError: existingEvent.errorMessage },
+                    "Retrying previously failed event"
+                );
+                await prisma.stripeEvent.update({
+                    where: { stripeEventId: event.id },
+                    data: {
+                        status: "PROCESSING",
+                        errorMessage: null,
+                        claimedAt: new Date(),
+                    },
+                });
+            }
+
+            // Still processing - check if stale
+            if (existingEvent.status === "PROCESSING") {
+                const ageMs = Date.now() - existingEvent.claimedAt.getTime();
+
+                if (ageMs < STALE_PROCESSING_THRESHOLD_MS) {
+                    // Another request is actively processing - skip
+                    log.info(
+                        { eventId: event.id, ageMs },
+                        "Event being processed by another request - skipping"
+                    );
+                    return NextResponse.json({ received: true, duplicate: true });
+                }
+
+                // Stale processing - take over
+                log.warn(
+                    { eventId: event.id, ageMs },
+                    "Taking over stale processing event"
+                );
+                await prisma.stripeEvent.update({
+                    where: { stripeEventId: event.id },
+                    data: {
+                        claimedAt: new Date(),
+                    },
+                });
+            }
+        } else {
+            // Re-throw other errors
+            throw error;
+        }
     }
 
     // =========================================================================
@@ -140,13 +227,13 @@ export async function POST(request: NextRequest) {
                 log.debug({ eventType: event.type }, "Unhandled event type");
         }
 
-        // Record event as processed (idempotency)
-        await prisma.stripeEvent.create({
+        // Mark event as PROCESSED
+        await prisma.stripeEvent.update({
+            where: { stripeEventId: event.id },
             data: {
-                stripeEventId: event.id,
-                eventType: event.type,
+                status: "PROCESSED",
+                processedAt: new Date(),
                 payload: {
-                    // Store only non-PII data for debugging
                     livemode: event.livemode,
                     created: event.created,
                 },
@@ -155,7 +242,7 @@ export async function POST(request: NextRequest) {
 
         // P1-STRIPE-OBS-01: Track successful processing
         trackEvent(ProductEventNames.STRIPE_WEBHOOK_PROCESSED, {
-            organizationId: null, // Could be resolved from event, but not critical
+            organizationId: null,
             userId: null,
             props: {
                 eventType: event.type,
@@ -169,6 +256,20 @@ export async function POST(request: NextRequest) {
         const errorCode = error instanceof Error && "code" in error ? (error as { code?: string }).code : undefined;
         log.error({ error: message, eventId: event.id }, "Error processing webhook");
 
+        // Mark event as FAILED (allows Stripe retry)
+        try {
+            await prisma.stripeEvent.update({
+                where: { stripeEventId: event.id },
+                data: {
+                    status: "FAILED",
+                    errorMessage: message.substring(0, 500),
+                },
+            });
+        } catch (updateError) {
+            // Log but don't fail - we still want to return 500 to trigger Stripe retry
+            log.error({ error: updateError }, "Failed to update event status to FAILED");
+        }
+
         // P1-STRIPE-OBS-01: Track processing failure
         trackEvent(ProductEventNames.STRIPE_WEBHOOK_FAILED, {
             organizationId: null,
@@ -177,7 +278,7 @@ export async function POST(request: NextRequest) {
                 stage: "processing",
                 eventType: event.type,
                 stripeEventId: event.id,
-                errorMessage: message.substring(0, 200), // Truncate for safety, no PII
+                errorMessage: message.substring(0, 200),
                 errorCode: errorCode || null,
             },
         });

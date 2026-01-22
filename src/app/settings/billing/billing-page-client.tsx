@@ -72,6 +72,9 @@ interface BillingPageClientProps {
     data: BillingData;
 }
 
+// Feature flag for payments - read from env at build time
+const PAYMENTS_ENABLED = process.env.NEXT_PUBLIC_PAYMENTS_ENABLED === "true";
+
 export function BillingPageClient({ data }: BillingPageClientProps) {
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -148,6 +151,15 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
     };
 
     const handleCheckout = async (planId: string) => {
+        // Check feature flag before calling API
+        if (!PAYMENTS_ENABLED) {
+            toast({
+                title: "Pagamentos em breve",
+                description: "O sistema de pagamentos ainda não está disponível. Continuamos a trabalhar para o ativar em breve.",
+            });
+            return;
+        }
+
         setLoading(planId);
         try {
             const response = await fetch("/api/billing/checkout", {
@@ -159,6 +171,11 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
 
             if (response.ok && result.url) {
                 window.location.href = result.url;
+            } else if (result.error === "PAYMENTS_DISABLED") {
+                toast({
+                    title: "Pagamentos em breve",
+                    description: result.message || "O sistema de pagamentos ainda não está disponível.",
+                });
             } else {
                 toast.error("Erro", result.error || "Erro ao criar checkout");
             }
@@ -513,6 +530,23 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                         Escolha o nível certo para o seu volume de envios.
                     </p>
                 </div>
+
+                {/* Payments disabled banner */}
+                {!PAYMENTS_ENABLED && (
+                    <Card className="mb-4 border-blue-500/30 bg-blue-500/10">
+                        <CardContent className="flex items-center gap-3 py-4">
+                            <Clock className="h-5 w-5 text-blue-500" />
+                            <div>
+                                <p className="font-medium text-blue-700 dark:text-blue-300">
+                                    Pagamentos em breve
+                                </p>
+                                <p className="text-sm text-blue-600 dark:text-blue-400">
+                                    Estamos a preparar o sistema de pagamentos. Por agora, pode continuar a usar o trial ou o plano gratuito.
+                                </p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {plans.map((plan) => {
                         const isCurrent =

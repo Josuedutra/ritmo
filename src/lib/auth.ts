@@ -7,6 +7,7 @@ import { authConfig } from "@/lib/auth.config";
 import { TRIAL_LIMIT, TRIAL_DURATION_DAYS } from "@/lib/entitlements";
 import { trackEvent, ProductEventNames } from "@/lib/product-events";
 import { logger } from "@/lib/logger";
+import { authenticatePassword } from "@/lib/password";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
     ...authConfig,
@@ -47,9 +48,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     return null;
                 }
 
-                // TODO: Sprint 1 - Add proper password hashing with bcrypt
-                // For now, simple comparison for dev
-                const isValid = user.passwordHash === credentials.password;
+                // Authenticate with bcrypt (handles legacy plaintext upgrade)
+                const password = credentials.password as string;
+                const isValid = await authenticatePassword(
+                    password,
+                    user.passwordHash,
+                    user.id
+                );
                 console.log("[Auth] Password valid:", isValid);
 
                 if (!isValid) {

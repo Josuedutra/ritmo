@@ -1,17 +1,26 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
+
+// Hash password with bcrypt (same settings as lib/password.ts)
+const BCRYPT_COST = 12;
+async function hashPassword(plain: string): Promise<string> {
+    return bcrypt.hash(plain, BCRYPT_COST);
+}
 
 async function main() {
     console.log("🌱 Seeding database...");
 
     // Create Plans (Ensure they exist for subscription foreign keys)
-    // Pricing frozen: Free=5, Starter=€39/80, Pro=€99/250
+    // Pricing frozen: Free=5, Starter=€39/80, Pro=€99/250, Pro+=€149/500
+    // Note: Pro+ and Enterprise are hidden (isPublic=false)
     const plans = [
-        { id: "free", name: "Gratuito", limit: 5, price: 0, maxUsers: 1, stripeId: null, active: true },
-        { id: "starter", name: "Starter", limit: 80, price: 3900, maxUsers: 2, stripeId: process.env.STRIPE_PRICE_STARTER || null, active: true },
-        { id: "pro", name: "Pro", limit: 250, price: 9900, maxUsers: 5, stripeId: process.env.STRIPE_PRICE_PRO || null, active: true },
-        { id: "enterprise", name: "Enterprise", limit: 1000, price: 0, maxUsers: 999, stripeId: null, active: false },
+        { id: "free", name: "Gratuito", limit: 5, price: 0, maxUsers: 1, stripeId: null, active: true, isPublic: true },
+        { id: "starter", name: "Starter", limit: 80, price: 3900, maxUsers: 2, stripeId: process.env.STRIPE_PRICE_STARTER || null, active: true, isPublic: true },
+        { id: "pro", name: "Pro", limit: 250, price: 9900, maxUsers: 5, stripeId: process.env.STRIPE_PRICE_PRO || null, active: true, isPublic: true },
+        { id: "pro_plus", name: "Pro+", limit: 500, price: 14900, maxUsers: 10, stripeId: process.env.STRIPE_PRICE_PRO_PLUS || null, active: true, isPublic: false },
+        { id: "enterprise", name: "Enterprise", limit: 1000, price: 0, maxUsers: 999, stripeId: null, active: false, isPublic: false },
     ];
 
     for (const p of plans) {
@@ -24,6 +33,7 @@ async function main() {
                 maxUsers: p.maxUsers,
                 stripePriceId: p.stripeId,
                 isActive: p.active,
+                isPublic: p.isPublic,
             },
             create: {
                 id: p.id,
@@ -33,10 +43,11 @@ async function main() {
                 maxUsers: p.maxUsers,
                 stripePriceId: p.stripeId,
                 isActive: p.active,
+                isPublic: p.isPublic,
             },
         });
     }
-    console.log("✅ Plans seeded/updated (Free=5, Starter=€39/80, Pro=€99/250)");
+    console.log("✅ Plans seeded/updated (Free=5, Starter=€39/80, Pro=€99/250, Pro+=€149/500 hidden)");
 
     // Create demo organization
     const org = await prisma.organization.upsert({
@@ -56,8 +67,9 @@ async function main() {
 
     console.log(`✅ Organization created: ${org.name} (${org.id})`);
 
-    // Create admin user
-    // TODO: Replace with bcrypt hash in Sprint 1
+    // Create admin user with bcrypt-hashed password
+    const demoPasswordHash = await hashPassword("demo123");
+
     const admin = await prisma.user.upsert({
         where: {
             organizationId_email: {
@@ -65,12 +77,14 @@ async function main() {
                 email: "admin@demo.ritmo.app",
             },
         },
-        update: {},
+        update: {
+            passwordHash: demoPasswordHash, // Update to bcrypt on re-seed
+        },
         create: {
             organizationId: org.id,
             email: "admin@demo.ritmo.app",
             name: "Admin Demo",
-            passwordHash: "demo123", // TEMP: Plain text for dev only
+            passwordHash: demoPasswordHash,
             role: "admin",
             emailVerified: new Date(),
         },
@@ -86,12 +100,14 @@ async function main() {
                 email: "demo@demo.ritmo.app",
             },
         },
-        update: {},
+        update: {
+            passwordHash: demoPasswordHash, // Update to bcrypt on re-seed
+        },
         create: {
             organizationId: org.id,
             email: "demo@demo.ritmo.app",
             name: "Demo User",
-            passwordHash: "demo123", // TEMP: Plain text for dev only
+            passwordHash: demoPasswordHash,
             role: "member",
             emailVerified: new Date(),
         },

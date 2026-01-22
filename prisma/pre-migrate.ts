@@ -235,6 +235,67 @@ async function main() {
         console.log("✅ Plans updated (Free=5, Starter=€39/80, Pro=€99/250, Pro+=€149/500 hidden)");
     }
 
+    // Migrate stripe_events table for retry support
+    if (await tableExists("stripe_events")) {
+        console.log("📝 Checking stripe_events schema for status column...");
+
+        const statusExists = await columnExists("stripe_events", "status");
+        if (!statusExists) {
+            // Create enum type if it doesn't exist
+            await prisma.$executeRaw`
+                DO $$ BEGIN
+                    CREATE TYPE "StripeEventStatus" AS ENUM ('PROCESSING', 'PROCESSED', 'FAILED');
+                EXCEPTION
+                    WHEN duplicate_object THEN null;
+                END $$;
+            `;
+
+            // Add status column with default PROCESSED (for existing events)
+            await prisma.$executeRaw`
+                ALTER TABLE stripe_events
+                ADD COLUMN IF NOT EXISTS status "StripeEventStatus" DEFAULT 'PROCESSED'
+            `;
+
+            // Add claimed_at column
+            await prisma.$executeRaw`
+                ALTER TABLE stripe_events
+                ADD COLUMN IF NOT EXISTS claimed_at TIMESTAMP(3) DEFAULT NOW()
+            `;
+
+            // Rename processed_at to keep compatibility
+            const processedAtExists = await columnExists("stripe_events", "processed_at");
+            if (processedAtExists) {
+                // Make processed_at nullable (for PROCESSING/FAILED states)
+                await prisma.$executeRaw`
+                    ALTER TABLE stripe_events
+                    ALTER COLUMN processed_at DROP NOT NULL
+                `;
+            } else {
+                await prisma.$executeRaw`
+                    ALTER TABLE stripe_events
+                    ADD COLUMN IF NOT EXISTS processed_at TIMESTAMP(3)
+                `;
+            }
+
+            // Add error_message column
+            await prisma.$executeRaw`
+                ALTER TABLE stripe_events
+                ADD COLUMN IF NOT EXISTS error_message TEXT
+            `;
+
+            // Set claimed_at from processed_at for existing records
+            await prisma.$executeRaw`
+                UPDATE stripe_events
+                SET claimed_at = COALESCE(processed_at, NOW())
+                WHERE claimed_at IS NULL
+            `;
+
+            console.log("✅ stripe_events schema updated with status/retry support");
+        } else {
+            console.log("✅ stripe_events already has status column");
+        }
+    }
+
     console.log("✅ Pre-migration complete");
 }
 

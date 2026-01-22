@@ -15,6 +15,7 @@ import {
     RateLimitConfigs,
     rateLimitedResponse,
 } from "@/lib/security/rate-limit";
+import { hashPassword } from "@/lib/password";
 
 /**
  * POST /api/auth/signup
@@ -58,9 +59,9 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        if (password.length < 6) {
+        if (password.length < 8) {
             return NextResponse.json(
-                { error: "Password deve ter pelo menos 6 caracteres" },
+                { error: "Password deve ter pelo menos 8 caracteres" },
                 { status: 400 }
             );
         }
@@ -122,13 +123,13 @@ export async function POST(request: NextRequest) {
                 },
             });
 
-            // Create admin user
-            // TODO: Use bcrypt for password hashing in production
+            // Create admin user with bcrypt-hashed password
+            const hashedPassword = await hashPassword(password);
             const user = await tx.user.create({
                 data: {
                     email: email.toLowerCase(),
                     name: name || null,
-                    passwordHash: password, // Plain text for dev - TODO: bcrypt
+                    passwordHash: hashedPassword,
                     role: "admin",
                     organizationId: organization.id,
                 },

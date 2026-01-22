@@ -14,6 +14,9 @@ import { APP_ORIGIN } from "@/lib/config";
 // Allow hidden plans checkout only if this env var is set (for admin/internal use)
 const ALLOW_HIDDEN_PLANS_CHECKOUT = process.env.ALLOW_HIDDEN_PLANS_CHECKOUT === "true";
 
+// Feature flag: disable payments until Stripe Live is configured
+const PAYMENTS_ENABLED = process.env.NEXT_PUBLIC_PAYMENTS_ENABLED === "true";
+
 const checkoutSchema = z.object({
     planKey: z.string().min(1, "Plan key is required"),
 });
@@ -34,6 +37,21 @@ export async function POST(request: NextRequest) {
         const session = await getApiSession();
         if (!session) {
             return unauthorized();
+        }
+
+        // Feature flag: block checkout if payments not enabled
+        if (!PAYMENTS_ENABLED) {
+            log.info(
+                { userId: session.user.id },
+                "Checkout blocked - payments not enabled"
+            );
+            return NextResponse.json(
+                {
+                    error: "PAYMENTS_DISABLED",
+                    message: "Pagamentos em breve. O sistema de pagamentos ainda não está disponível.",
+                },
+                { status: 503 }
+            );
         }
 
         // P0 Security: Rate limiting per org

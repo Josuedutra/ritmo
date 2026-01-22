@@ -39,6 +39,7 @@
     "@radix-ui/react-toast": "^1.2.4",
     "@sentry/nextjs": "^10.35.0",
     "@supabase/supabase-js": "^2.47.14",
+    "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -62,6 +63,7 @@
   "devDependencies": {
     "@playwright/test": "^1.49.1",
     "@tailwindcss/postcss": "^4.0.0",
+    "@types/bcryptjs": "^3.0.0",
     "@types/node": "^22.10.7",
     "@types/nodemailer": "^6.4.21",
     "@types/react": "^19.0.7",

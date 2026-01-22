@@ -190,6 +190,7 @@ model User {
   quoteNotes      QuoteNote[]  @relation("NoteAuthor")
   accounts        Account[]
   sessions        Session[]
+  passwordResetTokens PasswordResetToken[]
 
   @@unique([organizationId, email])
   @@map("users")
@@ -237,6 +238,20 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  tokenHash String    @unique @map("token_hash") // SHA-256 hash of the token (never store raw)
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
 }
 
 // ============================================================================
@@ -518,13 +533,22 @@ model Plan {
 }
 
 model StripeEvent {
-  id              String   @id @default(uuid())
-  stripeEventId   String   @unique @map("stripe_event_id") // Stripe event ID for idempotency
-  eventType       String   @map("event_type")
-  processedAt     DateTime @default(now()) @map("processed_at")
-  payload         Json?    // Store non-PII event data for debugging
+  id              String            @id @default(uuid())
+  stripeEventId   String            @unique @map("stripe_event_id") // Stripe event ID for idempotency
+  eventType       String            @map("event_type")
+  status          StripeEventStatus @default(PROCESSING) // Track processing state for retries
+  claimedAt       DateTime          @default(now()) @map("claimed_at")
+  processedAt     DateTime?         @map("processed_at") // Set when successfully processed
+  payload         Json?             // Store non-PII event data for debugging
+  errorMessage    String?           @map("error_message") // Store error if failed
 
   @@map("stripe_events")
+}
+
+enum StripeEventStatus {
+  PROCESSING // Claimed but not yet processed
+  PROCESSED  // Successfully processed
+  FAILED     // Processing failed (can be retried)
 }
 
 model Subscription {
