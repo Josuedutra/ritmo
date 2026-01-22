@@ -113,6 +113,7 @@ export async function GET(request: NextRequest) {
                 stripeEventId: true,
                 eventType: true,
                 processedAt: true,
+                claimedAt: true,
             },
         });
 
