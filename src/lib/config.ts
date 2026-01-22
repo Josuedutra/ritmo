@@ -24,10 +24,9 @@ export const PARTNERSHIPS_EMAIL = "parcerias@useritmo.pt";
 export const LEGAL_EMAIL = "geral@useritmo.pt";
 
 /**
- * Inbound email domain (for BCC capture)
- * Keeping on ritmo.app as per DNS migration plan (option 1)
+ * Inbound email domain (for BCC capture via Mailgun)
  */
-export const INBOUND_DOMAIN = process.env.INBOUND_DOMAIN || "inbound.ritmo.app";
+export const INBOUND_DOMAIN = process.env.INBOUND_DOMAIN || "inbound.useritmo.pt";
 
 /**
  * Default email sender
