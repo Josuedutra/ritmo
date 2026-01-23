@@ -21,12 +21,21 @@ function generateRequestId(): string {
  * Returns 401 if credentials are invalid, null if valid or not applicable
  */
 function checkStagingAuth(request: NextRequest): NextResponse | null {
-    // Only apply to Vercel preview deployments when STAGING_PASSWORD is set
     const stagingPassword = process.env.STAGING_PASSWORD;
-    const isPreview = process.env.VERCEL_ENV === "preview";
 
-    if (!isPreview || !stagingPassword) {
-        return null; // Not a staging environment or no password configured
+    if (!stagingPassword) {
+        return null; // No password configured, skip auth
+    }
+
+    // Check if this is a staging environment:
+    // 1. Vercel preview deployments (VERCEL_ENV=preview)
+    // 2. staging.useritmo.pt domain (custom staging domain)
+    const isPreview = process.env.VERCEL_ENV === "preview";
+    const host = request.headers.get("host") || "";
+    const isStagingDomain = host.includes("staging.");
+
+    if (!isPreview && !isStagingDomain) {
+        return null; // Not a staging environment
     }
 
     // Skip auth for health check endpoint
