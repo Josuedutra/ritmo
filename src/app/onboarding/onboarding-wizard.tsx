@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button, Card, CardContent, CardHeader, CardTitle, toast } from "@/components/ui";
+import { Button, Card, CardContent, CardHeader, CardTitle, CardFooter, toast, Badge, Alert, AlertDescription } from "@/components/ui";
 import {
     FileText,
     Mail,
@@ -15,6 +15,11 @@ import {
     Settings,
     ArrowRight,
     Loader2,
+    LogOut,
+    Info,
+    Inbox,
+    Rocket,
+    Zap,
 } from "lucide-react";
 
 interface Template {
@@ -35,11 +40,11 @@ interface OnboardingWizardProps {
 }
 
 const STEPS = [
-    { id: "welcome", title: "Bem-vindo" },
-    { id: "templates", title: "Templates" },
-    { id: "smtp", title: "Email" },
-    { id: "bcc", title: "BCC" },
-    { id: "complete", title: "Pronto" },
+    { id: "welcome", title: "Início", description: "Conheça o Ritmo" },
+    { id: "templates", title: "Mensagens", description: "Templates de follow-up" },
+    { id: "smtp", title: "Envio", description: "Configurar email" },
+    { id: "bcc", title: "Captura", description: "Receber propostas" },
+    { id: "complete", title: "Pronto", description: "Começar a usar" },
 ];
 
 export function OnboardingWizard({
@@ -55,13 +60,15 @@ export function OnboardingWizard({
     const [currentStep, setCurrentStep] = useState(0);
     const [bccCopied, setBccCopied] = useState(false);
     const [completing, setCompleting] = useState(false);
+    const [saving, setSaving] = useState(false);
+    // Default é "ritmo" (recomendado para começar), exceto se já tem SMTP configurado
     const [smtpChoice, setSmtpChoice] = useState<"own" | "ritmo">(hasSmtp ? "own" : "ritmo");
 
     const handleCopyBcc = async () => {
         try {
             await navigator.clipboard.writeText(bccEmail);
             setBccCopied(true);
-            toast.success("Email BCC copiado!");
+            toast.success("Email BCC copiado");
             setTimeout(() => setBccCopied(false), 3000);
         } catch (error) {
             console.error("Failed to copy:", error);
@@ -69,28 +76,21 @@ export function OnboardingWizard({
         }
     };
 
-    const handleSkip = async () => {
-        setCompleting(true);
+    // Guardar e sair - NÃO marca onboarding como completo
+    const handleSaveAndExit = async () => {
+        setSaving(true);
         try {
-            const response = await fetch("/api/onboarding", {
-                method: "PUT",
-            });
-
-            if (!response.ok) {
-                toast.error("Erro ao completar onboarding");
-                return;
-            }
-
-            toast.success("Configuração concluída. Vamos ao primeiro orçamento.");
-            router.push("/dashboard?onboarding=complete");
+            toast.success("Progresso guardado. Pode continuar mais tarde.");
+            router.push("/dashboard");
         } catch (error) {
-            console.error("Error completing onboarding:", error);
-            toast.error("Erro ao completar onboarding");
+            console.error("Error saving:", error);
+            toast.error("Erro ao guardar");
         } finally {
-            setCompleting(false);
+            setSaving(false);
         }
     };
 
+    // Concluir onboarding - marca como completo
     const handleComplete = async () => {
         setCompleting(true);
         try {
@@ -99,22 +99,39 @@ export function OnboardingWizard({
             });
 
             if (!response.ok) {
-                toast.error("Erro ao completar onboarding");
+                toast.error("Erro ao concluir configuração");
                 return;
             }
 
-            // Requirement E: Toast message after onboarding
-            toast.success("Configuração concluída. Vamos ao primeiro orçamento.");
+            toast.success("Configuração concluída. Bem-vindo ao Ritmo.");
             router.push("/dashboard?onboarding=complete");
         } catch (error) {
             console.error("Error completing onboarding:", error);
-            toast.error("Erro ao completar onboarding");
+            toast.error("Erro ao concluir configuração");
         } finally {
             setCompleting(false);
         }
     };
 
+    // Verifica se pode avançar no passo SMTP
+    const canAdvanceFromSmtp = () => {
+        if (smtpChoice === "own" && !hasSmtp) {
+            return false;
+        }
+        return true;
+    };
+
+    // Handler para fallback no alert SMTP
+    const handleUseRitmoFallback = () => {
+        setSmtpChoice("ritmo");
+        toast.success("Opção alterada para envio via Ritmo");
+    };
+
     const nextStep = () => {
+        if (currentStep === 2 && !canAdvanceFromSmtp()) {
+            toast.error("Configure o SMTP ou selecione envio via Ritmo para continuar.");
+            return;
+        }
         if (currentStep < STEPS.length - 1) {
             setCurrentStep(currentStep + 1);
         }
@@ -126,393 +143,503 @@ export function OnboardingWizard({
         }
     };
 
+    // Header consistente com "Guardar e sair" no topo direito
+    const renderHeader = (icon: React.ReactNode, iconBg: string, title: string, subtitle: string) => {
+        return (
+            <CardHeader className="border-b border-[var(--color-border)] bg-[var(--color-muted)]/20 px-8 py-5">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${iconBg} shadow-sm`}>
+                            {icon}
+                        </div>
+                        <div>
+                            <CardTitle className="text-lg">{title}</CardTitle>
+                            <p className="mt-0.5 text-sm text-[var(--color-muted-foreground)]">
+                                {subtitle}
+                            </p>
+                        </div>
+                    </div>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleSaveAndExit}
+                        disabled={saving}
+                        className="text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
+                    >
+                        {saving ? (
+                            <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                        ) : (
+                            <LogOut className="mr-1.5 h-4 w-4" />
+                        )}
+                        Guardar e sair
+                    </Button>
+                </div>
+            </CardHeader>
+        );
+    };
+
+    // Footer consistente com navegação
+    const renderFooter = (options: {
+        showBack?: boolean;
+        showNext?: boolean;
+        nextLabel?: string;
+        nextDisabled?: boolean;
+        customActions?: React.ReactNode;
+    }) => {
+        const { showBack = true, showNext = true, nextLabel = "Continuar", nextDisabled = false, customActions } = options;
+
+        return (
+            <CardFooter className="flex items-center justify-between border-t border-[var(--color-border)] bg-[var(--color-muted)]/30 px-8 py-4">
+                <div>
+                    {showBack && currentStep > 0 && (
+                        <Button variant="ghost" onClick={prevStep} className="gap-2">
+                            <ChevronLeft className="h-4 w-4" />
+                            Voltar
+                        </Button>
+                    )}
+                </div>
+                <div className="flex items-center gap-3">
+                    {customActions}
+                    {showNext && (
+                        <Button onClick={nextStep} disabled={nextDisabled} className="gap-2">
+                            {nextLabel}
+                            <ChevronRight className="h-4 w-4" />
+                        </Button>
+                    )}
+                </div>
+            </CardFooter>
+        );
+    };
+
     return (
-        <div className="flex min-h-screen items-center justify-center bg-[var(--color-background)] p-4">
+        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--color-background)] to-[var(--color-muted)]/20 p-4">
             <div className="w-full max-w-2xl">
-                {/* Progress indicator */}
-                <div className="mb-8 flex items-center justify-center gap-2">
-                    {STEPS.map((step, index) => (
-                        <div key={step.id} className="flex items-center">
-                            <div
-                                className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition-colors ${
-                                    index < currentStep
-                                        ? "bg-green-500 text-white"
-                                        : index === currentStep
-                                          ? "bg-[var(--color-primary)] text-white"
-                                          : "bg-[var(--color-muted)] text-[var(--color-muted-foreground)]"
-                                }`}
-                            >
-                                {index < currentStep ? (
-                                    <Check className="h-4 w-4" />
-                                ) : (
-                                    index + 1
+                {/* Stepper com títulos */}
+                <div className="mb-8">
+                    <div className="flex items-center justify-center gap-1">
+                        {STEPS.map((step, index) => (
+                            <div key={step.id} className="flex items-center">
+                                <div className="flex flex-col items-center">
+                                    <div
+                                        className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition-all duration-300 ${
+                                            index < currentStep
+                                                ? "bg-green-500 text-white shadow-md shadow-green-500/25"
+                                                : index === currentStep
+                                                  ? "bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/30 ring-4 ring-[var(--color-primary)]/20"
+                                                  : "bg-[var(--color-muted)] text-[var(--color-muted-foreground)]"
+                                        }`}
+                                    >
+                                        {index < currentStep ? (
+                                            <Check className="h-5 w-5" />
+                                        ) : (
+                                            index + 1
+                                        )}
+                                    </div>
+                                    <span className={`mt-2 text-xs font-medium ${
+                                        index === currentStep
+                                            ? "text-[var(--color-foreground)]"
+                                            : "text-[var(--color-muted-foreground)]"
+                                    }`}>
+                                        {step.title}
+                                    </span>
+                                </div>
+                                {index < STEPS.length - 1 && (
+                                    <div
+                                        className={`mx-2 mt-[-20px] h-1 w-12 rounded-full transition-colors duration-300 ${
+                                            index < currentStep
+                                                ? "bg-green-500"
+                                                : "bg-[var(--color-muted)]"
+                                        }`}
+                                    />
                                 )}
                             </div>
-                            {index < STEPS.length - 1 && (
-                                <div
-                                    className={`mx-1 h-0.5 w-8 ${
-                                        index < currentStep
-                                            ? "bg-green-500"
-                                            : "bg-[var(--color-muted)]"
-                                    }`}
-                                />
-                            )}
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
 
-                <Card className="shadow-xl">
-                    <CardContent className="p-8">
-                        {/* Step 0: Welcome */}
-                        {currentStep === 0 && (
-                            <div className="text-center">
-                                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-primary)]/10">
-                                    <Sparkles className="h-8 w-8 text-[var(--color-primary)]" />
-                                </div>
-                                <h1 className="mb-2 text-2xl font-bold">
-                                    Bem-vindo ao Ritmo, {orgName}!
-                                </h1>
-                                <p className="mb-8 text-[var(--color-muted-foreground)]">
-                                    Vamos configurar a sua conta em poucos passos para começar a
-                                    fazer follow-up automático dos seus orçamentos.
-                                </p>
-                                <div className="space-y-4">
-                                    <Button onClick={nextStep} className="w-full gap-2">
-                                        Começar configuração
-                                        <ChevronRight className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        onClick={handleSkip}
-                                        disabled={completing}
-                                        className="w-full"
-                                    >
-                                        {completing ? (
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        ) : null}
-                                        Saltar e configurar depois
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Step 1: Templates */}
-                        {currentStep === 1 && (
-                            <div>
-                                <div className="mb-6 flex items-center gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10">
-                                        <FileText className="h-5 w-5 text-blue-500" />
+                <Card className="overflow-hidden shadow-2xl shadow-black/5 border-[var(--color-border)]">
+                    {/* Step 0: Welcome */}
+                    {currentStep === 0 && (
+                        <>
+                            <CardContent className="p-8">
+                                <div className="text-center">
+                                    <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary)]/70 shadow-lg shadow-[var(--color-primary)]/25">
+                                        <Sparkles className="h-10 w-10 text-white" />
                                     </div>
-                                    <div>
-                                        <h2 className="text-xl font-bold">Templates de Email</h2>
-                                        <p className="text-sm text-[var(--color-muted-foreground)]">
-                                            Personalize as mensagens de follow-up
-                                        </p>
+                                    <h1 className="mb-2 text-2xl font-bold tracking-tight">
+                                        Bem-vindo ao Ritmo, {orgName}.
+                                    </h1>
+                                    <p className="mb-8 text-[var(--color-muted-foreground)] leading-relaxed max-w-md mx-auto">
+                                        Configure a sua conta em 4 passos simples e comece a automatizar
+                                        o follow-up dos seus orçamentos.
+                                    </p>
+                                    <div className="space-y-3">
+                                        <Button onClick={nextStep} size="lg" className="w-full gap-2 text-base">
+                                            <Rocket className="h-5 w-5" />
+                                            Começar configuração
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            onClick={handleSaveAndExit}
+                                            disabled={saving}
+                                            className="w-full text-[var(--color-muted-foreground)]"
+                                        >
+                                            {saving ? (
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <LogOut className="mr-2 h-4 w-4" />
+                                            )}
+                                            Configurar mais tarde
+                                        </Button>
                                     </div>
                                 </div>
+                            </CardContent>
+                        </>
+                    )}
 
+                    {/* Step 1: Templates */}
+                    {currentStep === 1 && (
+                        <>
+                            {renderHeader(
+                                <FileText className="h-6 w-6 text-blue-500" />,
+                                "bg-blue-500/10",
+                                "Mensagens de Follow-up",
+                                "Personalize o tom das suas comunicações"
+                            )}
+                            <CardContent className="p-8">
                                 {hasTemplates ? (
-                                    <div className="mb-6 rounded-lg border border-green-500/30 bg-green-500/10 p-4">
-                                        <div className="flex items-center gap-2 text-green-600">
-                                            <Check className="h-5 w-5" />
-                                            <span className="font-medium">
-                                                {templates.length} templates configurados
+                                    <Alert className="mb-6 border-green-500/30 bg-green-500/5">
+                                        <Check className="h-5 w-5 text-green-500" />
+                                        <AlertDescription className="ml-2">
+                                            <span className="font-medium text-green-600">
+                                                {templates.length} templates prontos a usar
                                             </span>
-                                        </div>
-                                        <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">
-                                            Pode editar os templates a qualquer momento em Definições.
-                                        </p>
-                                    </div>
+                                            <span className="block mt-1 text-[var(--color-muted-foreground)]">
+                                                Pode personalizar em Definições a qualquer momento.
+                                            </span>
+                                        </AlertDescription>
+                                    </Alert>
                                 ) : (
-                                    <div className="mb-6 rounded-lg border border-orange-500/30 bg-orange-500/10 p-4">
-                                        <p className="text-sm text-orange-600">
-                                            Ainda não tem templates configurados. Os templates
-                                            predefinidos serão usados automaticamente.
-                                        </p>
-                                    </div>
+                                    <Alert className="mb-6 border-blue-500/30 bg-blue-500/5">
+                                        <Sparkles className="h-5 w-5 text-blue-500" />
+                                        <AlertDescription className="ml-2">
+                                            <span className="font-medium text-blue-600">
+                                                Templates profissionais incluídos
+                                            </span>
+                                            <span className="block mt-1 text-[var(--color-muted-foreground)]">
+                                                Otimizados para maximizar respostas. Personalize quando quiser.
+                                            </span>
+                                        </AlertDescription>
+                                    </Alert>
                                 )}
 
-                                <div className="mb-6">
-                                    <h3 className="mb-3 text-sm font-medium">
-                                        Templates disponíveis:
+                                <div>
+                                    <h3 className="mb-4 text-sm font-semibold text-[var(--color-foreground)]">
+                                        Sequência de follow-up automática:
                                     </h3>
-                                    <div className="space-y-2">
+                                    <div className="space-y-3">
                                         {[
-                                            { code: "T2", name: "Follow-up D+1", type: "Email" },
-                                            { code: "T3", name: "Follow-up D+3", type: "Email" },
-                                            { code: "CALL_SCRIPT", name: "Script Chamada D+7", type: "Chamada" },
-                                            { code: "T5", name: "Follow-up D+14", type: "Email" },
+                                            { code: "T2", name: "Lembrete gentil", timing: "D+1", type: "Email", desc: "Verificar se recebeu a proposta" },
+                                            { code: "T3", name: "Interesse", timing: "D+3", type: "Email", desc: "Esclarecer dúvidas pendentes" },
+                                            { code: "CALL", name: "Chamada", timing: "D+7", type: "Chamada", desc: "Contacto direto para decisão" },
+                                            { code: "T5", name: "Última oportunidade", timing: "D+14", type: "Email", desc: "Fechar ou arquivar" },
                                         ].map((t) => (
                                             <div
                                                 key={t.code}
-                                                className="flex items-center justify-between rounded-md border border-[var(--color-border)] p-3"
+                                                className="flex items-center justify-between rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] p-4 transition-colors hover:bg-[var(--color-muted)]/30"
                                             >
-                                                <span className="text-sm">{t.code} - {t.name}</span>
-                                                <span className="text-xs text-[var(--color-muted-foreground)]">
+                                                <div className="flex items-center gap-3">
+                                                    <Badge variant="outline" className="font-mono text-xs min-w-[45px] justify-center">
+                                                        {t.timing}
+                                                    </Badge>
+                                                    <div>
+                                                        <span className="font-medium">{t.name}</span>
+                                                        <span className="block text-xs text-[var(--color-muted-foreground)]">{t.desc}</span>
+                                                    </div>
+                                                </div>
+                                                <Badge variant={t.type === "Chamada" ? "default" : "secondary"} className="text-xs">
                                                     {t.type}
-                                                </span>
+                                                </Badge>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
-
-                                <div className="flex gap-3">
-                                    <Button variant="outline" onClick={prevStep}>
-                                        <ChevronLeft className="mr-2 h-4 w-4" />
-                                        Voltar
-                                    </Button>
-                                    <Link href="/templates" className="flex-1">
-                                        <Button variant="outline" className="w-full gap-2">
+                            </CardContent>
+                            {renderFooter({
+                                customActions: (
+                                    <Link href="/templates">
+                                        <Button variant="outline" className="gap-2">
                                             <Settings className="h-4 w-4" />
-                                            Editar templates
+                                            Personalizar
                                         </Button>
                                     </Link>
-                                    <Button onClick={nextStep} className="flex-1 gap-2">
-                                        Continuar
-                                        <ChevronRight className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
+                                ),
+                            })}
+                        </>
+                    )}
 
-                        {/* Step 2: SMTP */}
-                        {currentStep === 2 && (
-                            <div>
-                                <div className="mb-6 flex items-center gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/10">
-                                        <Mail className="h-5 w-5 text-purple-500" />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-xl font-bold">Configuração de Email</h2>
-                                        <p className="text-sm text-[var(--color-muted-foreground)]">
-                                            Como pretende enviar os follow-ups?
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="mb-6 space-y-3">
-                                    {/* Option 1: Own SMTP */}
-                                    <button
-                                        type="button"
-                                        onClick={() => setSmtpChoice("own")}
-                                        className={`w-full rounded-lg border-2 p-4 text-left transition-colors ${
-                                            smtpChoice === "own"
-                                                ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5"
-                                                : "border-[var(--color-border)] hover:border-[var(--color-muted-foreground)]"
-                                        }`}
-                                    >
-                                        <div className="flex items-start gap-3">
-                                            <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
-                                                smtpChoice === "own"
-                                                    ? "border-[var(--color-primary)] bg-[var(--color-primary)]"
-                                                    : "border-[var(--color-muted-foreground)]"
-                                            }`}>
-                                                {smtpChoice === "own" && (
-                                                    <Check className="h-3 w-3 text-white" />
-                                                )}
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="font-medium">SMTP próprio</span>
-                                                    {hasSmtp && (
-                                                        <span className="rounded bg-green-500/10 px-1.5 py-0.5 text-xs font-medium text-green-600">
-                                                            Configurado
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">
-                                                    Emails enviados do seu domínio (ex: voce@suaempresa.pt)
-                                                </p>
-                                                {smtpChoice === "own" && !hasSmtp && (
-                                                    <Link href="/settings" className="mt-3 inline-block">
-                                                        <Button variant="outline" size="sm" className="gap-2">
-                                                            <Settings className="h-4 w-4" />
-                                                            Configurar SMTP
-                                                        </Button>
-                                                    </Link>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </button>
-
-                                    {/* Option 2: Ritmo fallback */}
+                    {/* Step 2: SMTP - Default é Ritmo (recomendado) */}
+                    {currentStep === 2 && (
+                        <>
+                            {renderHeader(
+                                <Mail className="h-6 w-6 text-purple-500" />,
+                                "bg-purple-500/10",
+                                "Envio de emails",
+                                "Escolha como enviar os follow-ups"
+                            )}
+                            <CardContent className="p-8">
+                                <div className="space-y-4">
+                                    {/* Option 1: Ritmo (Recomendado - DEFAULT) */}
                                     <button
                                         type="button"
                                         onClick={() => setSmtpChoice("ritmo")}
-                                        className={`w-full rounded-lg border-2 p-4 text-left transition-colors ${
+                                        className={`w-full rounded-xl border-2 p-5 text-left transition-all duration-200 ${
                                             smtpChoice === "ritmo"
-                                                ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5"
-                                                : "border-[var(--color-border)] hover:border-[var(--color-muted-foreground)]"
+                                                ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5 shadow-md shadow-[var(--color-primary)]/10"
+                                                : "border-[var(--color-border)] hover:border-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)]/30"
                                         }`}
                                     >
-                                        <div className="flex items-start gap-3">
-                                            <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
+                                        <div className="flex items-start gap-4">
+                                            <div className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
                                                 smtpChoice === "ritmo"
                                                     ? "border-[var(--color-primary)] bg-[var(--color-primary)]"
                                                     : "border-[var(--color-muted-foreground)]"
                                             }`}>
                                                 {smtpChoice === "ritmo" && (
-                                                    <Check className="h-3 w-3 text-white" />
+                                                    <Check className="h-4 w-4 text-white" />
                                                 )}
                                             </div>
                                             <div className="flex-1">
-                                                <span className="font-medium">Serviço Ritmo</span>
-                                                <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">
-                                                    Emails enviados pelo nosso servidor (pode configurar SMTP mais tarde)
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-base font-semibold">Enviar via Ritmo</span>
+                                                    <Badge className="bg-[var(--color-primary)]/10 text-[var(--color-primary)] border-[var(--color-primary)]/30 text-xs">
+                                                        <Zap className="mr-1 h-3 w-3" />
+                                                        Recomendado
+                                                    </Badge>
+                                                </div>
+                                                <p className="mt-2 text-sm text-[var(--color-muted-foreground)] leading-relaxed">
+                                                    Comece imediatamente. Enviamos os emails por si através do nosso servidor.
+                                                    Pode configurar o seu email próprio mais tarde.
                                                 </p>
                                             </div>
                                         </div>
                                     </button>
-                                </div>
 
-                                <div className="flex gap-3">
-                                    <Button variant="outline" onClick={prevStep}>
-                                        <ChevronLeft className="mr-2 h-4 w-4" />
-                                        Voltar
-                                    </Button>
-                                    <Button onClick={nextStep} className="flex-1 gap-2">
-                                        Continuar
-                                        <ChevronRight className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
+                                    {/* Option 2: SMTP próprio (Avançado) */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setSmtpChoice("own")}
+                                        className={`w-full rounded-xl border-2 p-5 text-left transition-all duration-200 ${
+                                            smtpChoice === "own"
+                                                ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5 shadow-md shadow-[var(--color-primary)]/10"
+                                                : "border-[var(--color-border)] hover:border-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)]/30"
+                                        }`}
+                                    >
+                                        <div className="flex items-start gap-4">
+                                            <div className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+                                                smtpChoice === "own"
+                                                    ? "border-[var(--color-primary)] bg-[var(--color-primary)]"
+                                                    : "border-[var(--color-muted-foreground)]"
+                                            }`}>
+                                                {smtpChoice === "own" && (
+                                                    <Check className="h-4 w-4 text-white" />
+                                                )}
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-base font-semibold">Usar o meu email</span>
+                                                    <Badge variant="outline" className="text-xs">
+                                                        Avançado
+                                                    </Badge>
+                                                    {hasSmtp && (
+                                                        <Badge className="bg-green-500/10 text-green-600 border-green-500/30 text-xs">
+                                                            <Check className="mr-1 h-3 w-3" />
+                                                            Configurado
+                                                        </Badge>
+                                                    )}
+                                                </div>
+                                                <p className="mt-2 text-sm text-[var(--color-muted-foreground)] leading-relaxed">
+                                                    Emails enviados do seu endereço (ex: comercial@suaempresa.pt).
+                                                    Melhor reconhecimento pelos clientes.
+                                                </p>
 
-                        {/* Step 3: BCC */}
-                        {currentStep === 3 && (
-                            <div>
-                                <div className="mb-6 flex items-center gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-500/10">
-                                        <Copy className="h-5 w-5 text-orange-500" />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-xl font-bold">Email BCC</h2>
-                                        <p className="text-sm text-[var(--color-muted-foreground)]">
-                                            Capture propostas automaticamente
-                                        </p>
-                                    </div>
+                                                {/* Alert info com 2 ações quando SMTP não configurado */}
+                                                {smtpChoice === "own" && !hasSmtp && (
+                                                    <div className="mt-4">
+                                                        <Alert className="border-blue-500/30 bg-blue-500/5">
+                                                            <Info className="h-4 w-4 text-blue-500" />
+                                                            <AlertDescription className="ml-2 text-sm">
+                                                                <span className="font-medium text-blue-600">Configuração SMTP necessária</span>
+                                                                <span className="block mt-1 text-[var(--color-muted-foreground)]">
+                                                                    Configure as credenciais do seu servidor de email para usar esta opção.
+                                                                </span>
+                                                                <div className="mt-3 flex items-center gap-2">
+                                                                    <Link href="/settings/email">
+                                                                        <Button size="sm" className="gap-2">
+                                                                            <Settings className="h-4 w-4" />
+                                                                            Configurar SMTP
+                                                                        </Button>
+                                                                    </Link>
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleUseRitmoFallback();
+                                                                        }}
+                                                                    >
+                                                                        Usar Ritmo por agora
+                                                                    </Button>
+                                                                </div>
+                                                            </AlertDescription>
+                                                        </Alert>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </button>
                                 </div>
+                            </CardContent>
+                            {renderFooter({
+                                nextDisabled: smtpChoice === "own" && !hasSmtp,
+                            })}
+                        </>
+                    )}
 
-                                <div className="mb-6 space-y-4">
-                                    <p className="text-sm text-[var(--color-muted-foreground)]">
-                                        O Ritmo captura automaticamente a proposta (PDF/link) enviada
-                                        por email e associa ao orçamento, para acelerar chamadas D+7.
+                    {/* Step 3: BCC */}
+                    {currentStep === 3 && (
+                        <>
+                            {renderHeader(
+                                <Inbox className="h-6 w-6 text-orange-500" />,
+                                "bg-orange-500/10",
+                                "Captura de propostas",
+                                "Mantenha o contexto de cada orçamento"
+                            )}
+                            <CardContent className="p-8">
+                                <div className="space-y-6">
+                                    <p className="text-[var(--color-muted-foreground)] leading-relaxed">
+                                        Ao enviar uma proposta, adicione este endereço em BCC.
+                                        O Ritmo captura automaticamente o PDF ou link para referência rápida.
                                     </p>
 
-                                    <div className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-muted)]/50 p-3">
-                                        <code className="flex-1 text-sm font-mono">{bccEmail}</code>
+                                    <div className="rounded-xl border-2 border-dashed border-[var(--color-border)] bg-[var(--color-muted)]/30 p-4">
+                                        <label className="mb-2 block text-xs font-medium text-[var(--color-muted-foreground)] uppercase tracking-wide">
+                                            Email BCC da sua conta
+                                        </label>
+                                        <div className="flex items-center gap-3">
+                                            <code className="flex-1 rounded-lg bg-[var(--color-background)] border border-[var(--color-border)] px-4 py-3 text-sm font-mono select-all">
+                                                {bccEmail}
+                                            </code>
+                                            <Button
+                                                variant={bccCopied ? "default" : "outline"}
+                                                onClick={handleCopyBcc}
+                                                className={`gap-2 transition-all ${bccCopied ? "bg-green-500 hover:bg-green-600" : ""}`}
+                                            >
+                                                {bccCopied ? (
+                                                    <>
+                                                        <Check className="h-4 w-4" />
+                                                        Copiado
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Copy className="h-4 w-4" />
+                                                        Copiar
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    <Alert className="border-blue-500/30 bg-blue-500/5">
+                                        <Sparkles className="h-5 w-5 text-blue-500" />
+                                        <AlertDescription className="ml-2">
+                                            <span className="font-medium text-blue-600">Sugestão</span>
+                                            <span className="block mt-1.5 text-[var(--color-muted-foreground)] leading-relaxed">
+                                                Configure uma regra no seu cliente de email para adicionar
+                                                este BCC automaticamente às mensagens com &quot;proposta&quot; ou &quot;orçamento&quot;.
+                                            </span>
+                                        </AlertDescription>
+                                    </Alert>
+                                </div>
+                            </CardContent>
+                            {renderFooter({})}
+                        </>
+                    )}
+
+                    {/* Step 4: Complete */}
+                    {currentStep === 4 && (
+                        <>
+                            <CardContent className="p-8">
+                                <div className="text-center">
+                                    <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-green-500 to-green-600 shadow-lg shadow-green-500/25">
+                                        <Check className="h-10 w-10 text-white" />
+                                    </div>
+                                    <h1 className="mb-2 text-2xl font-bold tracking-tight">
+                                        Tudo pronto.
+                                    </h1>
+                                    <p className="mb-8 text-[var(--color-muted-foreground)] leading-relaxed max-w-md mx-auto">
+                                        A sua conta está configurada. Crie o primeiro orçamento
+                                        para activar o follow-up automático.
+                                    </p>
+
+                                    {/* Resumo de configuração */}
+                                    <div className="mb-8 rounded-xl border border-[var(--color-border)] bg-[var(--color-muted)]/20 p-1 text-left">
+                                        <div className="divide-y divide-[var(--color-border)]">
+                                            <div className="flex items-center justify-between p-4">
+                                                <div className="flex items-center gap-3">
+                                                    <FileText className="h-5 w-5 text-[var(--color-muted-foreground)]" />
+                                                    <span className="text-sm font-medium">Templates</span>
+                                                </div>
+                                                <Badge variant={hasTemplates ? "default" : "secondary"} className={hasTemplates ? "bg-green-500" : ""}>
+                                                    {hasTemplates ? "Personalizados" : "Predefinidos"}
+                                                </Badge>
+                                            </div>
+                                            <div className="flex items-center justify-between p-4">
+                                                <div className="flex items-center gap-3">
+                                                    <Mail className="h-5 w-5 text-[var(--color-muted-foreground)]" />
+                                                    <span className="text-sm font-medium">Envio de emails</span>
+                                                </div>
+                                                <Badge variant="default" className={hasSmtp ? "bg-green-500" : ""}>
+                                                    {hasSmtp ? "SMTP próprio" : "Via Ritmo"}
+                                                </Badge>
+                                            </div>
+                                            <div className="flex items-center justify-between p-4">
+                                                <div className="flex items-center gap-3">
+                                                    <Inbox className="h-5 w-5 text-[var(--color-muted-foreground)]" />
+                                                    <span className="text-sm font-medium">Captura BCC</span>
+                                                </div>
+                                                <Badge className="bg-green-500">Activo</Badge>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Ações finais */}
+                                    <div className="space-y-3">
+                                        <Link href="/quotes/new" className="block">
+                                            <Button size="lg" className="w-full gap-2 text-base">
+                                                <Rocket className="h-5 w-5" />
+                                                Criar primeiro orçamento
+                                            </Button>
+                                        </Link>
                                         <Button
                                             variant="outline"
-                                            size="sm"
-                                            onClick={handleCopyBcc}
-                                            className="gap-1.5"
+                                            onClick={handleComplete}
+                                            disabled={completing}
+                                            className="w-full gap-2"
                                         >
-                                            {bccCopied ? (
-                                                <>
-                                                    <Check className="h-4 w-4 text-green-500" />
-                                                    Copiado
-                                                </>
+                                            {completing ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
                                             ) : (
-                                                <>
-                                                    <Copy className="h-4 w-4" />
-                                                    Copiar
-                                                </>
+                                                <ArrowRight className="h-4 w-4" />
                                             )}
+                                            Ir para o Dashboard
                                         </Button>
                                     </div>
-
-                                    <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-4">
-                                        <h3 className="mb-2 text-sm font-medium text-blue-600">
-                                            Como usar:
-                                        </h3>
-                                        <ol className="space-y-1 text-sm text-[var(--color-muted-foreground)]">
-                                            <li>1. Ao enviar um orçamento, adicione o email acima em BCC</li>
-                                            <li>2. O Ritmo extrai o PDF/link da proposta do email</li>
-                                            <li>3. Na chamada D+7, a proposta fica disponível com um clique</li>
-                                        </ol>
-                                    </div>
                                 </div>
-
-                                <div className="flex gap-3">
-                                    <Button variant="outline" onClick={prevStep}>
-                                        <ChevronLeft className="mr-2 h-4 w-4" />
-                                        Voltar
-                                    </Button>
-                                    <Button onClick={nextStep} className="flex-1 gap-2">
-                                        Continuar
-                                        <ChevronRight className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Step 4: Complete */}
-                        {currentStep === 4 && (
-                            <div className="text-center">
-                                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10">
-                                    <Check className="h-8 w-8 text-green-500" />
-                                </div>
-                                <h1 className="mb-2 text-2xl font-bold">Está tudo pronto!</h1>
-                                <p className="mb-8 text-[var(--color-muted-foreground)]">
-                                    A sua conta está configurada. Crie o seu primeiro orçamento
-                                    para começar a fazer follow-up automático.
-                                </p>
-
-                                <div className="mb-6 space-y-2">
-                                    <div className="flex items-center justify-between rounded-md border border-[var(--color-border)] p-3">
-                                        <span className="text-sm">Templates de email</span>
-                                        <span className={hasTemplates ? "text-green-500" : "text-[var(--color-muted-foreground)]"}>
-                                            {hasTemplates ? "Configurado" : "Usar predefinidos"}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center justify-between rounded-md border border-[var(--color-border)] p-3">
-                                        <span className="text-sm">Envio de email</span>
-                                        <span className={hasSmtp ? "text-green-500" : "text-[var(--color-muted-foreground)]"}>
-                                            {hasSmtp ? "SMTP próprio" : "Via Ritmo"}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center justify-between rounded-md border border-[var(--color-border)] p-3">
-                                        <span className="text-sm">Captura de propostas</span>
-                                        <span className="text-green-500">BCC configurado</span>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-3">
-                                    <Link href="/quotes/new" className="block">
-                                        <Button className="w-full gap-2">
-                                            Criar primeiro orçamento
-                                            <ArrowRight className="h-4 w-4" />
-                                        </Button>
-                                    </Link>
-                                    <Button
-                                        variant="outline"
-                                        onClick={handleComplete}
-                                        disabled={completing}
-                                        className="w-full"
-                                    >
-                                        {completing ? (
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        ) : null}
-                                        Ir para o Dashboard
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
-                    </CardContent>
+                            </CardContent>
+                        </>
+                    )}
                 </Card>
-
-                {/* Skip link */}
-                {currentStep > 0 && currentStep < STEPS.length - 1 && (
-                    <div className="mt-4 text-center">
-                        <button
-                            onClick={handleSkip}
-                            disabled={completing}
-                            className="text-xs text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] disabled:opacity-50"
-                        >
-                            Saltar configuração
-                        </button>
-                    </div>
-                )}
             </div>
         </div>
     );
