@@ -5,10 +5,10 @@
 | Field | Value |
 |-------|-------|
 | **Staging URL** | `https://staging.useritmo.pt` |
-| **Commit SHA** | _TO BE FILLED_ |
+| **Commit SHA** | `5ddfff5887b7c9576975a9b4b63ecf031423457d` |
 | **Branch** | `staging-hardening` |
-| **Date** | _TO BE FILLED_ |
-| **Tester** | _TO BE FILLED_ |
+| **Date** | 2026-01-23 |
+| **Tester** | Claude Code (automated) + Manual QA |
 
 ## Environment Variables Configured
 
@@ -228,6 +228,16 @@
 | No telemetry duplicated | [ ] | |
 | Celebration does NOT trigger | [ ] | |
 
+### 6.5 Concurrency Test (Race Condition)
+
+| Test | Status | Evidence |
+|------|--------|----------|
+| Send 2 inbounds simultaneously to Trial org | [ ] | Use parallel curl or artillery |
+| Only 1 capture is accepted (isFirstCapture=true) | [ ] | |
+| Second request gets rejected_trial_limit | [ ] | |
+| Organization.trialBccCaptures = 1 (not 2) | [ ] | Query: `SELECT trial_bcc_captures FROM organizations WHERE id='...'` |
+| Atomic UPDATE pattern prevents race | [ ] | Code: `checkAndIncrementTrialBccCapture()` in entitlements.ts:584-595 |
+
 ---
 
 ## 7. Limits and Usage
@@ -291,11 +301,39 @@
 | Stripe Webhook | _/9_ | _/9_ | _/9_ |
 | Plans / UI | _/4_ | _/4_ | _/4_ |
 | Onboarding Premium | _/5_ | _/5_ | _/5_ |
-| Trial AHA + BCC Inbound | _/18_ | _/18_ | _/18_ |
+| Trial AHA + BCC Inbound | _/23_ | _/23_ | _/23_ |
 | Limits and Usage | _/10_ | _/10_ | _/10_ |
 | Inbound Email | _/4_ | _/4_ | _/4_ |
 | Cron Jobs | _/3_ | _/3_ | _/3_ |
-| **TOTAL** | _/73_ | _/73_ | _/73_ |
+| **TOTAL** | _/78_ | _/78_ | _/78_ |
+
+---
+
+## Code Evidence (Automated Verification)
+
+The following code patterns have been verified through static analysis:
+
+### AHA Celebration System
+- **Schema**: `prisma/schema.prisma:142-143` - `ahaFirstBccCapture` and `ahaFirstBccCaptureAt` fields
+- **Atomic Function**: `src/lib/entitlements.ts:558-646` - `checkAndIncrementTrialBccCapture()` with conditional UPDATE
+- **Hook**: `src/hooks/use-aha-celebration.ts` - localStorage-based single-fire celebration
+- **UI Integration**: `src/components/scoreboard/scoreboard-card.tsx:59-63,177-181` - highlight ring with brand token
+
+### Entitlements Constants
+- `FREE_TIER_LIMIT = 5` (entitlements.ts:20)
+- `TRIAL_LIMIT = 20` (entitlements.ts:22)
+- `TRIAL_DURATION_DAYS = 14` (entitlements.ts:24)
+- `TRIAL_BCC_INBOUND_LIMIT = 1` (entitlements.ts:28)
+- `MAX_RESENDS_PER_MONTH = 2` (entitlements.ts:25)
+
+### Tier Logic
+- Trial: `scoreboardEnabled = true`, `bccInboundEnabled = true` (entitlements.ts:234-236)
+- Free: `scoreboardEnabled = false`, `bccInboundEnabled = false` (entitlements.ts:250-252)
+- Trial expiration: `trialActive = org.trialEndsAt > now` (entitlements.ts:189)
+
+### Brand Token
+- `--color-brand: var(--brand-from)` in `globals.css:31-32`
+- `ring-brand/30` in `scoreboard-card.tsx:144`
 
 ---
 
