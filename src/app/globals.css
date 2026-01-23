@@ -28,6 +28,8 @@
   --color-brand-from: var(--brand-from);
   --color-brand-to: var(--brand-to);
   --color-brand-foreground: var(--brand-foreground);
+  /* Brand solid: use brand-from as the single brand color for rings/borders */
+  --color-brand: var(--brand-from);
 
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
