@@ -28,10 +28,12 @@ import {
 } from "@/lib/inbound";
 import { createClient } from "@supabase/supabase-js";
 import {
-    canUseBccInbound,
     checkStorageGates,
     checkAndReserveStorageQuota,
     getRetentionPolicy,
+    checkTrialBccCapture,
+    incrementTrialBccCapture,
+    getEntitlements,
 } from "@/lib/entitlements";
 import {
     rateLimit,
@@ -40,6 +42,7 @@ import {
     rateLimitedResponse,
 } from "@/lib/security/rate-limit";
 import { setSentryRequestContext } from "@/lib/observability/sentry-context";
+import { trackEvent, ProductEventNames } from "@/lib/product-events";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
@@ -186,10 +189,12 @@ export async function POST(request: NextRequest) {
             return rateLimitedResponse(orgRateLimitResult.retryAfterSec);
         }
 
-        // P0-04: Check if org has BCC inbound feature enabled (paid/trial only)
-        const bccEnabled = await canUseBccInbound(org.id);
-        if (!bccEnabled) {
-            // Accept webhook but reject processing - feature disabled for free tier
+        // Check if org can use BCC inbound (Trial: 1 capture, Paid: unlimited, Free: none)
+        const entitlements = await getEntitlements(org.id);
+        const bccCheck = await checkTrialBccCapture(org.id);
+
+        if (!bccCheck.allowed) {
+            // Accept webhook but reject processing
             const ingestion = await prisma.inboundIngestion.create({
                 data: {
                     organizationId: org.id,
@@ -200,17 +205,32 @@ export async function POST(request: NextRequest) {
                     rawTo: to || recipient,
                     rawSubject: subject,
                     rawBodyText: bodyPlain?.substring(0, 10000),
-                    status: "rejected_feature_disabled",
-                    errorMessage: "BCC inbound feature not enabled for this organization (free tier)",
+                    status: bccCheck.reason === "FREE_TIER" ? "rejected_feature_disabled" : "rejected_trial_limit",
+                    errorMessage: bccCheck.message,
                 },
             });
 
-            log.info({ id: ingestion.id, orgShortId }, "Inbound rejected - BCC feature disabled (free tier)");
-            return NextResponse.json({
-                status: "rejected",
+            // Track paywall event
+            await trackEvent(ProductEventNames.PAYWALL_SHOWN, {
+                organizationId: org.id,
+                props: {
+                    feature: "bcc_inbound",
+                    reason: bccCheck.reason,
+                    tier: entitlements.tier,
+                },
+            });
+
+            log.info({
                 id: ingestion.id,
-                reason: "feature_disabled",
-                message: "BCC auto-attachment is only available on paid plans.",
+                orgShortId,
+                reason: bccCheck.reason,
+                tier: entitlements.tier,
+            }, "Inbound rejected - BCC capture not allowed");
+
+            // Return 200 to avoid exposing internal state (non-revelatory response)
+            return NextResponse.json({
+                status: "received",
+                id: ingestion.id,
             });
         }
 
@@ -517,6 +537,7 @@ export async function POST(request: NextRequest) {
         }
 
         // If no attachment processed, try to extract link from body
+        let linkProcessed = false;
         if (!attachmentProcessed) {
             // Only set link if quote doesn't already have a proposal
             if (!quote.proposalLink && !quote.proposalFileId) {
@@ -540,6 +561,7 @@ export async function POST(request: NextRequest) {
                         },
                     });
 
+                    linkProcessed = true;
                     log.info({ id: ingestion.id, quoteId: quote.id, link }, "Link extracted from email body");
                 } else {
                     // No attachment and no link found
@@ -567,6 +589,44 @@ export async function POST(request: NextRequest) {
 
                 log.info({ id: ingestion.id, quoteId: quote.id }, "Quote already has proposal - skipping");
             }
+        }
+
+        // Track BCC inbound success and increment trial counter if applicable
+        const captureSuccessful = attachmentProcessed || linkProcessed;
+        if (captureSuccessful) {
+            // Increment trial BCC capture counter if in trial
+            if (entitlements.tier === "trial") {
+                const captureResult = await incrementTrialBccCapture(org.id);
+
+                // Track "aha moment" if this was the first capture
+                if (captureResult.isFirstCapture) {
+                    await trackEvent(ProductEventNames.AHA_BCC_INBOUND_FIRST_SUCCESS, {
+                        organizationId: org.id,
+                        props: {
+                            quoteId: quote.id,
+                            ingestionId: ingestion.id,
+                            hasAttachment: attachmentProcessed,
+                        },
+                    });
+
+                    log.info({
+                        id: ingestion.id,
+                        orgId: org.id,
+                        quoteId: quote.id,
+                    }, "Aha moment: First BCC capture in trial");
+                }
+            }
+
+            // Track generic BCC processed event
+            await trackEvent(ProductEventNames.BCC_INBOUND_PROCESSED, {
+                organizationId: org.id,
+                props: {
+                    quoteId: quote.id,
+                    ingestionId: ingestion.id,
+                    hasAttachment: attachmentProcessed,
+                    tier: entitlements.tier,
+                },
+            });
         }
 
         const durationMs = Date.now() - startTime;

@@ -61,8 +61,10 @@ function createMockOrgData(overrides: Partial<{
     trialEndsAt: Date | null;
     trialSentLimit: number;
     trialSentUsed: number;
+    trialBccCaptures: number;
     autoEmailEnabled: boolean;
     bccInboundEnabled: boolean;
+    ahaFirstBccCapture: boolean;
     storageUsedBytes: bigint;
     storageQuotaBytes: bigint;
     subscription: {
@@ -77,8 +79,10 @@ function createMockOrgData(overrides: Partial<{
         trialEndsAt: overrides.trialEndsAt !== undefined ? overrides.trialEndsAt : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         trialSentLimit: overrides.trialSentLimit ?? 20,
         trialSentUsed: overrides.trialSentUsed ?? 0,
+        trialBccCaptures: overrides.trialBccCaptures ?? 0,
         autoEmailEnabled: overrides.autoEmailEnabled ?? true,
         bccInboundEnabled: overrides.bccInboundEnabled ?? true,
+        ahaFirstBccCapture: overrides.ahaFirstBccCapture ?? false,
         storageUsedBytes: overrides.storageUsedBytes ?? BigInt(0),
         storageQuotaBytes: overrides.storageQuotaBytes ?? BigInt(5 * 1024 * 1024 * 1024),
         subscription: overrides.subscription !== undefined ? overrides.subscription : null,

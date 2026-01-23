@@ -87,6 +87,7 @@ enum IngestStatus {
   failed
   unmatched
   rejected_feature_disabled
+  rejected_trial_limit
   rejected_size_exceeded
   rejected_mime_type
   rejected_quota_exceeded
@@ -131,10 +132,14 @@ model Organization {
   trialEndsAt         DateTime? @map("trial_ends_at")     // null = no trial or trial expired
   trialSentLimit      Int       @default(20) @map("trial_sent_limit")  // Max quotes during trial
   trialSentUsed       Int       @default(0) @map("trial_sent_used")    // Quotes sent during trial
+  trialBccCaptures    Int       @default(0) @map("trial_bcc_captures") // BCC inbound captures during trial (limit: 1)
 
   // Feature flags (determines automation capabilities)
   autoEmailEnabled    Boolean   @default(false) @map("auto_email_enabled")  // Can use AUTO_EMAIL mode in cron
   bccInboundEnabled   Boolean   @default(false) @map("bcc_inbound_enabled") // Can process BCC proposals automatically
+
+  // Aha moments tracking
+  ahaFirstBccCapture  Boolean   @default(false) @map("aha_first_bcc_capture") // First BCC capture achieved
 
   // Sector for benchmark grouping
   sector              Sector?   // Selected during onboarding for benchmark comparisons

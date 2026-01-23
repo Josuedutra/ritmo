@@ -49,6 +49,15 @@ export const ProductEventNames = {
     // Upgrade prompts tracking (P1-UPGRADE-PROMPTS)
     UPGRADE_PROMPT_SHOWN: "upgrade_prompt_shown",
     UPGRADE_PROMPT_CLICKED: "upgrade_prompt_clicked",
+    // BCC Inbound "aha moment" tracking
+    AHA_BCC_INBOUND_FIRST_SUCCESS: "aha_bcc_inbound_first_success",
+    BCC_INBOUND_PROCESSED: "bcc_inbound_processed",
+    // Paywall events
+    PAYWALL_SHOWN: "paywall_shown",
+    // Scoreboard tracking
+    SCOREBOARD_VIEWED: "scoreboard_viewed",
+    // Manual send tracking (Free tier)
+    MANUAL_SEND_MARKED: "manual_send_marked",
 } as const;
 
 export type ProductEventName = (typeof ProductEventNames)[keyof typeof ProductEventNames];

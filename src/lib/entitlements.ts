@@ -24,6 +24,9 @@ export const TRIAL_MAX_USERS = 2;
 export const TRIAL_DURATION_DAYS = 14;
 export const MAX_RESENDS_PER_MONTH = 2;
 
+// Trial "aha moment" limits
+export const TRIAL_BCC_INBOUND_LIMIT = 1; // 1 BCC capture for "aha moment"
+
 // Plan limits (single source of truth for UI consistency)
 // Storage quotas and retention aligned with P0-STO-FIX-01 decisions
 export const PLAN_LIMITS = {
@@ -63,6 +66,15 @@ export interface Entitlements {
     // Feature flags
     autoEmailEnabled: boolean;
     bccInboundEnabled: boolean;
+    scoreboardEnabled: boolean;
+
+    // Trial BCC inbound limits
+    trialBccCapturesUsed: number;
+    trialBccCapturesRemaining: number;
+    trialBccCaptureLimit: number;
+
+    // Aha moment flags
+    ahaFirstBccCapture: boolean;
 
     // Computed permissions with CTA
     canMarkSent: {
@@ -82,8 +94,10 @@ interface OrgData {
     trialEndsAt: Date | null;
     trialSentLimit: number;
     trialSentUsed: number;
+    trialBccCaptures: number;
     autoEmailEnabled: boolean;
     bccInboundEnabled: boolean;
+    ahaFirstBccCapture: boolean;
     storageUsedBytes: bigint;
     storageQuotaBytes: bigint;
     subscription: {
@@ -114,8 +128,10 @@ export async function getEntitlements(organizationId: string): Promise<Entitleme
             trialEndsAt: true,
             trialSentLimit: true,
             trialSentUsed: true,
+            trialBccCaptures: true,
             autoEmailEnabled: true,
             bccInboundEnabled: true,
+            ahaFirstBccCapture: true,
             storageUsedBytes: true,
             storageQuotaBytes: true,
             subscription: {
@@ -181,8 +197,10 @@ export function calculateEntitlements(
     let maxUsers: number;
     let autoEmailEnabled: boolean;
     let bccInboundEnabled: boolean;
+    let scoreboardEnabled: boolean;
     let storageQuotaBytes: number;
     let retentionDays: number;
+    let trialBccCaptureLimit: number;
 
     if (hasActiveSubscription) {
         // Paid tier - use subscription limits
@@ -192,13 +210,15 @@ export function calculateEntitlements(
         planName = subscription.plan?.name ?? "Pago";
         planId = subscription.plan?.id ?? subscription.planId;
         maxUsers = subscription.plan?.maxUsers ?? 1;
-        // Paid plans get automation features
+        // Paid plans get all features
         autoEmailEnabled = true;
         bccInboundEnabled = true;
+        scoreboardEnabled = true;
         // Storage limits based on plan
         const planKey = (planId as keyof typeof PLAN_LIMITS) ?? "starter";
         storageQuotaBytes = PLAN_LIMITS[planKey]?.storageQuotaBytes ?? PLAN_LIMITS.starter.storageQuotaBytes;
         retentionDays = PLAN_LIMITS[planKey]?.retentionDays ?? PLAN_LIMITS.starter.retentionDays;
+        trialBccCaptureLimit = 0; // Unlimited for paid
     } else if (trialActive) {
         // Trial tier - use trial limits (same as starter for storage)
         tier = "trial";
@@ -207,12 +227,14 @@ export function calculateEntitlements(
         planName = "Trial";
         planId = null;
         maxUsers = TRIAL_MAX_USERS;
-        // Trial gets automation features
+        // Trial gets automation features + scoreboard
         autoEmailEnabled = true;
         bccInboundEnabled = true;
+        scoreboardEnabled = true; // Scoreboard ON for trial
         // Trial gets starter-level storage
         storageQuotaBytes = PLAN_LIMITS.starter.storageQuotaBytes;
         retentionDays = PLAN_LIMITS.starter.retentionDays;
+        trialBccCaptureLimit = TRIAL_BCC_INBOUND_LIMIT; // 1 capture for aha moment
     } else {
         // Free tier - limited, no automation
         tier = "free";
@@ -224,10 +246,18 @@ export function calculateEntitlements(
         // Free tier has NO automation
         autoEmailEnabled = false;
         bccInboundEnabled = false;
+        scoreboardEnabled = false; // Scoreboard OFF for free (teaser only)
         // Free tier storage limits
         storageQuotaBytes = PLAN_LIMITS.free.storageQuotaBytes;
         retentionDays = PLAN_LIMITS.free.retentionDays;
+        trialBccCaptureLimit = 0; // No BCC for free
     }
+
+    // Trial BCC captures calculations
+    const trialBccCapturesUsed = org.trialBccCaptures;
+    const trialBccCapturesRemaining = tier === "trial"
+        ? Math.max(0, trialBccCaptureLimit - trialBccCapturesUsed)
+        : (tier === "paid" ? Infinity : 0);
 
     const quotesRemaining = Math.max(0, effectivePlanLimit - quotesUsed);
 
@@ -263,6 +293,11 @@ export function calculateEntitlements(
         trialDaysRemaining,
         autoEmailEnabled,
         bccInboundEnabled,
+        scoreboardEnabled,
+        trialBccCapturesUsed,
+        trialBccCapturesRemaining: tier === "paid" ? 999 : trialBccCapturesRemaining,
+        trialBccCaptureLimit,
+        ahaFirstBccCapture: org.ahaFirstBccCapture,
         canMarkSent,
         subscriptionStatus: subscription?.status as Entitlements["subscriptionStatus"] ?? null,
     };
@@ -369,6 +404,11 @@ function getDefaultEntitlements(): Entitlements {
         trialDaysRemaining: null,
         autoEmailEnabled: false,
         bccInboundEnabled: false,
+        scoreboardEnabled: false,
+        trialBccCapturesUsed: 0,
+        trialBccCapturesRemaining: 0,
+        trialBccCaptureLimit: 0,
+        ahaFirstBccCapture: false,
         canMarkSent: {
             allowed: false,
             reason: "SUBSCRIPTION_CANCELLED",
@@ -430,10 +470,76 @@ export async function incrementTrialUsage(organizationId: string): Promise<void>
 }
 
 /**
+ * Check if trial can use BCC inbound capture.
+ * Trial gets 1 capture for "aha moment".
+ * Returns: { allowed, isFirstCapture, reason }
+ */
+export async function checkTrialBccCapture(organizationId: string): Promise<{
+    allowed: boolean;
+    isFirstCapture: boolean;
+    reason?: "TRIAL_LIMIT_REACHED" | "FREE_TIER" | "OK";
+    message?: string;
+}> {
+    const entitlements = await getEntitlements(organizationId);
+
+    // Paid tier - always allowed (unlimited)
+    if (entitlements.tier === "paid") {
+        return { allowed: true, isFirstCapture: false, reason: "OK" };
+    }
+
+    // Free tier - never allowed
+    if (entitlements.tier === "free") {
+        return {
+            allowed: false,
+            isFirstCapture: false,
+            reason: "FREE_TIER",
+            message: "A captura automática de propostas está disponível apenas em planos pagos.",
+        };
+    }
+
+    // Trial tier - check limit
+    if (entitlements.trialBccCapturesUsed >= TRIAL_BCC_INBOUND_LIMIT) {
+        return {
+            allowed: false,
+            isFirstCapture: false,
+            reason: "TRIAL_LIMIT_REACHED",
+            message: "Já utilizou a captura automática incluída no trial. Atualize para continuar a usar.",
+        };
+    }
+
+    // First capture allowed
+    return {
+        allowed: true,
+        isFirstCapture: entitlements.trialBccCapturesUsed === 0,
+        reason: "OK",
+    };
+}
+
+/**
+ * Increment trial BCC capture counter and mark aha moment.
+ * Called after successful BCC inbound processing during trial.
+ */
+export async function incrementTrialBccCapture(organizationId: string): Promise<{
+    isFirstCapture: boolean;
+}> {
+    const org = await prisma.organization.update({
+        where: { id: organizationId },
+        data: {
+            trialBccCaptures: { increment: 1 },
+            ahaFirstBccCapture: true,
+        },
+        select: { trialBccCaptures: true },
+    });
+
+    return {
+        isFirstCapture: org.trialBccCaptures === 1,
+    };
+}
+
+/**
  * Check if organization can access the scoreboard feature.
- * Available for: Starter, Pro, Enterprise (paid plans)
- * NOT available for: Free tier
- * Trial: Shows teaser with upgrade CTA
+ * Available for: Trial, Starter, Pro, Enterprise
+ * Free tier: Shows teaser with upgrade CTA
  */
 export async function canAccessScoreboard(organizationId: string): Promise<{
     allowed: boolean;
@@ -447,12 +553,12 @@ export async function canAccessScoreboard(organizationId: string): Promise<{
     }
 
     if (entitlements.tier === "trial") {
-        // Trial users see a teaser but not full data
-        return { allowed: false, tier: "trial", showTeaser: true };
+        // Trial users have full scoreboard access (aha moment enabler)
+        return { allowed: true, tier: "trial", showTeaser: false };
     }
 
-    // Free tier - no access
-    return { allowed: false, tier: "free", showTeaser: false };
+    // Free tier - no access, show teaser
+    return { allowed: false, tier: "free", showTeaser: true };
 }
 
 /**
