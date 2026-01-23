@@ -3,7 +3,24 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button, Card, CardContent, CardHeader, CardTitle, CardFooter, toast, Badge, Alert, AlertDescription } from "@/components/ui";
+import {
+    Button,
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+    CardFooter,
+    toast,
+    Badge,
+    Alert,
+    AlertDescription,
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogTrigger,
+} from "@/components/ui";
 import {
     FileText,
     Mail,
@@ -20,6 +37,11 @@ import {
     Inbox,
     Rocket,
     Zap,
+    Search,
+    CheckCircle,
+    XCircle,
+    AlertTriangle,
+    Clock,
 } from "lucide-react";
 
 interface Template {
@@ -63,6 +85,44 @@ export function OnboardingWizard({
     const [saving, setSaving] = useState(false);
     // Default é "ritmo" (recomendado para começar), exceto se já tem SMTP configurado
     const [smtpChoice, setSmtpChoice] = useState<"own" | "ritmo">(hasSmtp ? "own" : "ritmo");
+
+    // Verificar captura modal state
+    const [verifyModalOpen, setVerifyModalOpen] = useState(false);
+    const [verifyStatus, setVerifyStatus] = useState<"idle" | "loading" | "success" | "not_found" | "trial_limit" | "error">("idle");
+    const [verifyData, setVerifyData] = useState<{ receivedAt?: string; subject?: string } | null>(null);
+
+    const handleVerifyCapture = async () => {
+        setVerifyStatus("loading");
+        try {
+            const response = await fetch("/api/inbound/status");
+            const data = await response.json();
+
+            if (!response.ok) {
+                setVerifyStatus("error");
+                return;
+            }
+
+            if (data.found) {
+                setVerifyStatus("success");
+                setVerifyData({
+                    receivedAt: data.receivedAt,
+                    subject: data.subject,
+                });
+            } else if (data.trialLimitReached) {
+                setVerifyStatus("trial_limit");
+            } else {
+                setVerifyStatus("not_found");
+            }
+        } catch (error) {
+            console.error("Error verifying capture:", error);
+            setVerifyStatus("error");
+        }
+    };
+
+    const resetVerifyModal = () => {
+        setVerifyStatus("idle");
+        setVerifyData(null);
+    };
 
     const handleCopyBcc = async () => {
         try {
@@ -269,9 +329,12 @@ export function OnboardingWizard({
                                     <h1 className="mb-2 text-2xl font-bold tracking-tight">
                                         Bem-vindo ao Ritmo, {orgName}.
                                     </h1>
-                                    <p className="mb-8 text-[var(--color-muted-foreground)] leading-relaxed max-w-md mx-auto">
-                                        Configure a sua conta em 4 passos simples e comece a automatizar
+                                    <p className="mb-2 text-[var(--color-muted-foreground)] leading-relaxed max-w-md mx-auto">
+                                        Configure a sua conta e comece a automatizar
                                         o follow-up dos seus orçamentos.
+                                    </p>
+                                    <p className="mb-8 text-sm text-[var(--color-muted-foreground)]">
+                                        Em menos de 2 minutos fica pronto a enviar follow-ups.
                                     </p>
                                     <div className="space-y-3">
                                         <Button onClick={nextStep} variant="brand" size="lg" className="w-full gap-2 text-base">
@@ -287,9 +350,9 @@ export function OnboardingWizard({
                                             {saving ? (
                                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                             ) : (
-                                                <LogOut className="mr-2 h-4 w-4" />
+                                                <ArrowRight className="mr-2 h-4 w-4" />
                                             )}
-                                            Configurar mais tarde
+                                            Ir para o Dashboard
                                         </Button>
                                     </div>
                                 </div>
@@ -334,9 +397,12 @@ export function OnboardingWizard({
                                 )}
 
                                 <div>
-                                    <h3 className="mb-4 text-sm font-semibold text-[var(--color-foreground)]">
+                                    <h3 className="mb-2 text-sm font-semibold text-[var(--color-foreground)]">
                                         Sequência de follow-up automática:
                                     </h3>
+                                    <p className="mb-4 text-sm text-[var(--color-muted-foreground)]">
+                                        Cada mensagem tem texto otimizado. Pode editar em Definições.
+                                    </p>
                                     <div className="space-y-3">
                                         {[
                                             { code: "T2", name: "Lembrete gentil", timing: "D+1", type: "Email", desc: "Verificar se recebeu a proposta" },
@@ -418,8 +484,8 @@ export function OnboardingWizard({
                                                     </Badge>
                                                 </div>
                                                 <p className="mt-2 text-sm text-[var(--color-muted-foreground)] leading-relaxed">
-                                                    Comece imediatamente. Enviamos os emails por si através do nosso servidor.
-                                                    Pode configurar o seu email próprio mais tarde.
+                                                    Comece já. Os emails saem do servidor Ritmo com remetente noreply@useritmo.pt.
+                                                    Pode ligar o seu próprio domínio mais tarde.
                                                 </p>
                                             </div>
                                         </div>
@@ -459,8 +525,8 @@ export function OnboardingWizard({
                                                     )}
                                                 </div>
                                                 <p className="mt-2 text-sm text-[var(--color-muted-foreground)] leading-relaxed">
-                                                    Emails enviados do seu endereço (ex: comercial@suaempresa.pt).
-                                                    Melhor reconhecimento pelos clientes.
+                                                    Os emails saem do seu domínio (ex: comercial@suaempresa.pt).
+                                                    Maior reconhecimento e taxa de abertura.
                                                 </p>
 
                                                 {/* Alert info com 2 ações quando SMTP não configurado */}
@@ -524,7 +590,7 @@ export function OnboardingWizard({
 
                                     <div className="rounded-xl border-2 border-dashed border-[var(--color-border)] bg-[var(--color-muted)]/30 p-4">
                                         <label className="mb-2 block text-xs font-medium text-[var(--color-muted-foreground)] uppercase tracking-wide">
-                                            Email BCC da sua conta
+                                            Endereço BCC exclusivo da sua conta
                                         </label>
                                         <div className="flex items-center gap-3">
                                             <code className="flex-1 rounded-lg bg-[var(--color-background)] border border-[var(--color-border)] px-4 py-3 text-sm font-mono select-all">
@@ -548,18 +614,190 @@ export function OnboardingWizard({
                                                 )}
                                             </Button>
                                         </div>
+                                        <p className="mt-2 text-xs text-[var(--color-muted-foreground)]">
+                                            O cliente não vê o BCC. É uma cópia invisível apenas para o Ritmo.
+                                        </p>
                                     </div>
 
-                                    <Alert className="border-blue-500/30 bg-blue-500/5">
-                                        <Sparkles className="h-5 w-5 text-blue-500" />
-                                        <AlertDescription className="ml-2">
-                                            <span className="font-medium text-blue-600">Sugestão</span>
-                                            <span className="block mt-1.5 text-[var(--color-muted-foreground)] leading-relaxed">
-                                                Configure uma regra no seu cliente de email para adicionar
-                                                este BCC automaticamente às mensagens com &quot;proposta&quot; ou &quot;orçamento&quot;.
-                                            </span>
-                                        </AlertDescription>
-                                    </Alert>
+                                    {/* FAQ Inline */}
+                                    <div className="space-y-3">
+                                        <details className="group rounded-lg border border-[var(--color-border)] bg-[var(--color-background)]">
+                                            <summary className="flex cursor-pointer items-center justify-between p-4 text-sm font-medium">
+                                                O que é BCC?
+                                                <ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90" />
+                                            </summary>
+                                            <div className="border-t border-[var(--color-border)] px-4 py-3 text-sm text-[var(--color-muted-foreground)]">
+                                                BCC (Blind Carbon Copy) é uma cópia oculta do email. O destinatário
+                                                não vê os endereços em BCC, por isso é ideal para capturar as suas
+                                                propostas sem que o cliente saiba.
+                                            </div>
+                                        </details>
+                                        <details className="group rounded-lg border border-[var(--color-border)] bg-[var(--color-background)]">
+                                            <summary className="flex cursor-pointer items-center justify-between p-4 text-sm font-medium">
+                                                O cliente vê o endereço BCC?
+                                                <ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90" />
+                                            </summary>
+                                            <div className="border-t border-[var(--color-border)] px-4 py-3 text-sm text-[var(--color-muted-foreground)]">
+                                                Não. O BCC é completamente invisível para o destinatário.
+                                                Apenas o Ritmo recebe a cópia para capturar a proposta.
+                                            </div>
+                                        </details>
+                                        <details className="group rounded-lg border border-[var(--color-border)] bg-[var(--color-background)]">
+                                            <summary className="flex cursor-pointer items-center justify-between p-4 text-sm font-medium">
+                                                Como adiciono automaticamente?
+                                                <ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90" />
+                                            </summary>
+                                            <div className="border-t border-[var(--color-border)] px-4 py-3 text-sm text-[var(--color-muted-foreground)]">
+                                                Configure uma regra no seu cliente de email (Outlook, Gmail, etc.)
+                                                para adicionar este BCC automaticamente às mensagens com
+                                                &quot;proposta&quot; ou &quot;orçamento&quot; no assunto.
+                                            </div>
+                                        </details>
+                                    </div>
+
+                                    {/* Verificar captura */}
+                                    <Dialog open={verifyModalOpen} onOpenChange={(open) => {
+                                        setVerifyModalOpen(open);
+                                        if (!open) resetVerifyModal();
+                                    }}>
+                                        <DialogTrigger asChild>
+                                            <Button variant="outline" className="w-full gap-2">
+                                                <Search className="h-4 w-4" />
+                                                Verificar captura
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent className="sm:max-w-md">
+                                            <DialogHeader>
+                                                <DialogTitle>Verificar captura BCC</DialogTitle>
+                                                <DialogDescription>
+                                                    Verifique se o Ritmo já recebeu algum email enviado em BCC.
+                                                </DialogDescription>
+                                            </DialogHeader>
+
+                                            <div className="py-4">
+                                                {/* Idle State */}
+                                                {verifyStatus === "idle" && (
+                                                    <div className="text-center">
+                                                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-muted)]">
+                                                            <Search className="h-8 w-8 text-[var(--color-muted-foreground)]" />
+                                                        </div>
+                                                        <p className="mb-6 text-sm text-[var(--color-muted-foreground)]">
+                                                            Clique para verificar se já recebemos algum email BCC da sua conta.
+                                                        </p>
+                                                        <Button onClick={handleVerifyCapture} className="gap-2">
+                                                            <Search className="h-4 w-4" />
+                                                            Verificar agora
+                                                        </Button>
+                                                    </div>
+                                                )}
+
+                                                {/* Loading State */}
+                                                {verifyStatus === "loading" && (
+                                                    <div className="text-center py-8">
+                                                        <Loader2 className="mx-auto h-8 w-8 animate-spin text-[var(--color-primary)]" />
+                                                        <p className="mt-4 text-sm text-[var(--color-muted-foreground)]">
+                                                            A verificar...
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                {/* Success State */}
+                                                {verifyStatus === "success" && verifyData && (
+                                                    <div className="text-center">
+                                                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10">
+                                                            <CheckCircle className="h-8 w-8 text-green-500" />
+                                                        </div>
+                                                        <h3 className="mb-2 font-semibold text-green-600">
+                                                            Captura encontrada
+                                                        </h3>
+                                                        <div className="mb-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-muted)]/30 p-4 text-left">
+                                                            <div className="flex items-center gap-2 text-sm text-[var(--color-muted-foreground)]">
+                                                                <Clock className="h-4 w-4" />
+                                                                <span>
+                                                                    {verifyData.receivedAt
+                                                                        ? new Date(verifyData.receivedAt).toLocaleString("pt-PT", {
+                                                                            dateStyle: "medium",
+                                                                            timeStyle: "short",
+                                                                        })
+                                                                        : "Data desconhecida"}
+                                                                </span>
+                                                            </div>
+                                                            {verifyData.subject && (
+                                                                <p className="mt-2 text-sm">
+                                                                    <span className="text-[var(--color-muted-foreground)]">Assunto: </span>
+                                                                    {verifyData.subject}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-sm text-[var(--color-muted-foreground)]">
+                                                            A captura BCC está a funcionar corretamente.
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                {/* Not Found State */}
+                                                {verifyStatus === "not_found" && (
+                                                    <div className="text-center">
+                                                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-orange-500/10">
+                                                            <AlertTriangle className="h-8 w-8 text-orange-500" />
+                                                        </div>
+                                                        <h3 className="mb-2 font-semibold">
+                                                            Nenhuma captura encontrada
+                                                        </h3>
+                                                        <p className="mb-4 text-sm text-[var(--color-muted-foreground)]">
+                                                            Ainda não recebemos nenhum email em BCC. Envie um email de teste
+                                                            para o endereço BCC e volte a verificar.
+                                                        </p>
+                                                        <Button variant="outline" onClick={handleVerifyCapture} className="gap-2">
+                                                            <Search className="h-4 w-4" />
+                                                            Verificar novamente
+                                                        </Button>
+                                                    </div>
+                                                )}
+
+                                                {/* Trial Limit State */}
+                                                {verifyStatus === "trial_limit" && (
+                                                    <div className="text-center">
+                                                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-500/10">
+                                                            <Info className="h-8 w-8 text-blue-500" />
+                                                        </div>
+                                                        <h3 className="mb-2 font-semibold text-blue-600">
+                                                            Limite de trial atingido
+                                                        </h3>
+                                                        <p className="mb-4 text-sm text-[var(--color-muted-foreground)]">
+                                                            Durante o período de trial, pode capturar 1 proposta via BCC.
+                                                            Para capturas ilimitadas, faça upgrade para um plano pago.
+                                                        </p>
+                                                        <Link href="/settings/billing">
+                                                            <Button className="gap-2">
+                                                                Ver planos
+                                                                <ArrowRight className="h-4 w-4" />
+                                                            </Button>
+                                                        </Link>
+                                                    </div>
+                                                )}
+
+                                                {/* Error State */}
+                                                {verifyStatus === "error" && (
+                                                    <div className="text-center">
+                                                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10">
+                                                            <XCircle className="h-8 w-8 text-red-500" />
+                                                        </div>
+                                                        <h3 className="mb-2 font-semibold text-red-600">
+                                                            Erro ao verificar
+                                                        </h3>
+                                                        <p className="mb-4 text-sm text-[var(--color-muted-foreground)]">
+                                                            Ocorreu um erro ao verificar a captura. Por favor, tente novamente.
+                                                        </p>
+                                                        <Button variant="outline" onClick={handleVerifyCapture} className="gap-2">
+                                                            <Search className="h-4 w-4" />
+                                                            Tentar novamente
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </DialogContent>
+                                    </Dialog>
                                 </div>
                             </CardContent>
                             {renderFooter({})}
@@ -575,11 +813,11 @@ export function OnboardingWizard({
                                         <Check className="h-10 w-10 text-white" />
                                     </div>
                                     <h1 className="mb-2 text-2xl font-bold tracking-tight">
-                                        Tudo pronto.
+                                        Configuração concluída.
                                     </h1>
                                     <p className="mb-8 text-[var(--color-muted-foreground)] leading-relaxed max-w-md mx-auto">
-                                        A sua conta está configurada. Crie o primeiro orçamento
-                                        para activar o follow-up automático.
+                                        A sua conta está pronta. Crie o primeiro orçamento ou
+                                        explore o dashboard.
                                     </p>
 
                                     {/* Resumo de configuração */}
@@ -618,7 +856,7 @@ export function OnboardingWizard({
                                         <Link href="/quotes/new" className="block">
                                             <Button variant="brand" size="lg" className="w-full gap-2 text-base">
                                                 <Rocket className="h-5 w-5" />
-                                                Criar primeiro orçamento
+                                                Criar orçamento
                                             </Button>
                                         </Link>
                                         <Button
@@ -632,7 +870,7 @@ export function OnboardingWizard({
                                             ) : (
                                                 <ArrowRight className="h-4 w-4" />
                                             )}
-                                            Ir para o Dashboard
+                                            Explorar dashboard
                                         </Button>
                                     </div>
                                 </div>
