@@ -99,7 +99,7 @@
 | Endpoint URL | `https://useritmo.pt/api/webhooks/stripe` |
 | Events | See list below |
 
-**Required Events:**
+**Required Events (Minimum):**
 - `checkout.session.completed`
 - `checkout.session.expired`
 - `customer.subscription.created`
@@ -107,6 +107,8 @@
 - `customer.subscription.deleted`
 - `invoice.paid`
 - `invoice.payment_failed`
+
+**Optional Events (Recommended):**
 - `customer.created`
 - `customer.updated`
 
@@ -179,11 +181,21 @@ ORDER BY price_cents;
 
 ### 4.1 Deploy to Production
 
+**Primary Strategy: Vercel CLI / Promote**
+
 ```bash
-# Option A: Vercel CLI
+# Recommended: Use Vercel CLI for controlled deploy
 vercel --prod
 
-# Option B: Git push (if auto-deploy configured)
+# Alternative: Promote existing preview deployment
+# Go to Vercel Dashboard > Deployments > Find RC preview > "..." > Promote to Production
+```
+
+**Fallback: Git Push**
+
+> ⚠️ **Warning**: Only use if Vercel CLI unavailable. This triggers auto-deploy immediately.
+
+```bash
 git push origin release-candidate:main
 ```
 
@@ -221,21 +233,54 @@ git push origin release-candidate:main
 | SMTP default | Check email step | "Enviar via Ritmo" selected | [ ] |
 | Complete onboarding | Fill all steps | Dashboard loads | [ ] |
 
-### 5.4 Billing (Critical)
+### 5.4 Billing - Real Checkout (Internal Account)
+
+> **Pre-requisite**: Use an internal test account (e.g., `test@antigravity.pt`) for this test.
+
+#### Step 1: Complete Checkout
 
 | Test | Action | Expected | Status |
 |------|--------|----------|--------|
-| Billing page | Visit `/settings/billing` | Shows plans | [ ] |
-| Starter checkout | Click upgrade | Stripe Checkout opens | [ ] |
-| **STOP HERE** | Do NOT complete checkout | | |
+| Billing page | Visit `/settings/billing` | Shows plans (Starter, Pro) | [ ] |
+| Click upgrade | Click "Fazer upgrade" for Starter | Stripe Checkout opens | [ ] |
+| Complete payment | Use real card (will be refunded) | Payment succeeds | [ ] |
+| Redirect | After payment | Redirected to `/settings/billing?success=true` | [ ] |
 
-> **Note**: Complete checkout test only if you have a test account or are prepared to refund.
+#### Step 2: Verify Subscription Created
 
-### 5.5 Webhook Health
+| Verification | Command/Action | Expected | Status |
+|--------------|----------------|----------|--------|
+| Stripe Dashboard | Check Subscriptions | New subscription visible | [ ] |
+| Database | `SELECT * FROM subscriptions WHERE organization_id='...'` | status=active, plan_id=starter | [ ] |
+| Entitlements API | `curl /api/entitlements` | tier=paid, quotesLimit=80 | [ ] |
+| Ops endpoint | `curl -H "Authorization: Bearer $OPS_TOKEN" /api/ops/stripe` | healthy=true, subscription visible | [ ] |
+
+#### Step 3: Verify Webhook Processed
+
+| Verification | Action | Expected | Status |
+|--------------|--------|----------|--------|
+| stripe_events table | Query recent events | `checkout.session.completed` with status=PROCESSED | [ ] |
+| No errors | Check Sentry | No webhook errors | [ ] |
+
+### 5.5 Billing - Cancel/Downgrade Test
+
+> **Purpose**: Verify subscription cancellation flow works correctly.
 
 | Test | Action | Expected | Status |
 |------|--------|----------|--------|
-| Ops endpoint | `curl -H "Authorization: Bearer $OPS_TOKEN" https://useritmo.pt/api/ops/stripe` | Returns webhook status | [ ] |
+| Cancel in Stripe | Stripe Dashboard > Cancel subscription | Subscription marked for cancellation | [ ] |
+| Webhook received | Check stripe_events | `customer.subscription.updated` or `deleted` processed | [ ] |
+| Entitlements update | `curl /api/entitlements` | tier changes (or stays until period end) | [ ] |
+| UI reflects change | Refresh billing page | Shows updated status | [ ] |
+
+> **Cleanup**: After test, refund the charge in Stripe Dashboard if needed.
+
+### 5.7 Webhook Health (Final)
+
+| Test | Action | Expected | Status |
+|------|--------|----------|--------|
+| Ops endpoint | `curl -H "Authorization: Bearer $OPS_TOKEN" https://useritmo.pt/api/ops/stripe` | healthy=true, no failures | [ ] |
+| Stripe Dashboard | Check webhook endpoint | All recent events delivered successfully | [ ] |
 
 ---
 
@@ -266,6 +311,20 @@ curl -H "Authorization: Bearer $OPS_TOKEN" \
 
 ## Rollback Plan
 
+### Immediate Mitigation: Payments Kill Switch
+
+> **Use this FIRST** if any billing-related issue is detected.
+
+```bash
+# Vercel Dashboard > Settings > Environment Variables
+# Set: NEXT_PUBLIC_PAYMENTS_ENABLED = false
+# Redeploy triggers automatically
+```
+
+**Effect**: Users see "Pagamentos em breve" banner. No checkout possible. Existing subscriptions unaffected.
+
+---
+
 ### Scenario A: Minor Issues (Non-Blocking)
 
 1. Create GitHub issue with P1 label
@@ -274,26 +333,32 @@ curl -H "Authorization: Bearer $OPS_TOKEN" \
 
 ### Scenario B: Billing Failure
 
-1. Set `NEXT_PUBLIC_PAYMENTS_ENABLED=false` in Vercel
-2. Redeploy (automatic with env change)
-3. Users see "Pagamentos em breve" message
-4. Investigate and fix
-5. Re-enable payments
+1. **IMMEDIATE**: Set `NEXT_PUBLIC_PAYMENTS_ENABLED=false` in Vercel (see kill switch above)
+2. Verify kill switch active: visit `/settings/billing` shows "Pagamentos em breve"
+3. Investigate root cause:
+   - Check Stripe webhook logs
+   - Check Sentry for errors
+   - Check stripe_events table for FAILED status
+4. Fix and test in staging
+5. Re-enable payments: `NEXT_PUBLIC_PAYMENTS_ENABLED=true`
 
 ### Scenario C: Critical Failure (App Down)
 
-1. Rollback to previous deployment in Vercel
+1. **IMMEDIATE**: Rollback to previous deployment in Vercel
    - Go to Vercel > Deployments
    - Find last good deployment
    - Click "..." > "Promote to Production"
 2. Notify team in #ritmo-alerts
 3. Investigate root cause
+4. If billing-related, also apply Payments Kill Switch
 
 ### Scenario D: Data Corruption
 
-1. Contact Neon support for point-in-time recovery
-2. Restore from backup (RPO < 24h)
-3. Redeploy with fixes
+1. **IMMEDIATE**: Apply Payments Kill Switch (prevent further damage)
+2. Contact Neon support for point-in-time recovery
+3. Restore from backup (RPO < 24h)
+4. Verify data integrity
+5. Redeploy with fixes
 
 ---
 
