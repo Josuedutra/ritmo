@@ -24,6 +24,10 @@ function BillingSuccessContent() {
     const [showSlowLoadingHint, setShowSlowLoadingHint] = useState(false);
 
     useEffect(() => {
+        // Only start timer if we have a valid session_id (Stripe redirected us here)
+        // This ensures we only show "payment processed" when checkout actually completed
+        if (!sessionId) return;
+
         // Show fallback CTA after 30 seconds
         const slowLoadingTimer = setTimeout(() => {
             if (status === "loading") {
@@ -32,7 +36,7 @@ function BillingSuccessContent() {
         }, 30000);
 
         return () => clearTimeout(slowLoadingTimer);
-    }, [status]);
+    }, [status, sessionId]);
 
     useEffect(() => {
         async function verifySession() {
