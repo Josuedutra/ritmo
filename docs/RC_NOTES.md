@@ -4,11 +4,11 @@
 
 | Field | Value |
 |-------|-------|
-| **Commit SHA** | `9420a5c` |
+| **Commit SHA** | `4cfe1e2` |
 | **Branch** | `release-candidate` |
 | **Source Branch** | `staging-hardening` |
 | **Date** | 2026-01-23 |
-| **Tag** | `rc-20260123-02` (optional) |
+| **Tag** | `rc-20260123-final` |
 
 ---
 
@@ -49,6 +49,7 @@
   - Calls `/api/billing/verify` to confirm payment
   - Shows subscription summary (plan, price, next billing date)
   - Loading, success, and error states
+  - **Slow confirmation fallback (30s)**: If verification takes >30s, shows reassuring message with CTAs (only when valid session_id exists)
 - **/billing/cancel**: Checkout cancelled page with clear "nenhuma cobrança" messaging
 - **SignOut UX**: Redirects to landing page with "Sessão terminada" toast
 

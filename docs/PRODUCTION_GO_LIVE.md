@@ -4,7 +4,7 @@
 
 | Field | Value |
 |-------|-------|
-| **RC Commit** | `9420a5c` |
+| **RC Commit** | `4cfe1e2` |
 | **Target Environment** | Production (`https://useritmo.pt`) |
 | **Estimated Duration** | 30-45 minutes |
 | **Rollback Window** | 24 hours |
