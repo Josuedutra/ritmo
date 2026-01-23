@@ -35,6 +35,12 @@ export async function GET() {
             autoEmailEnabled: entitlements.autoEmailEnabled,
             bccInboundEnabled: entitlements.bccInboundEnabled,
             subscriptionStatus: entitlements.subscriptionStatus,
+            // Trial BCC captures tracking
+            trialBccCapturesUsed: entitlements.trialBccCapturesUsed,
+            trialBccCaptureLimit: entitlements.trialBccCaptureLimit,
+            trialBccCapturesRemaining: entitlements.trialBccCapturesRemaining,
+            ahaFirstBccCapture: entitlements.ahaFirstBccCapture,
+            ahaFirstBccCaptureAt: entitlements.ahaFirstBccCaptureAt?.toISOString() ?? null,
         });
     } catch (error) {
         return serverError(error, "GET /api/entitlements");

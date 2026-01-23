@@ -75,6 +75,7 @@ export interface Entitlements {
 
     // Aha moment flags
     ahaFirstBccCapture: boolean;
+    ahaFirstBccCaptureAt: Date | null;
 
     // Computed permissions with CTA
     canMarkSent: {
@@ -98,6 +99,7 @@ interface OrgData {
     autoEmailEnabled: boolean;
     bccInboundEnabled: boolean;
     ahaFirstBccCapture: boolean;
+    ahaFirstBccCaptureAt: Date | null;
     storageUsedBytes: bigint;
     storageQuotaBytes: bigint;
     subscription: {
@@ -132,6 +134,7 @@ export async function getEntitlements(organizationId: string): Promise<Entitleme
             autoEmailEnabled: true,
             bccInboundEnabled: true,
             ahaFirstBccCapture: true,
+            ahaFirstBccCaptureAt: true,
             storageUsedBytes: true,
             storageQuotaBytes: true,
             subscription: {
@@ -298,6 +301,7 @@ export function calculateEntitlements(
         trialBccCapturesRemaining: tier === "paid" ? 999 : trialBccCapturesRemaining,
         trialBccCaptureLimit,
         ahaFirstBccCapture: org.ahaFirstBccCapture,
+        ahaFirstBccCaptureAt: org.ahaFirstBccCaptureAt,
         canMarkSent,
         subscriptionStatus: subscription?.status as Entitlements["subscriptionStatus"] ?? null,
     };
@@ -409,6 +413,7 @@ function getDefaultEntitlements(): Entitlements {
         trialBccCapturesRemaining: 0,
         trialBccCaptureLimit: 0,
         ahaFirstBccCapture: false,
+        ahaFirstBccCaptureAt: null,
         canMarkSent: {
             allowed: false,
             reason: "SUBSCRIPTION_CANCELLED",
@@ -473,6 +478,8 @@ export async function incrementTrialUsage(organizationId: string): Promise<void>
  * Check if trial can use BCC inbound capture.
  * Trial gets 1 capture for "aha moment".
  * Returns: { allowed, isFirstCapture, reason }
+ *
+ * Note: For atomic check+increment, use checkAndIncrementTrialBccCapture() instead.
  */
 export async function checkTrialBccCapture(organizationId: string): Promise<{
     allowed: boolean;
@@ -518,6 +525,8 @@ export async function checkTrialBccCapture(organizationId: string): Promise<{
 /**
  * Increment trial BCC capture counter and mark aha moment.
  * Called after successful BCC inbound processing during trial.
+ *
+ * @deprecated Use checkAndIncrementTrialBccCapture() for atomic operations.
  */
 export async function incrementTrialBccCapture(organizationId: string): Promise<{
     isFirstCapture: boolean;
@@ -534,6 +543,106 @@ export async function incrementTrialBccCapture(organizationId: string): Promise<
     return {
         isFirstCapture: org.trialBccCaptures === 1,
     };
+}
+
+/**
+ * Atomically check and increment trial BCC capture in a single transaction.
+ * Prevents race conditions where two concurrent requests could both pass the check.
+ *
+ * Uses conditional UPDATE pattern (same as reserveStorageQuota) for atomicity.
+ *
+ * Returns:
+ * - { allowed: true, isFirstCapture, committed: true } if capture was allowed and incremented
+ * - { allowed: false, reason, message } if capture was rejected
+ */
+export async function checkAndIncrementTrialBccCapture(organizationId: string): Promise<
+    | { allowed: true; isFirstCapture: boolean; committed: true }
+    | { allowed: false; isFirstCapture: false; committed: false; reason: "TRIAL_LIMIT_REACHED" | "FREE_TIER" | "PAID_TIER" | "ORG_NOT_FOUND"; message: string }
+> {
+    // First, get tier info (this is a read, OK to do before atomic write)
+    const entitlements = await getEntitlements(organizationId);
+
+    // Paid tier - no increment needed, unlimited
+    if (entitlements.tier === "paid") {
+        return { allowed: true, isFirstCapture: false, committed: true };
+    }
+
+    // Free tier - never allowed
+    if (entitlements.tier === "free") {
+        return {
+            allowed: false,
+            isFirstCapture: false,
+            committed: false,
+            reason: "FREE_TIER",
+            message: "A captura automática de propostas está disponível apenas em planos pagos.",
+        };
+    }
+
+    // Trial tier - atomic check and increment
+    // Uses conditional UPDATE that only succeeds if limit not reached
+    // Also sets ahaFirstBccCaptureAt only on first capture (when transitioning false -> true)
+    try {
+        const result = await prisma.$executeRaw`
+            UPDATE "Organization"
+            SET "trial_bcc_captures" = "trial_bcc_captures" + 1,
+                "aha_first_bcc_capture" = true,
+                "aha_first_bcc_capture_at" = CASE
+                    WHEN "aha_first_bcc_capture" = false THEN NOW()
+                    ELSE "aha_first_bcc_capture_at"
+                END
+            WHERE id = ${organizationId}
+            AND "trial_bcc_captures" < ${TRIAL_BCC_INBOUND_LIMIT}
+        `;
+
+        if (result === 0) {
+            // No rows updated - either org doesn't exist or limit already reached
+            const org = await prisma.organization.findUnique({
+                where: { id: organizationId },
+                select: { trialBccCaptures: true },
+            });
+
+            if (!org) {
+                return {
+                    allowed: false,
+                    isFirstCapture: false,
+                    committed: false,
+                    reason: "ORG_NOT_FOUND",
+                    message: "Organização não encontrada.",
+                };
+            }
+
+            // Limit was already reached
+            return {
+                allowed: false,
+                isFirstCapture: false,
+                committed: false,
+                reason: "TRIAL_LIMIT_REACHED",
+                message: "Já utilizou a captura automática incluída no trial. Atualize para continuar a usar.",
+            };
+        }
+
+        // Successfully incremented - check if this was the first capture
+        // We know it's the first if counter was 0 before (now 1)
+        const org = await prisma.organization.findUnique({
+            where: { id: organizationId },
+            select: { trialBccCaptures: true },
+        });
+
+        return {
+            allowed: true,
+            isFirstCapture: org?.trialBccCaptures === 1,
+            committed: true,
+        };
+    } catch (error) {
+        // Database error - treat as not found
+        return {
+            allowed: false,
+            isFirstCapture: false,
+            committed: false,
+            reason: "ORG_NOT_FOUND",
+            message: "Erro ao verificar limite de capturas.",
+        };
+    }
 }
 
 /**

@@ -16,6 +16,11 @@ interface EntitlementsData {
     autoEmailEnabled: boolean;
     bccInboundEnabled: boolean;
     subscriptionStatus: string | null;
+    // Trial BCC captures
+    trialBccCapturesUsed: number;
+    trialBccCaptureLimit: number;
+    trialBccCapturesRemaining: number;
+    ahaFirstBccCapture: boolean;
 }
 
 export function LifecycleBanner() {
@@ -53,11 +58,11 @@ export function LifecycleBanner() {
     // Trial banner (any days remaining)
     if (entitlements.tier === "trial" && entitlements.trialDaysRemaining !== null) {
         const isUrgent = entitlements.trialDaysRemaining <= 3;
+        const hasBccLimit = entitlements.trialBccCaptureLimit > 0 && entitlements.trialBccCapturesRemaining === 0;
         const borderColor = isUrgent ? "border-orange-500/30" : "border-blue-500/30";
         const bgColor = isUrgent ? "bg-orange-500/10" : "bg-blue-500/10";
         const iconColor = isUrgent ? "text-orange-500" : "text-blue-400";
         const textColor = isUrgent ? "text-orange-200" : "text-blue-200";
-        const subtextColor = isUrgent ? "text-orange-300/80" : "text-blue-300/80";
         const linkColor = isUrgent ? "text-orange-400 hover:text-orange-300" : "text-blue-400 hover:text-blue-300";
         const Icon = isUrgent ? Clock : Zap;
 
@@ -69,7 +74,17 @@ export function LifecycleBanner() {
                         <div>
                             <p className={`text-sm font-medium ${textColor}`}>
                                 Trial termina em {entitlements.trialDaysRemaining} dia{entitlements.trialDaysRemaining !== 1 ? "s" : ""} · {entitlements.quotesUsed}/{entitlements.quotesLimit} envios
+                                {hasBccLimit && (
+                                    <span className="ml-2 text-xs opacity-80">
+                                        · BCC: {entitlements.trialBccCapturesUsed}/{entitlements.trialBccCaptureLimit}
+                                    </span>
+                                )}
                             </p>
+                            {hasBccLimit && (
+                                <p className={`mt-1 text-xs ${isUrgent ? "text-orange-300/70" : "text-blue-300/70"}`}>
+                                    Captura BCC utilizada. Atualize para capturas ilimitadas.
+                                </p>
+                            )}
                             <Link
                                 href="/settings/billing"
                                 className={`mt-2 inline-flex items-center text-sm font-medium ${linkColor}`}

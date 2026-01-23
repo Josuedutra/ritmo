@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
                 return success({
                     access: "teaser",
                     tier: access.tier,
+                    organizationId: orgId,
                     message: "O Scoreboard completo está disponível nos planos pagos.",
                     upgradeUrl: "/settings/billing",
                     // Sample/placeholder data for teaser
@@ -65,6 +66,7 @@ export async function GET(request: NextRequest) {
         return success({
             access: "full",
             tier: access.tier,
+            organizationId: orgId,
             data: {
                 sentCount: data.sentCount,
                 completedActions: data.completedActions,

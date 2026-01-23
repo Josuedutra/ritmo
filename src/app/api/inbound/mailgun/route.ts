@@ -32,7 +32,7 @@ import {
     checkAndReserveStorageQuota,
     getRetentionPolicy,
     checkTrialBccCapture,
-    incrementTrialBccCapture,
+    checkAndIncrementTrialBccCapture,
     getEntitlements,
 } from "@/lib/entitlements";
 import {
@@ -220,12 +220,15 @@ export async function POST(request: NextRequest) {
                 },
             });
 
-            log.info({
+            // Use info level for expected trial limit (not an error)
+            const logLevel = bccCheck.reason === "TRIAL_LIMIT_REACHED" ? "info" : "info";
+            log[logLevel]({
                 id: ingestion.id,
                 orgShortId,
                 reason: bccCheck.reason,
                 tier: entitlements.tier,
-            }, "Inbound rejected - BCC capture not allowed");
+                expected: bccCheck.reason === "TRIAL_LIMIT_REACHED", // Flag for observability
+            }, "Inbound rejected - BCC capture not allowed (expected behavior)");
 
             // Return 200 to avoid exposing internal state (non-revelatory response)
             return NextResponse.json({
@@ -594,12 +597,13 @@ export async function POST(request: NextRequest) {
         // Track BCC inbound success and increment trial counter if applicable
         const captureSuccessful = attachmentProcessed || linkProcessed;
         if (captureSuccessful) {
-            // Increment trial BCC capture counter if in trial
+            // Atomically increment trial BCC capture counter if in trial
+            // Uses checkAndIncrementTrialBccCapture for race-condition safety
             if (entitlements.tier === "trial") {
-                const captureResult = await incrementTrialBccCapture(org.id);
+                const captureResult = await checkAndIncrementTrialBccCapture(org.id);
 
-                // Track "aha moment" if this was the first capture
-                if (captureResult.isFirstCapture) {
+                // Track "aha moment" if this was the first capture and was committed
+                if (captureResult.allowed && captureResult.isFirstCapture) {
                     await trackEvent(ProductEventNames.AHA_BCC_INBOUND_FIRST_SUCCESS, {
                         organizationId: org.id,
                         props: {

@@ -139,7 +139,8 @@ model Organization {
   bccInboundEnabled   Boolean   @default(false) @map("bcc_inbound_enabled") // Can process BCC proposals automatically
 
   // Aha moments tracking
-  ahaFirstBccCapture  Boolean   @default(false) @map("aha_first_bcc_capture") // First BCC capture achieved
+  ahaFirstBccCapture    Boolean   @default(false) @map("aha_first_bcc_capture") // First BCC capture achieved
+  ahaFirstBccCaptureAt  DateTime? @map("aha_first_bcc_capture_at") // When first BCC capture happened (for celebration)
 
   // Sector for benchmark grouping
   sector              Sector?   // Selected during onboarding for benchmark comparisons

@@ -65,6 +65,7 @@ function createMockOrgData(overrides: Partial<{
     autoEmailEnabled: boolean;
     bccInboundEnabled: boolean;
     ahaFirstBccCapture: boolean;
+    ahaFirstBccCaptureAt: Date | null;
     storageUsedBytes: bigint;
     storageQuotaBytes: bigint;
     subscription: {
@@ -83,6 +84,7 @@ function createMockOrgData(overrides: Partial<{
         autoEmailEnabled: overrides.autoEmailEnabled ?? true,
         bccInboundEnabled: overrides.bccInboundEnabled ?? true,
         ahaFirstBccCapture: overrides.ahaFirstBccCapture ?? false,
+        ahaFirstBccCaptureAt: overrides.ahaFirstBccCaptureAt ?? null,
         storageUsedBytes: overrides.storageUsedBytes ?? BigInt(0),
         storageQuotaBytes: overrides.storageQuotaBytes ?? BigInt(5 * 1024 * 1024 * 1024),
         subscription: overrides.subscription !== undefined ? overrides.subscription : null,

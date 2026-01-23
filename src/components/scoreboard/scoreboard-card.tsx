@@ -13,6 +13,7 @@ import {
     ArrowRight,
     RefreshCw,
 } from "lucide-react";
+import { useAhaCelebration } from "@/hooks/use-aha-celebration";
 
 interface DailyMetric {
     date: string;
@@ -32,6 +33,7 @@ interface ScoreboardData {
 interface ScoreboardResponse {
     access: "full" | "teaser";
     tier: "paid" | "trial" | "free";
+    organizationId?: string;
     data?: ScoreboardData;
     message?: string;
     upgradeUrl?: string;
@@ -43,25 +45,59 @@ interface ScoreboardResponse {
     };
 }
 
+interface EntitlementsResponse {
+    tier: string;
+    ahaFirstBccCaptureAt: string | null;
+}
+
 export function ScoreboardCard() {
     const [data, setData] = useState<ScoreboardResponse | null>(null);
+    const [entitlements, setEntitlements] = useState<EntitlementsResponse | null>(null);
+    const [organizationId, setOrganizationId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    // AHA celebration hook
+    const { isHighlighted } = useAhaCelebration({
+        organizationId,
+        ahaFirstBccCaptureAt: entitlements?.ahaFirstBccCaptureAt ?? null,
+    });
 
     useEffect(() => {
         async function fetchData() {
             try {
-                const res = await fetch("/api/dashboard/scoreboard");
-                if (!res.ok) {
-                    if (res.status === 403) {
+                // Fetch scoreboard and entitlements in parallel
+                const [scoreboardRes, entitlementsRes] = await Promise.all([
+                    fetch("/api/dashboard/scoreboard"),
+                    fetch("/api/entitlements"),
+                ]);
+
+                if (!scoreboardRes.ok) {
+                    if (scoreboardRes.status === 403) {
                         // Free tier - no access
                         setData(null);
                         return;
                     }
                     throw new Error("Erro ao carregar scoreboard");
                 }
-                const json = await res.json();
-                setData(json);
+
+                const scoreboardJson = await scoreboardRes.json();
+                setData(scoreboardJson);
+
+                // Extract org ID from scoreboard response if available
+                if (scoreboardJson.organizationId) {
+                    setOrganizationId(scoreboardJson.organizationId);
+                }
+
+                // Parse entitlements for AHA celebration
+                if (entitlementsRes.ok) {
+                    const entitlementsJson = await entitlementsRes.json();
+                    setEntitlements(entitlementsJson.data);
+                    // Get org ID from session context (stored in response)
+                    if (entitlementsJson.data) {
+                        // Org ID will be fetched from another source
+                    }
+                }
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Erro desconhecido");
             } finally {
@@ -138,8 +174,14 @@ export function ScoreboardCard() {
     // Full access
     const metrics = data.data!;
 
+    // Premium highlight classes for AHA celebration
+    // Uses brand token for consistent Ritmo styling
+    const highlightClasses = isHighlighted
+        ? "ring-2 ring-brand/30 shadow-md shadow-brand/10 transition-all duration-300 ease-out"
+        : "transition-all duration-300 ease-out";
+
     return (
-        <Card>
+        <Card className={highlightClasses}>
             <CardHeader className="pb-3">
                 <CardTitle className="flex items-center justify-between text-base">
                     <span className="flex items-center gap-2">
