@@ -79,6 +79,12 @@ export function BenchmarkCard() {
     const [error, setError] = useState<string | null>(null);
     const [forbidden, setForbidden] = useState(false);
 
+    // P1-UPGRADE-PROMPTS: Handle CTA click (must be before any conditional returns)
+    const handleUpgradeClick = useCallback(() => {
+        trackBenchmarkClicked();
+    }, []);
+
+    // Fetch benchmark data
     useEffect(() => {
         async function fetchData() {
             try {
@@ -102,6 +108,13 @@ export function BenchmarkCard() {
         fetchData();
     }, []);
 
+    // P1-UPGRADE-PROMPTS: Track when forbidden teaser is shown
+    useEffect(() => {
+        if (forbidden) {
+            trackBenchmarkLocked();
+        }
+    }, [forbidden]);
+
     if (loading) {
         return (
             <Card>
@@ -121,18 +134,6 @@ export function BenchmarkCard() {
             </Card>
         );
     }
-
-    // P1-UPGRADE-PROMPTS: Track when forbidden teaser is shown
-    useEffect(() => {
-        if (forbidden) {
-            trackBenchmarkLocked();
-        }
-    }, [forbidden]);
-
-    // P1-UPGRADE-PROMPTS: Handle CTA click
-    const handleUpgradeClick = useCallback(() => {
-        trackBenchmarkClicked();
-    }, []);
 
     // Forbidden - show upgrade teaser
     if (forbidden) {
