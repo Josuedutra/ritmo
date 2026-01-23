@@ -170,8 +170,8 @@ model Organization {
 
 model User {
   id              String    @id @default(uuid())
-  organizationId  String    @map("organization_id")
-  email           String
+  organizationId  String?   @map("organization_id") // Nullable for OAuth users (org created in createUser event)
+  email           String    @unique // Unique globally for OAuth account linking
   name            String?
   passwordHash    String?   @map("password_hash")
   role            UserRole  @default(member)
@@ -182,7 +182,7 @@ model User {
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization    Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   quotesCreated   Quote[]      @relation("CreatedBy")
   quotesOwned     Quote[]      @relation("OwnedBy")
   tasksAssigned   Task[]       @relation("AssignedTo")
@@ -192,7 +192,7 @@ model User {
   sessions        Session[]
   passwordResetTokens PasswordResetToken[]
 
-  @@unique([organizationId, email])
+  @@unique([organizationId, email]) // Compound unique allows same email in different orgs
   @@map("users")
 }
 

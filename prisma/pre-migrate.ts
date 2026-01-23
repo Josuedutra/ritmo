@@ -296,6 +296,50 @@ async function main() {
         }
     }
 
+    // Migrate users table for OAuth support (organizationId nullable)
+    if (await tableExists("users")) {
+        console.log("📝 Checking users table for OAuth support...");
+
+        // Check if organization_id column is nullable
+        const result = await prisma.$queryRaw<{ is_nullable: string }[]>`
+            SELECT is_nullable
+            FROM information_schema.columns
+            WHERE table_name = 'users' AND column_name = 'organization_id'
+        `;
+
+        if (result.length > 0 && result[0].is_nullable === "NO") {
+            console.log("📝 Making organization_id nullable for OAuth users...");
+
+            // Drop the foreign key constraint first (if exists)
+            await prisma.$executeRaw`
+                ALTER TABLE users
+                DROP CONSTRAINT IF EXISTS users_organization_id_fkey
+            `;
+
+            // Make organization_id nullable
+            await prisma.$executeRaw`
+                ALTER TABLE users
+                ALTER COLUMN organization_id DROP NOT NULL
+            `;
+
+            // Re-add the foreign key constraint with ON DELETE CASCADE
+            await prisma.$executeRaw`
+                ALTER TABLE users
+                ADD CONSTRAINT users_organization_id_fkey
+                FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+            `;
+
+            // Add unique constraint on email if not exists (for OAuth account linking)
+            await prisma.$executeRaw`
+                CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique ON users(email)
+            `;
+
+            console.log("✅ users table updated for OAuth support");
+        } else {
+            console.log("✅ users.organization_id already nullable");
+        }
+    }
+
     console.log("✅ Pre-migration complete");
 }
 
