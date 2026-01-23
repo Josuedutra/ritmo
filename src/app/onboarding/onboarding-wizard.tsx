@@ -20,6 +20,8 @@ import {
     DialogTitle,
     DialogDescription,
     DialogTrigger,
+    StatusBadge,
+    type StatusBadgeStatus,
 } from "@/components/ui";
 import {
     FileText,
@@ -59,6 +61,9 @@ interface OnboardingWizardProps {
     hasTemplates: boolean;
     hasQuotes: boolean;
     templates: Template[];
+    bccInboundEnabled: boolean;
+    trialBccLimitReached: boolean;
+    tier: "free" | "trial" | "paid";
 }
 
 const STEPS = [
@@ -77,6 +82,9 @@ export function OnboardingWizard({
     hasTemplates,
     hasQuotes,
     templates,
+    bccInboundEnabled,
+    trialBccLimitReached,
+    tier,
 }: OnboardingWizardProps) {
     const router = useRouter();
     const [currentStep, setCurrentStep] = useState(0);
@@ -122,6 +130,15 @@ export function OnboardingWizard({
     const resetVerifyModal = () => {
         setVerifyStatus("idle");
         setVerifyData(null);
+    };
+
+    // Derive BCC status for StatusBadge
+    const getBccStatus = (): StatusBadgeStatus => {
+        if (!bccInboundEnabled) return "disabled";
+        if (trialBccLimitReached) return "limited";
+        if (verifyStatus === "loading") return "pending";
+        if (verifyStatus === "success") return "verified";
+        return "active";
     };
 
     const handleCopyBcc = async () => {
@@ -204,7 +221,7 @@ export function OnboardingWizard({
     };
 
     // Header consistente com "Guardar e sair" no topo direito
-    const renderHeader = (icon: React.ReactNode, iconBg: string, title: string, subtitle: string) => {
+    const renderHeader = (icon: React.ReactNode, iconBg: string, title: string, subtitle: string, statusBadge?: React.ReactNode) => {
         return (
             <CardHeader className="border-b border-[var(--color-border)] bg-[var(--color-muted)]/20 px-8 py-5">
                 <div className="flex items-center justify-between">
@@ -213,7 +230,10 @@ export function OnboardingWizard({
                             {icon}
                         </div>
                         <div>
-                            <CardTitle className="text-lg">{title}</CardTitle>
+                            <div className="flex items-center gap-2">
+                                <CardTitle className="text-lg">{title}</CardTitle>
+                                {statusBadge}
+                            </div>
                             <p className="mt-0.5 text-sm text-[var(--color-muted-foreground)]">
                                 {subtitle}
                             </p>
@@ -579,7 +599,8 @@ export function OnboardingWizard({
                                 <Inbox className="h-6 w-6 text-orange-500" />,
                                 "bg-orange-500/10",
                                 "Captura de propostas",
-                                "Mantenha o contexto de cada orçamento"
+                                "Mantenha o contexto de cada orçamento",
+                                <StatusBadge status={getBccStatus()} />
                             )}
                             <CardContent className="p-8">
                                 <div className="space-y-6">
@@ -846,7 +867,7 @@ export function OnboardingWizard({
                                                     <Inbox className="h-5 w-5 text-[var(--color-muted-foreground)]" />
                                                     <span className="text-sm font-medium">Captura BCC</span>
                                                 </div>
-                                                <Badge className="bg-green-500">Activo</Badge>
+                                                <StatusBadge status={getBccStatus()} />
                                             </div>
                                         </div>
                                     </div>

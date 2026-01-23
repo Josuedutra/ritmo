@@ -59,3 +59,4 @@ export {
     DropdownMenuSubTrigger,
     DropdownMenuRadioGroup,
 } from "./dropdown-menu";
+export { StatusBadge, type StatusBadgeStatus } from "./status-badge";

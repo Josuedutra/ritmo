@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import {
     LayoutDashboard,
@@ -76,13 +77,14 @@ export function AppHeader({ user }: AppHeaderProps) {
                     <span className="hidden text-sm text-[var(--color-muted-foreground)] sm:block">
                         {user.name || user.email}
                     </span>
-                    <Link
-                        href="/api/auth/signout"
+                    <button
+                        type="button"
+                        onClick={() => signOut({ callbackUrl: "/?signed_out=1" })}
                         className="flex h-9 w-9 items-center justify-center rounded-md text-[var(--color-muted-foreground)] transition-colors hover:bg-[var(--color-sidebar-accent)] hover:text-[var(--color-foreground)]"
                         title="Sair"
                     >
                         <LogOut className="h-4 w-4" />
-                    </Link>
+                    </button>
 
                     {/* Mobile Menu Button */}
                     <button

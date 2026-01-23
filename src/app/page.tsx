@@ -1,9 +1,12 @@
 "use client";
 
+import { useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui";
 import { ArrowRight, Check, ListChecks, FileText, Zap, Bell, X, Users, BarChart3, Shield, Headphones } from "lucide-react";
 import { AntigravityParticles } from "@/components/landing/antigravity-particles";
 import {
@@ -29,9 +32,30 @@ const staggerContainer = {
     }
 };
 
+// Component to handle signed_out toast (needs Suspense boundary)
+function SignedOutToast() {
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        if (searchParams.get("signed_out") === "1") {
+            toast.success("Sessão terminada.");
+            // Clean up the URL
+            window.history.replaceState({}, "", "/");
+        }
+    }, [searchParams]);
+
+    return null;
+}
+
 export default function LandingPage() {
+
     return (
         <div className="flex min-h-screen flex-col bg-white text-zinc-950 font-sans selection:bg-blue-100 selection:text-blue-900">
+
+            {/* Handle signed_out toast with Suspense boundary */}
+            <Suspense fallback={null}>
+                <SignedOutToast />
+            </Suspense>
 
             <AntigravityParticles />
 

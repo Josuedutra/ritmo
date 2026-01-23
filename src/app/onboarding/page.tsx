@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireOnboardingIncomplete } from "@/lib/onboarding-gate";
 import { OnboardingWizard } from "./onboarding-wizard";
+import { getEntitlements } from "@/lib/entitlements";
 
 export default async function OnboardingPage() {
     // Requirement C: If onboarding is complete, redirect to dashboard
@@ -50,6 +51,9 @@ export default async function OnboardingPage() {
 
     const bccEmail = org.bccAddress || `all+${org.shortId}@inbound.useritmo.pt`;
 
+    // Get entitlements for BCC status display
+    const entitlements = await getEntitlements(session.user.organizationId);
+
     return (
         <OnboardingWizard
             orgName={org.name}
@@ -59,6 +63,9 @@ export default async function OnboardingPage() {
             hasTemplates={templates.length > 0}
             hasQuotes={org._count.quotes > 0}
             templates={templates}
+            bccInboundEnabled={entitlements.bccInboundEnabled}
+            trialBccLimitReached={entitlements.trialBccCapturesUsed >= entitlements.trialBccCaptureLimit}
+            tier={entitlements.tier}
         />
     );
 }
