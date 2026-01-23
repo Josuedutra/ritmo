@@ -171,7 +171,97 @@
 
 ---
 
-## 5. Inbound Email Tests
+## 5. Onboarding Premium
+
+| Test | Status | Evidence |
+|------|--------|----------|
+| "Guardar e sair" does NOT complete onboarding | [ ] | User returns to wizard on next visit |
+| SMTP default is "Enviar via Ritmo" with "Recomendado" badge | [ ] | Screenshot |
+| Choosing "SMTP proprio" without config blocks advancement | [ ] | Shows 2 CTAs: "Configurar SMTP" + "Usar Ritmo por agora" |
+| Copy PT-PT: no emojis, short messages | [ ] | Visual review |
+| Gradient CTA only on primary button | [ ] | Screenshot |
+
+---
+
+## 6. Trial AHA + BCC Inbound
+
+### 6.1 First BCC Capture (Trial)
+
+| Test | Status | Evidence |
+|------|--------|----------|
+| Send BCC email with PDF to trial org | [ ] | |
+| Inbound processes successfully | [ ] | status=processed |
+| Proposal associated with quote | [ ] | Quote has proposalFileId or proposalLink |
+| `ahaFirstBccCapture=true` set | [ ] | Query: `SELECT aha_first_bcc_capture FROM organizations WHERE id='...'` |
+| `ahaFirstBccCaptureAt` is set | [ ] | Query: `SELECT aha_first_bcc_capture_at FROM organizations WHERE id='...'` |
+| Toast "Captura concluida" appears ONCE | [ ] | Visual |
+| Scoreboard highlight appears ~1500ms | [ ] | Visual |
+| Telemetry: AHA_BCC_INBOUND_FIRST_SUCCESS logged | [ ] | Check product_events table |
+
+### 6.2 Celebration Does NOT Repeat
+
+| Test | Status | Evidence |
+|------|--------|----------|
+| Refresh page | [ ] | Toast does NOT reappear |
+| Highlight does NOT reappear | [ ] | |
+| localStorage key exists: `ritmo:lastSeenAhaAt:<orgId>` | [ ] | DevTools > Application > LocalStorage |
+
+### 6.3 Second BCC Capture (Trial Limit)
+
+| Test | Status | Evidence |
+|------|--------|----------|
+| Send 2nd BCC email | [ ] | |
+| Response: 200 "received" (non-revelatory) | [ ] | |
+| InboundIngestion.status = `rejected_trial_limit` | [ ] | |
+| Log shows `expected: true` flag | [ ] | Vercel logs |
+| Telemetry: PAYWALL_SHOWN logged | [ ] | Check product_events |
+| Toast does NOT appear | [ ] | |
+| UI banner shows "BCC: 1/1" + upgrade CTA | [ ] | LifecycleBanner |
+
+### 6.4 Duplicate Inbound (Idempotency)
+
+| Test | Status | Evidence |
+|------|--------|----------|
+| Send same email again (same Message-Id) | [ ] | |
+| Response: `{"status":"duplicate","id":"..."}` | [ ] | |
+| No new InboundIngestion created | [ ] | |
+| No telemetry duplicated | [ ] | |
+| Celebration does NOT trigger | [ ] | |
+
+---
+
+## 7. Limits and Usage
+
+### 7.1 Free Tier
+
+| Test | Status | Evidence |
+|------|--------|----------|
+| Free tier limit is 5 quotes/month | [ ] | |
+| Manual send counts toward limit | [ ] | Check MANUAL_SEND_MARKED event |
+| BCC inbound NOT allowed (bccInboundEnabled=false) | [ ] | |
+| Scoreboard shows teaser/locked | [ ] | |
+
+### 7.2 Trial Tier
+
+| Test | Status | Evidence |
+|------|--------|----------|
+| Trial limit is 20 quotes | [ ] | |
+| Trial BCC limit is 1 capture | [ ] | |
+| Scoreboard fully accessible | [ ] | |
+| MAX_RESENDS_PER_MONTH = 2 | [ ] | |
+
+### 7.3 Trial Expiration
+
+| Test | Status | Evidence |
+|------|--------|----------|
+| After trial_ends_at passes, tier = "free" | [ ] | |
+| bccInboundEnabled = false | [ ] | |
+| autoEmailEnabled = false | [ ] | |
+| UI shows trial expired message | [ ] | |
+
+---
+
+## 8. Inbound Email Tests
 
 | Test | Status | Evidence |
 |------|--------|----------|
@@ -200,9 +290,12 @@
 | Billing | _/12_ | _/12_ | _/12_ |
 | Stripe Webhook | _/9_ | _/9_ | _/9_ |
 | Plans / UI | _/4_ | _/4_ | _/4_ |
+| Onboarding Premium | _/5_ | _/5_ | _/5_ |
+| Trial AHA + BCC Inbound | _/18_ | _/18_ | _/18_ |
+| Limits and Usage | _/10_ | _/10_ | _/10_ |
 | Inbound Email | _/4_ | _/4_ | _/4_ |
 | Cron Jobs | _/3_ | _/3_ | _/3_ |
-| **TOTAL** | _/40_ | _/40_ | _/40_ |
+| **TOTAL** | _/73_ | _/73_ | _/73_ |
 
 ---
 
