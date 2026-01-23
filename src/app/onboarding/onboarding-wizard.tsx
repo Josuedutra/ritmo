@@ -836,9 +836,12 @@ export function OnboardingWizard({
                                     <h1 className="mb-2 text-2xl font-bold tracking-tight">
                                         Configuração concluída.
                                     </h1>
-                                    <p className="mb-8 text-[var(--color-muted-foreground)] leading-relaxed max-w-md mx-auto">
-                                        A sua conta está pronta. Crie o primeiro orçamento ou
-                                        explore o dashboard.
+                                    <p className="mb-4 text-[var(--color-muted-foreground)] leading-relaxed max-w-md mx-auto">
+                                        A sua conta está pronta. Crie o primeiro orçamento para
+                                        ativar o follow-up automático.
+                                    </p>
+                                    <p className="mb-8 text-sm text-[var(--color-muted-foreground)] max-w-md mx-auto">
+                                        O Ritmo só envia follow-ups após criar um orçamento — nada é enviado até lá.
                                     </p>
 
                                     {/* Resumo de configuração */}
