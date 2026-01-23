@@ -7,15 +7,15 @@ test.describe("Dashboard", () => {
         // Should see dashboard title
         await expect(page.getByRole("heading", { name: /dashboard/i })).toBeVisible();
 
-        // Should see stat cards
-        await expect(page.getByText(/ações.*hoje|actions.*today/i)).toBeVisible();
+        // Should see stat cards (check for card title in stats section)
+        await expect(page.getByText("Ações hoje", { exact: true }).first()).toBeVisible();
     });
 
     test("should display actions section", async ({ page }) => {
         await page.goto("/dashboard");
 
-        // Should see actions section
-        await expect(page.getByText(/ações.*hoje|today.*actions/i)).toBeVisible();
+        // Should see actions section heading
+        await expect(page.getByRole("heading", { name: /ações de hoje/i })).toBeVisible();
     });
 
     test("should display usage meter", async ({ page }) => {
