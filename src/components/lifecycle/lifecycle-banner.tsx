@@ -59,11 +59,11 @@ export function LifecycleBanner() {
     if (entitlements.tier === "trial" && entitlements.trialDaysRemaining !== null) {
         const isUrgent = entitlements.trialDaysRemaining <= 3;
         const hasBccLimit = entitlements.trialBccCaptureLimit > 0 && entitlements.trialBccCapturesRemaining === 0;
-        const borderColor = isUrgent ? "border-orange-500/30" : "border-blue-500/30";
-        const bgColor = isUrgent ? "bg-orange-500/10" : "bg-blue-500/10";
-        const iconColor = isUrgent ? "text-orange-500" : "text-blue-400";
-        const textColor = isUrgent ? "text-orange-200" : "text-blue-200";
-        const linkColor = isUrgent ? "text-orange-400 hover:text-orange-300" : "text-blue-400 hover:text-blue-300";
+        const borderColor = isUrgent ? "border-orange-500/30" : "border-[var(--color-info)]/30";
+        const bgColor = isUrgent ? "bg-orange-500/10" : "bg-[var(--color-info)]/10";
+        const iconColor = isUrgent ? "text-orange-500" : "text-[var(--color-info)]";
+        const textColor = isUrgent ? "text-orange-200" : "text-[var(--color-info)]";
+        const linkColor = isUrgent ? "text-orange-400 hover:text-orange-300" : "text-[var(--color-info)] hover:text-[var(--color-info-foreground)]";
         const Icon = isUrgent ? Clock : Zap;
 
         return (
@@ -81,7 +81,7 @@ export function LifecycleBanner() {
                                 )}
                             </p>
                             {hasBccLimit && (
-                                <p className={`mt-1 text-xs ${isUrgent ? "text-orange-300/70" : "text-blue-300/70"}`}>
+                                <p className={`mt-1 text-xs ${isUrgent ? "text-orange-300/70" : "text-[var(--color-info)]/70"}`}>
                                     Captura BCC utilizada. Atualize para capturas ilimitadas.
                                 </p>
                             )}

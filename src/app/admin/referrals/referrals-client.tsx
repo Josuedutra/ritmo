@@ -337,8 +337,8 @@ export function ReferralsAdminClient() {
                 <Card>
                     <CardContent className="pt-4">
                         <div className="flex items-center gap-3">
-                            <div className="rounded-full bg-blue-500/10 p-2">
-                                <Users className="h-5 w-5 text-blue-500" />
+                            <div className="rounded-full bg-[var(--color-info-muted)] p-2">
+                                <Users className="h-5 w-5 text-[var(--color-info)]" />
                             </div>
                             <div>
                                 <p className="text-2xl font-bold">{partners.filter((p) => p.status === "ACTIVE").length}</p>
@@ -555,7 +555,7 @@ export function ReferralsAdminClient() {
                                                         attr.status === "CONVERTED"
                                                             ? "bg-green-500/10 text-green-600"
                                                             : attr.status === "SIGNED_UP"
-                                                                ? "bg-blue-500/10 text-blue-600"
+                                                                ? "bg-[var(--color-info-muted)] text-[var(--color-info-foreground)]"
                                                                 : "bg-gray-500/10 text-gray-600"
                                                     }`}
                                                 >
@@ -630,7 +630,7 @@ export function ReferralsAdminClient() {
                                                                 ? "bg-yellow-500/10 text-yellow-600"
                                                                 : booster.status === "VOID"
                                                                     ? "bg-red-500/10 text-red-600"
-                                                                    : "bg-blue-500/10 text-blue-600"
+                                                                    : "bg-[var(--color-info-muted)] text-[var(--color-info-foreground)]"
                                                     }`}
                                                 >
                                                     {booster.status}

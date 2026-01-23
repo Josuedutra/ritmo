@@ -533,14 +533,14 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
 
                 {/* Payments disabled banner */}
                 {!PAYMENTS_ENABLED && (
-                    <Card className="mb-4 border-blue-500/30 bg-blue-500/10">
+                    <Card className="mb-4 border-[var(--color-info)]/30 bg-[var(--color-info)]/10">
                         <CardContent className="flex items-center gap-3 py-4">
-                            <Clock className="h-5 w-5 text-blue-500" />
+                            <Clock className="h-5 w-5 text-[var(--color-info)]" />
                             <div>
-                                <p className="font-medium text-blue-700 dark:text-blue-300">
+                                <p className="font-medium text-[var(--color-info-foreground)]">
                                     Pagamentos em breve
                                 </p>
-                                <p className="text-sm text-blue-600 dark:text-blue-400">
+                                <p className="text-sm text-[var(--color-info)]">
                                     Estamos a preparar o sistema de pagamentos. Por agora, pode continuar a usar o trial ou o plano gratuito.
                                 </p>
                             </div>

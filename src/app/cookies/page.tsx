@@ -131,7 +131,7 @@ export default function CookiesPage() {
                                         href="https://support.google.com/chrome/answer/95647"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-blue-600 hover:underline"
+                                        className="text-[var(--color-info-foreground)] hover:underline"
                                     >
                                         Google Chrome
                                     </a>
@@ -141,7 +141,7 @@ export default function CookiesPage() {
                                         href="https://support.mozilla.org/pt-PT/kb/cookies-informacao-que-os-sites-guardam-no-seu-com"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-blue-600 hover:underline"
+                                        className="text-[var(--color-info-foreground)] hover:underline"
                                     >
                                         Mozilla Firefox
                                     </a>
@@ -151,7 +151,7 @@ export default function CookiesPage() {
                                         href="https://support.apple.com/pt-pt/guide/safari/sfri11471/mac"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-blue-600 hover:underline"
+                                        className="text-[var(--color-info-foreground)] hover:underline"
                                     >
                                         Safari
                                     </a>
@@ -161,7 +161,7 @@ export default function CookiesPage() {
                                         href="https://support.microsoft.com/pt-pt/microsoft-edge/eliminar-cookies-no-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-blue-600 hover:underline"
+                                        className="text-[var(--color-info-foreground)] hover:underline"
                                     >
                                         Microsoft Edge
                                     </a>
@@ -177,7 +177,7 @@ export default function CookiesPage() {
                                 através de{" "}
                                 <a
                                     href="mailto:ritmo@useritmo.pt"
-                                    className="text-blue-600 hover:underline"
+                                    className="text-[var(--color-info-foreground)] hover:underline"
                                 >
                                     ritmo@useritmo.pt
                                 </a>

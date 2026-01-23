@@ -106,8 +106,8 @@ export default async function UnsubscribePage({ searchParams }: PageProps) {
             <div className="flex min-h-screen items-center justify-center bg-[var(--color-background)] p-4">
                 <Card className="w-full max-w-md">
                     <CardHeader className="text-center">
-                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-500/10">
-                            <CheckCircle className="h-8 w-8 text-blue-500" />
+                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-info-muted)]">
+                            <CheckCircle className="h-8 w-8 text-[var(--color-info)]" />
                         </div>
                         <CardTitle>Já está removido</CardTitle>
                     </CardHeader>

@@ -184,7 +184,7 @@ function KPICard({
     warning?: boolean;
 }) {
     const colorClasses = {
-        blue: "text-blue-500 bg-blue-500/10",
+        blue: "text-[var(--color-info)] bg-[var(--color-info-muted)]",
         green: "text-green-500 bg-green-500/10",
         purple: "text-purple-500 bg-purple-500/10",
         orange: "text-orange-500 bg-orange-500/10",

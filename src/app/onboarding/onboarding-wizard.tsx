@@ -384,8 +384,8 @@ export function OnboardingWizard({
                     {currentStep === 1 && (
                         <>
                             {renderHeader(
-                                <FileText className="h-6 w-6 text-blue-500" />,
-                                "bg-blue-500/10",
+                                <FileText className="h-6 w-6 text-[var(--color-info)]" />,
+                                "bg-[var(--color-info-muted)]",
                                 "Mensagens de Follow-up",
                                 "Personalize o tom das suas comunicações"
                             )}
@@ -403,10 +403,10 @@ export function OnboardingWizard({
                                         </AlertDescription>
                                     </Alert>
                                 ) : (
-                                    <Alert className="mb-6 border-blue-500/30 bg-blue-500/5">
-                                        <Sparkles className="h-5 w-5 text-blue-500" />
+                                    <Alert className="mb-6 border-[var(--color-info)]/30 bg-[var(--color-info)]/5">
+                                        <Sparkles className="h-5 w-5 text-[var(--color-info)]" />
                                         <AlertDescription className="ml-2">
-                                            <span className="font-medium text-blue-600">
+                                            <span className="font-medium text-[var(--color-info-foreground)]">
                                                 Templates profissionais incluídos
                                             </span>
                                             <span className="block mt-1 text-[var(--color-muted-foreground)]">
@@ -552,10 +552,10 @@ export function OnboardingWizard({
                                                 {/* Alert info com 2 ações quando SMTP não configurado */}
                                                 {smtpChoice === "own" && !hasSmtp && (
                                                     <div className="mt-4">
-                                                        <Alert className="border-blue-500/30 bg-blue-500/5">
-                                                            <Info className="h-4 w-4 text-blue-500" />
+                                                        <Alert className="border-[var(--color-info)]/30 bg-[var(--color-info)]/5">
+                                                            <Info className="h-4 w-4 text-[var(--color-info)]" />
                                                             <AlertDescription className="ml-2 text-sm">
-                                                                <span className="font-medium text-blue-600">Configuração SMTP necessária</span>
+                                                                <span className="font-medium text-[var(--color-info-foreground)]">Configuração SMTP necessária</span>
                                                                 <span className="block mt-1 text-[var(--color-muted-foreground)]">
                                                                     Configure as credenciais do seu servidor de email para usar esta opção.
                                                                 </span>
@@ -779,10 +779,10 @@ export function OnboardingWizard({
                                                 {/* Trial Limit State */}
                                                 {verifyStatus === "trial_limit" && (
                                                     <div className="text-center">
-                                                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-500/10">
-                                                            <Info className="h-8 w-8 text-blue-500" />
+                                                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-info-muted)]">
+                                                            <Info className="h-8 w-8 text-[var(--color-info)]" />
                                                         </div>
-                                                        <h3 className="mb-2 font-semibold text-blue-600">
+                                                        <h3 className="mb-2 font-semibold text-[var(--color-info-foreground)]">
                                                             Limite de trial atingido
                                                         </h3>
                                                         <p className="mb-4 text-sm text-[var(--color-muted-foreground)]">

@@ -26,7 +26,7 @@ const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secon
 // P1-01: Tag display config (show max 2 tags on list)
 const TAG_CONFIG: Record<string, { label: string; color: string }> = {
     urgente: { label: "Urgente", color: "text-red-600 border-red-300 bg-red-500/10" },
-    obra: { label: "Obra", color: "text-blue-600 border-blue-300 bg-blue-500/10" },
+    obra: { label: "Obra", color: "text-[var(--color-info-foreground)] border-[var(--color-info)]/30 bg-[var(--color-info-muted)]" },
     manutencao: { label: "Manutenção", color: "text-green-600 border-green-300 bg-green-500/10" },
     it: { label: "IT", color: "text-purple-600 border-purple-300 bg-purple-500/10" },
     residencial: { label: "Residencial", color: "text-amber-600 border-amber-300 bg-amber-500/10" },
@@ -284,7 +284,7 @@ export default async function QuotesPage({ searchParams }: PageProps) {
                                                 )}
                                                 {/* P1: Next action badge */}
                                                 {nextAction && (
-                                                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2 py-0.5 text-xs font-medium text-blue-600">
+                                                    <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-info-muted)] px-2 py-0.5 text-xs font-medium text-[var(--color-info-foreground)]">
                                                         <Zap className="h-3 w-3" />
                                                         {formatNextAction(nextAction)}
                                                     </span>

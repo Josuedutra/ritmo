@@ -66,14 +66,14 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
 
 // Status config - P0-03: Changed "Agendado" to "Previsto" for future events
 const STATUS_CONFIG: Record<string, { icon: typeof CheckCircle2; color: string; label: string }> = {
-    scheduled: { icon: Clock, color: "text-blue-500", label: "Previsto" },
+    scheduled: { icon: Clock, color: "text-[var(--color-info)]", label: "Previsto" },
     claimed: { icon: Clock, color: "text-yellow-500", label: "Em processamento" },
     completed: { icon: CheckCircle2, color: "text-green-500", label: "Concluído" },
     sent: { icon: Send, color: "text-green-500", label: "Enviado" },
     skipped: { icon: AlertCircle, color: "text-orange-500", label: "Ignorado" },
     cancelled: { icon: XCircle, color: "text-red-500", label: "Cancelado" },
     failed: { icon: XCircle, color: "text-red-500", label: "Falhou" },
-    pending: { icon: Clock, color: "text-blue-500", label: "Pendente" },
+    pending: { icon: Clock, color: "text-[var(--color-info)]", label: "Pendente" },
 };
 
 export function QuoteTimeline({ events, currentRunId, quoteCreatedAt, quoteSentAt, highlightFirstEvent = false }: QuoteTimelineProps) {
@@ -168,7 +168,7 @@ export function QuoteTimeline({ events, currentRunId, quoteCreatedAt, quoteSentA
             {upcomingActions.length > 0 && (
                 <div>
                     <h4 className="mb-3 text-sm font-medium">Próximas ações</h4>
-                    <div className="space-y-3 rounded-lg bg-blue-500/5 p-3">
+                    <div className="space-y-3 rounded-lg bg-[var(--color-info)]/5 p-3">
                         {upcomingActions.map((event, index) => (
                             <TimelineItem
                                 key={`${event.type}-${event.id}`}
@@ -323,11 +323,11 @@ function getTypeBackground(event: TimelineEvent): string {
         case "cadence":
             return event.eventType === "call_d7"
                 ? "bg-green-500/10 text-green-500"
-                : "bg-blue-500/10 text-blue-500";
+                : "bg-[var(--color-info-muted)] text-[var(--color-info)]";
         case "task":
             return "bg-purple-500/10 text-purple-500";
         case "email":
-            return "bg-blue-500/10 text-blue-500";
+            return "bg-[var(--color-info-muted)] text-[var(--color-info)]";
         case "system":
             return "bg-[var(--color-muted)] text-[var(--color-muted-foreground)]";
     }

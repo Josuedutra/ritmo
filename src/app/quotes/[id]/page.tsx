@@ -87,8 +87,8 @@ const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secon
 
 const STAGE_CONFIG: Record<string, { label: string; color: string }> = {
     idle: { label: "Aguardando", color: "text-[var(--color-muted-foreground)]" },
-    fup_d1: { label: "D+1", color: "text-blue-500" },
-    fup_d3: { label: "D+3", color: "text-blue-500" },
+    fup_d1: { label: "D+1", color: "text-[var(--color-info)]" },
+    fup_d3: { label: "D+3", color: "text-[var(--color-info)]" },
     fup_d7: { label: "D+7", color: "text-green-500" },
     fup_d14: { label: "D+14", color: "text-orange-500" },
     completed: { label: "Completo", color: "text-[var(--color-muted-foreground)]" },

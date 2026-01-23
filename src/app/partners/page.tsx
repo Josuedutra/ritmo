@@ -81,8 +81,8 @@ export default function PartnersPage() {
 
                         {/* Benefit 2 */}
                         <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-6">
-                            <div className="mb-4 inline-flex rounded-lg bg-blue-500/10 p-3">
-                                <Building2 className="h-6 w-6 text-blue-500" />
+                            <div className="mb-4 inline-flex rounded-lg bg-[var(--color-info-muted)] p-3">
+                                <Building2 className="h-6 w-6 text-[var(--color-info)]" />
                             </div>
                             <h3 className="mb-2 text-lg font-semibold">Clientes com receita mais previsível</h3>
                             <p className="text-sm text-[var(--color-muted-foreground)]">

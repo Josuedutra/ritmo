@@ -78,7 +78,7 @@ function BillingSuccessContent() {
         return (
             <SystemPageLayout
                 icon={<Loader2 className="h-10 w-10 text-white animate-spin" />}
-                iconBg="bg-blue-500"
+                iconBg="bg-[var(--color-info)]"
                 title="A confirmar subscrição..."
                 subtitle="Por favor, aguarde enquanto verificamos o seu pagamento."
             >
@@ -203,7 +203,7 @@ function BillingSuccessFallback() {
     return (
         <SystemPageLayout
             icon={<Loader2 className="h-10 w-10 text-white animate-spin" />}
-            iconBg="bg-blue-500"
+            iconBg="bg-[var(--color-info)]"
             title="A carregar..."
             subtitle="Por favor, aguarde."
         >

@@ -286,7 +286,7 @@ function BenchmarkMetric({
     const getPosition = () => {
         if (value >= p90) return { label: "Top 10%", color: "text-green-500", icon: TrendingUp };
         if (value >= p75) return { label: "Top 25%", color: "text-green-500", icon: TrendingUp };
-        if (value >= p50) return { label: "Acima da média", color: "text-blue-500", icon: TrendingUp };
+        if (value >= p50) return { label: "Acima da média", color: "text-[var(--color-info)]", icon: TrendingUp };
         if (value >= p50 * 0.8) return { label: "Média", color: "text-[var(--color-muted-foreground)]", icon: Minus };
         return { label: "Abaixo da média", color: "text-orange-500", icon: TrendingDown };
     };

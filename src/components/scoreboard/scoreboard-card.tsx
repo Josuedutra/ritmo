@@ -195,7 +195,7 @@ export function ScoreboardCard() {
                     <MetricBox
                         label="Envios"
                         value={metrics.sentCount.toString()}
-                        icon={<Send className="h-4 w-4 text-blue-500" />}
+                        icon={<Send className="h-4 w-4 text-[var(--color-info)]" />}
                     />
                     <MetricBox
                         label="Ações concluídas"

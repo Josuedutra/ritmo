@@ -36,8 +36,8 @@ const STATUS_CONFIG: Record<
     pending: {
         label: "A verificar",
         icon: Loader2,
-        className: "bg-blue-500/10 text-blue-600 border-blue-500/30",
-        iconClassName: "text-blue-500",
+        className: "bg-[var(--color-info-muted)] text-[var(--color-info-foreground)] border-[var(--color-info)]/30",
+        iconClassName: "text-[var(--color-info)]",
         animate: true,
     },
     verified: {
@@ -61,8 +61,8 @@ const STATUS_CONFIG: Record<
     info: {
         label: "Info",
         icon: Info,
-        className: "bg-blue-500/10 text-blue-600 border-blue-500/30",
-        iconClassName: "text-blue-500",
+        className: "bg-[var(--color-info-muted)] text-[var(--color-info-foreground)] border-[var(--color-info)]/30",
+        iconClassName: "text-[var(--color-info)]",
     },
     warning: {
         label: "Atenção",
