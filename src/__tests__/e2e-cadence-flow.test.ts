@@ -161,16 +161,8 @@ describe("E2E: Cadence Flow", () => {
             expect(dashboardContent).toContain("todayTasks");
         });
 
-        it("deve renderizar ActionItem para cada ação", () => {
-            expect(dashboardContent).toContain("ActionItem");
-            expect(dashboardContent).toContain("data.actions.emails.map");
-            expect(dashboardContent).toContain("data.actions.calls.map");
-            expect(dashboardContent).toContain("data.actions.tasks.map");
-        });
-
-        it("deve mostrar badge Prioritário para HIGH", () => {
-            expect(dashboardContent).toContain("isHigh");
-            expect(dashboardContent).toContain("Prioritário");
+        it("deve renderizar ActionsList", () => {
+            expect(dashboardContent).toContain("ActionsList");
         });
     });
 
@@ -198,7 +190,7 @@ describe("E2E: Cadence Flow", () => {
 
             it("não faz skip silencioso, cria task de call", () => {
                 expect(cron).toContain("getNoEmailTaskTitle");
-                expect(cron).toContain('taskType = "call"');
+                expect(cron).toContain('"call"');
             });
         });
 

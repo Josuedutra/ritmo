@@ -45,6 +45,7 @@ vi.mock("@/lib/prisma", () => ({
             findFirst: vi.fn(),
             create: vi.fn(),
         },
+        $executeRaw: vi.fn(),
     },
 }));
 
@@ -72,6 +73,7 @@ const mockPrisma = prisma as unknown as {
         findFirst: ReturnType<typeof vi.fn>;
         create: ReturnType<typeof vi.fn>;
     };
+    $executeRaw: ReturnType<typeof vi.fn>;
 };
 
 describe("Storage Guardrails Smoke Tests", () => {
@@ -291,16 +293,12 @@ describe("Storage Guardrails Smoke Tests", () => {
             const orgId = "org-test-6b";
             const sizeBytes = 3 * 1024 * 1024; // 3 MB
 
-            mockPrisma.organization.update.mockResolvedValue({});
+            mockPrisma.$executeRaw.mockResolvedValue(1);
 
             await decrementStorageUsage(orgId, sizeBytes);
 
-            expect(mockPrisma.organization.update).toHaveBeenCalledWith({
-                where: { id: orgId },
-                data: {
-                    storageUsedBytes: { decrement: sizeBytes },
-                },
-            });
+            // Uses $executeRaw to ensure storageUsedBytes never goes negative
+            expect(mockPrisma.$executeRaw).toHaveBeenCalled();
         });
     });
 

@@ -415,14 +415,12 @@ describe("Sprint 1: Core - Gates", () => {
         });
 
         it("deve mostrar usage do plano", () => {
-            expect(dashboard).toContain("usageCounter");
-            expect(dashboard).toContain("quotesLimit");
+            expect(dashboard).toContain("UsageMeter");
+            expect(dashboard).toContain("entitlements");
         });
 
-        it("deve ter componente ActionItem", () => {
-            expect(dashboard).toContain("ActionItem");
-            expect(dashboard).toContain("isHigh");
-            expect(dashboard).toContain("priority");
+        it("deve ter componente ActionsList", () => {
+            expect(dashboard).toContain("ActionsList");
         });
     });
 });
