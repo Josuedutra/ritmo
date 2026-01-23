@@ -65,7 +65,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     id: user.id,
                     email: user.email,
                     name: user.name,
-                    organizationId: user.organizationId,
+                    organizationId: user.organizationId ?? undefined, // Convert null to undefined for NextAuth
                     role: user.role,
                 };
             },
