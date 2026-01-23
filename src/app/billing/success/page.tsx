@@ -21,6 +21,18 @@ function BillingSuccessContent() {
     const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
     const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [showSlowLoadingHint, setShowSlowLoadingHint] = useState(false);
+
+    useEffect(() => {
+        // Show fallback CTA after 30 seconds
+        const slowLoadingTimer = setTimeout(() => {
+            if (status === "loading") {
+                setShowSlowLoadingHint(true);
+            }
+        }, 30000);
+
+        return () => clearTimeout(slowLoadingTimer);
+    }, [status]);
 
     useEffect(() => {
         async function verifySession() {
@@ -72,6 +84,30 @@ function BillingSuccessContent() {
                         <div className="h-4 bg-[var(--color-muted)] rounded w-1/2 mx-auto" />
                     </div>
                 </div>
+
+                {/* Fallback hint after 30 seconds */}
+                {showSlowLoadingHint && (
+                    <div className="mt-6 pt-6 border-t border-[var(--color-border)]">
+                        <p className="text-sm text-[var(--color-muted-foreground)] mb-4">
+                            A confirmação está a demorar mais do que o esperado.
+                            O seu pagamento foi processado com sucesso.
+                        </p>
+                        <div className="space-y-3">
+                            <Link href="/settings/billing" className="block">
+                                <Button variant="outline" className="w-full gap-2">
+                                    <CreditCard className="h-4 w-4" />
+                                    Ver faturação
+                                </Button>
+                            </Link>
+                            <Link href="/dashboard" className="block">
+                                <Button variant="ghost" className="w-full gap-2">
+                                    <ArrowRight className="h-4 w-4" />
+                                    Ir para o Dashboard
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
+                )}
             </SystemPageLayout>
         );
     }
