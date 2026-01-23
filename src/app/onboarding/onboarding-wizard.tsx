@@ -212,7 +212,7 @@ export function OnboardingWizard({
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--color-background)] to-[var(--color-muted)]/20 p-4">
+        <div className="flex min-h-screen items-center justify-center bg-[var(--color-background)] p-4">
             <div className="w-full max-w-2xl">
                 {/* Stepper com títulos */}
                 <div className="mb-8">
@@ -225,7 +225,7 @@ export function OnboardingWizard({
                                             index < currentStep
                                                 ? "bg-green-500 text-white shadow-md shadow-green-500/25"
                                                 : index === currentStep
-                                                  ? "bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/30 ring-4 ring-[var(--color-primary)]/20"
+                                                  ? "bg-gradient-to-r from-[var(--color-brand-from)] to-[var(--color-brand-to)] text-white shadow-lg shadow-[var(--color-brand-from)]/30 ring-4 ring-[var(--color-brand-from)]/20"
                                                   : "bg-[var(--color-muted)] text-[var(--color-muted-foreground)]"
                                         }`}
                                     >
@@ -263,7 +263,7 @@ export function OnboardingWizard({
                         <>
                             <CardContent className="p-8">
                                 <div className="text-center">
-                                    <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary)]/70 shadow-lg shadow-[var(--color-primary)]/25">
+                                    <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-[var(--color-primary)] shadow-lg shadow-[var(--color-primary)]/25">
                                         <Sparkles className="h-10 w-10 text-white" />
                                     </div>
                                     <h1 className="mb-2 text-2xl font-bold tracking-tight">
@@ -274,7 +274,7 @@ export function OnboardingWizard({
                                         o follow-up dos seus orçamentos.
                                     </p>
                                     <div className="space-y-3">
-                                        <Button onClick={nextStep} size="lg" className="w-full gap-2 text-base">
+                                        <Button onClick={nextStep} variant="brand" size="lg" className="w-full gap-2 text-base">
                                             <Rocket className="h-5 w-5" />
                                             Começar configuração
                                         </Button>
@@ -571,7 +571,7 @@ export function OnboardingWizard({
                         <>
                             <CardContent className="p-8">
                                 <div className="text-center">
-                                    <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-green-500 to-green-600 shadow-lg shadow-green-500/25">
+                                    <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-green-500 shadow-lg shadow-green-500/25">
                                         <Check className="h-10 w-10 text-white" />
                                     </div>
                                     <h1 className="mb-2 text-2xl font-bold tracking-tight">
@@ -616,7 +616,7 @@ export function OnboardingWizard({
                                     {/* Ações finais */}
                                     <div className="space-y-3">
                                         <Link href="/quotes/new" className="block">
-                                            <Button size="lg" className="w-full gap-2 text-base">
+                                            <Button variant="brand" size="lg" className="w-full gap-2 text-base">
                                                 <Rocket className="h-5 w-5" />
                                                 Criar primeiro orçamento
                                             </Button>

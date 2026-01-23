@@ -347,7 +347,7 @@ function SignupForm() {
                             </ul>
                         </div>
 
-                        <Button type="submit" className="w-full bg-gradient-to-r from-blue-400 to-emerald-400 hover:from-blue-500 hover:to-emerald-500 text-white border-0" disabled={loading || googleLoading}>
+                        <Button type="submit" variant="brand" className="w-full" disabled={loading || googleLoading}>
                             {loading ? "A criar conta..." : "Começar trial"}
                         </Button>
                     </form>
