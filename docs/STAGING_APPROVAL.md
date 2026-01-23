@@ -5,8 +5,8 @@
 | Field | Value |
 |-------|-------|
 | **Staging URL** | `https://staging.useritmo.pt` |
-| **Commit SHA** | `5ddfff5887b7c9576975a9b4b63ecf031423457d` |
-| **Branch** | `staging-hardening` |
+| **Commit SHA** | `9420a5c` |
+| **Branch** | `release-candidate` |
 | **Date** | 2026-01-23 |
 | **Tester** | Claude Code (automated) + Manual QA |
 
@@ -180,6 +180,55 @@
 | Choosing "SMTP proprio" without config blocks advancement | [ ] | Shows 2 CTAs: "Configurar SMTP" + "Usar Ritmo por agora" |
 | Copy PT-PT: no emojis, short messages | [ ] | Visual review |
 | Gradient CTA only on primary button | [ ] | Screenshot |
+| **StatusBadge in Step 4 (BCC)** shows correct status | [ ] | Screenshot |
+| StatusBadge shows "Ativo" when BCC enabled | [ ] | |
+| StatusBadge shows "Indisponível" when BCC disabled | [ ] | |
+| StatusBadge shows "Limite atingido" when trial limit reached | [ ] | |
+| **StatusBadge in Step 5 (Summary)** reflects BCC status | [ ] | Screenshot |
+
+---
+
+## 5b. System Pages (NEW in 9420a5c)
+
+### 5b.1 SignOut UX
+
+| Test | Status | Evidence |
+|------|--------|----------|
+| Click logout button in app header | [ ] | |
+| Redirects to landing page (`/`) | [ ] | |
+| Toast "Sessão terminada" appears | [ ] | Screenshot |
+| URL shows `?signed_out=1` briefly then cleans up | [ ] | |
+
+### 5b.2 Billing Success Page
+
+| Test | Status | Evidence |
+|------|--------|----------|
+| Complete Stripe checkout successfully | [ ] | |
+| Redirected to `/billing/success?session_id=cs_xxx` | [ ] | |
+| Loading state shows "A confirmar subscrição..." | [ ] | |
+| Success state shows "Plano ativado" | [ ] | Screenshot |
+| Subscription summary shows: plan name, price, next billing date | [ ] | |
+| "Ir para o Dashboard" button works | [ ] | |
+| "Ver faturação" button works | [ ] | |
+
+### 5b.3 Billing Cancel Page
+
+| Test | Status | Evidence |
+|------|--------|----------|
+| Cancel/close Stripe checkout | [ ] | |
+| Redirected to `/billing/cancel` | [ ] | |
+| Page shows "Checkout cancelado" | [ ] | Screenshot |
+| Page shows "Nenhuma cobrança foi efetuada" | [ ] | |
+| "Tentar novamente" button → `/settings/billing` | [ ] | |
+| "Voltar ao Dashboard" button → `/dashboard` | [ ] | |
+
+### 5b.4 API: /api/billing/verify
+
+| Test | Status | Evidence |
+|------|--------|----------|
+| GET without session_id returns 400 | [ ] | `{"success":false,"message":"session_id é obrigatório"}` |
+| GET with invalid session_id returns error | [ ] | |
+| GET with valid session_id returns subscription details | [ ] | |
 
 ---
 
@@ -300,12 +349,13 @@
 | Billing | _/12_ | _/12_ | _/12_ |
 | Stripe Webhook | _/9_ | _/9_ | _/9_ |
 | Plans / UI | _/4_ | _/4_ | _/4_ |
-| Onboarding Premium | _/5_ | _/5_ | _/5_ |
+| Onboarding Premium | _/10_ | _/10_ | _/10_ |
+| System Pages (5b) | _/17_ | _/17_ | _/17_ |
 | Trial AHA + BCC Inbound | _/23_ | _/23_ | _/23_ |
 | Limits and Usage | _/10_ | _/10_ | _/10_ |
 | Inbound Email | _/4_ | _/4_ | _/4_ |
 | Cron Jobs | _/3_ | _/3_ | _/3_ |
-| **TOTAL** | _/78_ | _/78_ | _/78_ |
+| **TOTAL** | _/100_ | _/100_ | _/100_ |
 
 ---
 

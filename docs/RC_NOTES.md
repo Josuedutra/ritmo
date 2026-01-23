@@ -4,11 +4,11 @@
 
 | Field | Value |
 |-------|-------|
-| **Commit SHA** | `5ddfff5887b7c9576975a9b4b63ecf031423457d` |
+| **Commit SHA** | `9420a5c` |
 | **Branch** | `release-candidate` |
 | **Source Branch** | `staging-hardening` |
 | **Date** | 2026-01-23 |
-| **Tag** | `rc-20260123-01` (optional) |
+| **Tag** | `rc-20260123-02` (optional) |
 
 ---
 
@@ -42,6 +42,33 @@
 - `PAYMENTS_ENABLED=false` returns 503 with clear messaging
 - Webhook idempotency with StripeEvent status tracking
 - Stale processing recovery (5-minute timeout)
+
+### 6. Premium System Pages (NEW in 9420a5c)
+- **SystemPageLayout**: Reusable premium centered card layout for system pages
+- **/billing/success**: Checkout success page with Stripe session verification
+  - Calls `/api/billing/verify` to confirm payment
+  - Shows subscription summary (plan, price, next billing date)
+  - Loading, success, and error states
+- **/billing/cancel**: Checkout cancelled page with clear "nenhuma cobrança" messaging
+- **SignOut UX**: Redirects to landing page with "Sessão terminada" toast
+
+### 7. StatusBadge Component (NEW in 9420a5c)
+- Reusable status indicator with 7 states: `active`, `pending`, `verified`, `limited`, `disabled`, `info`, `warning`
+- PT-PT labels with appropriate icons and colors
+- Integrated in onboarding:
+  - Step 4 (BCC): Shows dynamic BCC capture status
+  - Step 5 (Summary): Displays BCC status in configuration summary
+- Status logic based on entitlements:
+  - `disabled`: BCC inbound not enabled
+  - `limited`: Trial BCC limit reached
+  - `pending`: Verification in progress
+  - `verified`: Capture confirmed
+  - `active`: Default ready state
+
+### 8. API Endpoint: /api/billing/verify
+- Verifies Stripe checkout session by session_id
+- Returns subscription details for success page
+- Lazy Stripe initialization (build-safe)
 
 ---
 
@@ -109,7 +136,7 @@ aha_first_bcc_capture_at TIMESTAMP
 
 - Prisma 6.19.2
 - Next.js 16.1.3
-- Stripe API 2024-12-18.acacia
+- Stripe API 2025-02-24.acacia
 - Neon PostgreSQL
 
 ---

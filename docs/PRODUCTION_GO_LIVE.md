@@ -4,7 +4,7 @@
 
 | Field | Value |
 |-------|-------|
-| **RC Commit** | `5ddfff5887b7c9576975a9b4b63ecf031423457d` |
+| **RC Commit** | `9420a5c` |
 | **Target Environment** | Production (`https://useritmo.pt`) |
 | **Estimated Duration** | 30-45 minutes |
 | **Rollback Window** | 24 hours |
@@ -244,7 +244,9 @@ git push origin release-candidate:main
 | Billing page | Visit `/settings/billing` | Shows plans (Starter, Pro) | [ ] |
 | Click upgrade | Click "Fazer upgrade" for Starter | Stripe Checkout opens | [ ] |
 | Complete payment | Use real card (will be refunded) | Payment succeeds | [ ] |
-| Redirect | After payment | Redirected to `/settings/billing?success=true` | [ ] |
+| Redirect | After payment | Redirected to `/billing/success?session_id=cs_xxx` | [ ] |
+| **Success page** | `/billing/success` loads | Shows "Plano ativado" with subscription summary | [ ] |
+| **Subscription details** | Check success page | Shows plan name, price (€39/mês), next billing date | [ ] |
 
 #### Step 2: Verify Subscription Created
 
@@ -262,7 +264,19 @@ git push origin release-candidate:main
 | stripe_events table | Query recent events | `checkout.session.completed` with status=PROCESSED | [ ] |
 | No errors | Check Sentry | No webhook errors | [ ] |
 
-### 5.5 Billing - Cancel/Downgrade Test
+### 5.5 Billing - Cancel Flow Test
+
+> **Purpose**: Verify checkout cancellation redirects correctly.
+
+| Test | Action | Expected | Status |
+|------|--------|----------|--------|
+| Start checkout | Click upgrade, go to Stripe Checkout | Checkout page shows | [ ] |
+| Close/cancel checkout | Click browser back or close Stripe | Redirected to `/billing/cancel` | [ ] |
+| **Cancel page** | `/billing/cancel` loads | Shows "Checkout cancelado" | [ ] |
+| **No charge message** | Check cancel page | Shows "Nenhuma cobrança foi efetuada" | [ ] |
+| **CTA buttons** | Check cancel page | "Tentar novamente" + "Voltar ao Dashboard" buttons work | [ ] |
+
+### 5.6 Billing - Subscription Cancel/Downgrade Test
 
 > **Purpose**: Verify subscription cancellation flow works correctly.
 
@@ -275,7 +289,15 @@ git push origin release-candidate:main
 
 > **Cleanup**: After test, refund the charge in Stripe Dashboard if needed.
 
-### 5.7 Webhook Health (Final)
+### 5.7 SignOut UX Test
+
+| Test | Action | Expected | Status |
+|------|--------|----------|--------|
+| Click logout | App header > Logout button | Redirects to landing page | [ ] |
+| Toast shown | Check landing page | "Sessão terminada" toast appears | [ ] |
+| URL clean | Check URL bar | `?signed_out=1` appears briefly then cleans up | [ ] |
+
+### 5.8 Webhook Health (Final)
 
 | Test | Action | Expected | Status |
 |------|--------|----------|--------|
