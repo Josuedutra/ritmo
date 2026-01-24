@@ -560,7 +560,7 @@ export function OnboardingWizard({
                                                                     Configure as credenciais do seu servidor de email para usar esta opção.
                                                                 </span>
                                                                 <div className="mt-3 flex items-center gap-2">
-                                                                    <Link href="/settings/email">
+                                                                    <Link href="/settings">
                                                                         <Button size="sm" className="gap-2">
                                                                             <Settings className="h-4 w-4" />
                                                                             Configurar SMTP
