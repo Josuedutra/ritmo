@@ -10,6 +10,7 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -60,6 +61,7 @@
   /* Primary: Professional Blue */
   --primary: oklch(0.45 0.2 260);
   --primary-foreground: oklch(0.98 0 0);
+  --primary-hover: oklch(0.40 0.22 260);
 
   /* Brand Gradient: Ritmo signature gradient (blue to purple) */
   --brand-from: oklch(0.5 0.22 260);
@@ -109,6 +111,7 @@
   /* Primary: Professional Blue (slightly lighter for dark mode contrast) */
   --primary: oklch(0.6 0.18 250);
   --primary-foreground: oklch(0.98 0 0);
+  --primary-hover: oklch(0.55 0.20 250);
 
   /* Brand Gradient: Ritmo signature gradient (lighter for dark mode) */
   --brand-from: oklch(0.55 0.2 260);
