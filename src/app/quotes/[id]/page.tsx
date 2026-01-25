@@ -87,13 +87,13 @@ const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secon
 
 const STAGE_CONFIG: Record<string, { label: string; color: string }> = {
     idle: { label: "Aguardando", color: "text-[var(--color-muted-foreground)]" },
-    fup_d1: { label: "D+1", color: "text-blue-500" },
-    fup_d3: { label: "D+3", color: "text-blue-500" },
-    fup_d7: { label: "D+7", color: "text-green-500" },
-    fup_d14: { label: "D+14", color: "text-orange-500" },
+    fup_d1: { label: "D+1", color: "text-info" },
+    fup_d3: { label: "D+3", color: "text-info" },
+    fup_d7: { label: "D+7", color: "text-success" },
+    fup_d14: { label: "D+14", color: "text-warning" },
     completed: { label: "Completo", color: "text-[var(--color-muted-foreground)]" },
-    paused: { label: "Pausado", color: "text-yellow-500" },
-    stopped: { label: "Parado", color: "text-red-500" },
+    paused: { label: "Pausado", color: "text-warning" },
+    stopped: { label: "Parado", color: "text-destructive" },
 };
 
 // Helper to calculate next action for the quote
@@ -403,7 +403,7 @@ export default async function QuoteDetailPage({ params }: PageProps) {
                                         <MessageSquare className="h-4 w-4 text-[var(--color-muted-foreground)]" />
                                         <span>
                                             Sem resposta há{" "}
-                                            <span className={quickOutcomes.daysSinceSent >= 7 ? "font-semibold text-amber-600" : "font-medium"}>
+                                            <span className={quickOutcomes.daysSinceSent >= 7 ? "font-semibold text-warning" : "font-medium"}>
                                                 {quickOutcomes.daysSinceSent} {quickOutcomes.daysSinceSent === 1 ? "dia" : "dias"}
                                             </span>
                                         </span>
@@ -411,7 +411,7 @@ export default async function QuoteDetailPage({ params }: PageProps) {
                                 )}
                                 {quickOutcomes.followUpsDone > 0 && (
                                     <div className="flex items-center gap-2 text-sm">
-                                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                        <CheckCircle2 className="h-4 w-4 text-success" />
                                         <span>
                                             <span className="font-medium">{quickOutcomes.followUpsDone}</span>{" "}
                                             {quickOutcomes.followUpsDone === 1 ? "follow-up feito" : "follow-ups feitos"}
@@ -419,7 +419,7 @@ export default async function QuoteDetailPage({ params }: PageProps) {
                                     </div>
                                 )}
                                 {quote.businessStatus === "won" && (
-                                    <div className="flex items-center gap-2 text-sm text-green-600">
+                                    <div className="flex items-center gap-2 text-sm text-success">
                                         <CheckCircle2 className="h-4 w-4" />
                                         <span className="font-medium">Negócio ganho</span>
                                     </div>

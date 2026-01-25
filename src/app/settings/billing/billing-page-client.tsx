@@ -216,13 +216,13 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
     // Get usage threshold text
     const getUsageThresholdText = () => {
         if (usagePercentage >= 100) {
-            return { text: "Limite atingido.", color: "text-red-600" };
+            return { text: "Limite atingido.", color: "text-destructive" };
         }
         if (usagePercentage >= 90) {
-            return { text: "Quase no limite — considere upgrade para não parar.", color: "text-red-600" };
+            return { text: "Quase no limite — considere upgrade para não parar.", color: "text-destructive" };
         }
         if (usagePercentage >= 70) {
-            return { text: "A aproximar-se do limite.", color: "text-yellow-600" };
+            return { text: "A aproximar-se do limite.", color: "text-warning" };
         }
         return null;
     };
@@ -298,10 +298,10 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
         <div className="space-y-6">
             {/* Success/Cancel banners (visual feedback) */}
             {success && (
-                <Card className="border-green-500/50 bg-green-500/10">
+                <Card className="border-success bg-success">
                     <CardContent className="flex items-center gap-3 py-4">
-                        <CheckCircle className="h-5 w-5 text-green-500" />
-                        <p className="text-sm text-green-700 dark:text-green-300">
+                        <CheckCircle className="h-5 w-5 text-success" />
+                        <p className="text-sm text-success">
                             Plano ativado com sucesso.
                         </p>
                     </CardContent>
@@ -309,10 +309,10 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
             )}
 
             {canceled && (
-                <Card className="border-yellow-500/50 bg-yellow-500/10">
+                <Card className="border-warning bg-warning">
                     <CardContent className="flex items-center gap-3 py-4">
-                        <AlertTriangle className="h-5 w-5 text-yellow-500" />
-                        <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                        <AlertTriangle className="h-5 w-5 text-warning" />
+                        <p className="text-sm text-warning">
                             Checkout cancelado. Pode retomar quando quiser.
                         </p>
                     </CardContent>
@@ -321,15 +321,15 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
 
             {/* Past due banner */}
             {isPastDue && (
-                <Card className="border-red-500/50 bg-red-500/10">
+                <Card className="border-destructive bg-destructive-subtle">
                     <CardContent className="flex items-center justify-between py-4">
                         <div className="flex items-center gap-3">
-                            <AlertTriangle className="h-5 w-5 text-red-500" />
+                            <AlertTriangle className="h-5 w-5 text-destructive" />
                             <div>
-                                <p className="font-medium text-red-700 dark:text-red-300">
+                                <p className="font-medium text-destructive">
                                     Pagamento em atraso
                                 </p>
-                                <p className="text-sm text-red-600 dark:text-red-400">
+                                <p className="text-sm text-destructive">
                                     Atualize o método de pagamento para continuar a enviar orçamentos e follow-ups.
                                 </p>
                             </div>
@@ -375,15 +375,15 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
 
             {/* Cancel at period end banner */}
             {isCancelAtPeriodEnd && !isCancelled && (
-                <Card className="border-yellow-500/50 bg-yellow-500/10">
+                <Card className="border-warning bg-warning">
                     <CardContent className="flex items-center justify-between py-4">
                         <div className="flex items-center gap-3">
-                            <Clock className="h-5 w-5 text-yellow-500" />
+                            <Clock className="h-5 w-5 text-warning" />
                             <div>
-                                <p className="font-medium text-yellow-700 dark:text-yellow-300">
+                                <p className="font-medium text-warning">
                                     Plano a terminar
                                 </p>
-                                <p className="text-sm text-yellow-600 dark:text-yellow-400">
+                                <p className="text-sm text-warning">
                                     O seu plano termina em {formatDate(subscription?.currentPeriodEnd ?? null)}. Pode reativar a qualquer momento.
                                 </p>
                             </div>
@@ -432,7 +432,7 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                         )}
 
                         <div className="flex items-start gap-2 rounded bg-muted/50 p-3 text-sm">
-                            <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
+                            <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-success" />
                             <span>{getPlanHelper()}</span>
                         </div>
 
@@ -478,9 +478,9 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                             <div
                                 className={`h-full transition-all ${
                                     usagePercentage >= 90
-                                        ? "bg-red-500"
+                                        ? "bg-[var(--color-destructive)]"
                                         : usagePercentage >= 70
-                                          ? "bg-yellow-500"
+                                          ? "bg-[var(--color-warning)]"
                                           : "bg-primary"
                                 }`}
                                 style={{ width: `${usagePercentage}%` }}
@@ -549,7 +549,7 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                                                     }`}
                                                 >
                                                     {feature.enabled ? (
-                                                        <Check className="h-4 w-4 text-green-500" />
+                                                        <Check className="h-4 w-4 text-success" />
                                                     ) : (
                                                         <X className="h-4 w-4 text-muted-foreground" />
                                                     )}

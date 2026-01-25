@@ -69,8 +69,8 @@ export default function PartnersPage() {
                     <div className="grid gap-8 md:grid-cols-3">
                         {/* Benefit 1 */}
                         <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-6">
-                            <div className="mb-4 inline-flex rounded-lg bg-green-500/10 p-3">
-                                <TrendingUp className="h-6 w-6 text-green-500" />
+                            <div className="mb-4 inline-flex rounded-lg bg-success p-3">
+                                <TrendingUp className="h-6 w-6 text-success" />
                             </div>
                             <h3 className="mb-2 text-lg font-semibold">Mais respostas a orçamentos</h3>
                             <p className="text-sm text-[var(--color-muted-foreground)]">
@@ -81,8 +81,8 @@ export default function PartnersPage() {
 
                         {/* Benefit 2 */}
                         <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-6">
-                            <div className="mb-4 inline-flex rounded-lg bg-blue-500/10 p-3">
-                                <Building2 className="h-6 w-6 text-blue-500" />
+                            <div className="mb-4 inline-flex rounded-lg bg-info p-3">
+                                <Building2 className="h-6 w-6 text-info" />
                             </div>
                             <h3 className="mb-2 text-lg font-semibold">Clientes com receita mais previsível</h3>
                             <p className="text-sm text-[var(--color-muted-foreground)]">
@@ -156,7 +156,7 @@ export default function PartnersPage() {
 
                             {/* Step 4 */}
                             <div className="relative pl-16">
-                                <div className="absolute left-0 flex h-12 w-12 items-center justify-center rounded-full bg-green-500 text-lg font-bold text-white">
+                                <div className="absolute left-0 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-success)] text-lg font-bold text-white">
                                     ✓
                                 </div>
                                 <h3 className="mb-2 text-lg font-semibold">Acompanhe tudo no painel</h3>

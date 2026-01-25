@@ -25,9 +25,9 @@ const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secon
 
 // P1-01: Tag display config (show max 2 tags on list)
 const TAG_CONFIG: Record<string, { label: string; color: string }> = {
-    urgente: { label: "Urgente", color: "text-red-600 border-red-300 bg-red-500/10" },
-    obra: { label: "Obra", color: "text-blue-600 border-blue-300 bg-blue-500/10" },
-    manutencao: { label: "Manutenção", color: "text-green-600 border-green-300 bg-green-500/10" },
+    urgente: { label: "Urgente", color: "text-destructive border-destructive bg-destructive-subtle" },
+    obra: { label: "Obra", color: "text-info border-info bg-info" },
+    manutencao: { label: "Manutenção", color: "text-success border-success bg-success" },
     it: { label: "IT", color: "text-purple-600 border-purple-300 bg-purple-500/10" },
     residencial: { label: "Residencial", color: "text-amber-600 border-amber-300 bg-amber-500/10" },
     comercial: { label: "Comercial", color: "text-cyan-600 border-cyan-300 bg-cyan-500/10" },
@@ -284,7 +284,7 @@ export default async function QuotesPage({ searchParams }: PageProps) {
                                                 )}
                                                 {/* P1: Next action badge */}
                                                 {nextAction && (
-                                                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2 py-0.5 text-xs font-medium text-blue-600">
+                                                    <span className="inline-flex items-center gap-1 rounded-full bg-info px-2 py-0.5 text-xs font-medium text-info">
                                                         <Zap className="h-3 w-3" />
                                                         {formatNextAction(nextAction)}
                                                     </span>

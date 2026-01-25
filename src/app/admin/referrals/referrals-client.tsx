@@ -337,8 +337,8 @@ export function ReferralsAdminClient() {
                 <Card>
                     <CardContent className="pt-4">
                         <div className="flex items-center gap-3">
-                            <div className="rounded-full bg-blue-500/10 p-2">
-                                <Users className="h-5 w-5 text-blue-500" />
+                            <div className="rounded-full bg-info p-2">
+                                <Users className="h-5 w-5 text-info" />
                             </div>
                             <div>
                                 <p className="text-2xl font-bold">{partners.filter((p) => p.status === "ACTIVE").length}</p>
@@ -350,8 +350,8 @@ export function ReferralsAdminClient() {
                 <Card>
                     <CardContent className="pt-4">
                         <div className="flex items-center gap-3">
-                            <div className="rounded-full bg-green-500/10 p-2">
-                                <TrendingUp className="h-5 w-5 text-green-500" />
+                            <div className="rounded-full bg-success p-2">
+                                <TrendingUp className="h-5 w-5 text-success" />
                             </div>
                             <div>
                                 <p className="text-2xl font-bold">{attributions.filter((a) => a.status === "CONVERTED").length}</p>
@@ -363,8 +363,8 @@ export function ReferralsAdminClient() {
                 <Card>
                     <CardContent className="pt-4">
                         <div className="flex items-center gap-3">
-                            <div className="rounded-full bg-yellow-500/10 p-2">
-                                <Clock className="h-5 w-5 text-yellow-500" />
+                            <div className="rounded-full bg-warning p-2">
+                                <Clock className="h-5 w-5 text-warning" />
                             </div>
                             <div>
                                 <p className="text-2xl font-bold">{formatCurrency(totalPending)}</p>
@@ -376,8 +376,8 @@ export function ReferralsAdminClient() {
                 <Card>
                     <CardContent className="pt-4">
                         <div className="flex items-center gap-3">
-                            <div className="rounded-full bg-green-500/10 p-2">
-                                <DollarSign className="h-5 w-5 text-green-500" />
+                            <div className="rounded-full bg-success p-2">
+                                <DollarSign className="h-5 w-5 text-success" />
                             </div>
                             <div>
                                 <p className="text-2xl font-bold">{formatCurrency(totalPaid)}</p>
@@ -446,8 +446,8 @@ export function ReferralsAdminClient() {
                                                 <span
                                                     className={`rounded px-2 py-0.5 text-xs font-medium ${
                                                         partner.status === "ACTIVE"
-                                                            ? "bg-green-500/10 text-green-600"
-                                                            : "bg-gray-500/10 text-gray-600"
+                                                            ? "bg-success text-success"
+                                                            : "bg-[var(--color-muted)] text-[var(--color-muted-foreground)]"
                                                     }`}
                                                 >
                                                     {partner.status}
@@ -553,10 +553,10 @@ export function ReferralsAdminClient() {
                                                 <span
                                                     className={`rounded px-2 py-0.5 text-xs font-medium ${
                                                         attr.status === "CONVERTED"
-                                                            ? "bg-green-500/10 text-green-600"
+                                                            ? "bg-success text-success"
                                                             : attr.status === "SIGNED_UP"
-                                                                ? "bg-blue-500/10 text-blue-600"
-                                                                : "bg-gray-500/10 text-gray-600"
+                                                                ? "bg-info text-info"
+                                                                : "bg-[var(--color-muted)] text-[var(--color-muted-foreground)]"
                                                     }`}
                                                 >
                                                     {attr.status}
@@ -625,12 +625,12 @@ export function ReferralsAdminClient() {
                                                 <span
                                                     className={`rounded px-2 py-0.5 text-xs font-medium ${
                                                         booster.status === "PAID"
-                                                            ? "bg-green-500/10 text-green-600"
+                                                            ? "bg-success text-success"
                                                             : booster.status === "PENDING"
-                                                                ? "bg-yellow-500/10 text-yellow-600"
+                                                                ? "bg-warning text-warning"
                                                                 : booster.status === "VOID"
-                                                                    ? "bg-red-500/10 text-red-600"
-                                                                    : "bg-blue-500/10 text-blue-600"
+                                                                    ? "bg-destructive-subtle text-destructive"
+                                                                    : "bg-info text-info"
                                                     }`}
                                                 >
                                                     {booster.status}
@@ -646,7 +646,7 @@ export function ReferralsAdminClient() {
                                                             onClick={() => handleUpdateBoosterStatus(booster.id, "PAID")}
                                                             title="Marcar como pago"
                                                         >
-                                                            <CheckCircle className="h-4 w-4 text-green-500" />
+                                                            <CheckCircle className="h-4 w-4 text-success" />
                                                         </Button>
                                                         <Button
                                                             variant="ghost"
@@ -654,7 +654,7 @@ export function ReferralsAdminClient() {
                                                             onClick={() => handleUpdateBoosterStatus(booster.id, "VOID")}
                                                             title="Anular"
                                                         >
-                                                            <XCircle className="h-4 w-4 text-red-500" />
+                                                            <XCircle className="h-4 w-4 text-destructive" />
                                                         </Button>
                                                     </div>
                                                 )}
