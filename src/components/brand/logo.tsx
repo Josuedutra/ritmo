@@ -3,7 +3,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 interface LogoProps {
-    variant?: "gradient" | "mono";
+    /** Use full lockup (with wordmark) or icon only */
     showWordmark?: boolean;
     size?: "sm" | "md" | "lg";
     href?: string;
@@ -11,42 +11,38 @@ interface LogoProps {
 }
 
 const sizeConfig = {
-    sm: { icon: 20, text: "text-lg" },
-    md: { icon: 28, text: "text-2xl" },
-    lg: { icon: 36, text: "text-3xl" },
+    sm: { width: 100, height: 32 },
+    md: { width: 130, height: 40 },
+    lg: { width: 160, height: 50 },
+};
+
+const iconOnlyConfig = {
+    sm: { width: 28, height: 28 },
+    md: { width: 36, height: 36 },
+    lg: { width: 44, height: 44 },
 };
 
 export function Logo({
-    variant = "gradient",
     showWordmark = true,
     size = "md",
     href,
     className,
 }: LogoProps) {
-    const config = sizeConfig[size];
-    const iconSrc = variant === "gradient"
-        ? "/brand/ribbonR-flat-gradient.svg"
-        : "/brand/ribbonR-mono.svg";
+    const config = showWordmark ? sizeConfig[size] : iconOnlyConfig[size];
+    const imageSrc = showWordmark
+        ? "/brand/logo-ritmo.png"
+        : "/brand/ritmo-3d-hero.png";
 
     const content = (
-        <span className={cn("flex items-center gap-2", className)}>
+        <span className={cn("flex items-center", className)}>
             <Image
-                src={iconSrc}
+                src={imageSrc}
                 alt="Ritmo"
-                width={config.icon}
-                height={config.icon}
-                className="flex-shrink-0"
+                width={config.width}
+                height={config.height}
+                className="flex-shrink-0 object-contain"
+                priority
             />
-            {showWordmark && (
-                <span
-                    className={cn(
-                        config.text,
-                        "font-bold tracking-tight text-zinc-800 dark:text-zinc-200"
-                    )}
-                >
-                    Ritmo
-                </span>
-            )}
         </span>
     );
 
