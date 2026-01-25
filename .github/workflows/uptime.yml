@@ -30,9 +30,30 @@ env:
   ALERT_EMAIL: ${{ secrets.ALERT_EMAIL }}
 
 jobs:
+  # Check if uptime monitoring is enabled - allows graceful skip during pre-production
+  check-enabled:
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.check.outputs.enabled }}
+    steps:
+      - name: Check if uptime is enabled
+        id: check
+        run: |
+          if [ "${{ vars.UPTIME_ENABLED }}" = "true" ]; then
+            echo "enabled=true" >> $GITHUB_OUTPUT
+            echo "✅ Uptime monitoring is enabled"
+          else
+            echo "enabled=false" >> $GITHUB_OUTPUT
+            echo "⏭️ Uptime monitoring is disabled (UPTIME_ENABLED != 'true')"
+            echo "Set repository variable UPTIME_ENABLED=true when ready for production"
+          fi
+
   health-check:
     runs-on: ubuntu-latest
+    needs: check-enabled
     timeout-minutes: 2
+    # Skip if uptime monitoring is not enabled
+    if: needs.check-enabled.outputs.enabled == 'true'
 
     steps:
       - name: Check metrics endpoint
@@ -162,9 +183,10 @@ jobs:
   # Additional check for specific endpoints (optional, runs less frequently)
   detailed-check:
     runs-on: ubuntu-latest
+    needs: check-enabled
     timeout-minutes: 3
-    # Only run every 15 minutes (skip if minute doesn't end in 0 or 5 followed by 0)
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && contains('0,15,30,45', format('{0}', github.event.schedule)))
+    # Only run every 15 minutes AND when uptime is enabled
+    if: needs.check-enabled.outputs.enabled == 'true' && (github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && contains('0,15,30,45', format('{0}', github.event.schedule))))
 
     steps:
       - name: Check cron endpoint
