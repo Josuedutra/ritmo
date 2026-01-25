@@ -189,11 +189,11 @@ export default function LandingPage() {
                                         className="relative z-20 flex items-center justify-center"
                                     >
                                         <Image
-                                            src="/brand/ritmo-3d-hero.png"
+                                            src="/brand/r-3d-transparent.png"
                                             alt="Ritmo"
                                             width={120}
                                             height={120}
-                                            className="object-contain mix-blend-lighten"
+                                            className="object-contain"
                                         />
                                     </motion.div>
 
