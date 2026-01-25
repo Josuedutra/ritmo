@@ -71,7 +71,7 @@ export default function LandingPage() {
                                 variants={staggerContainer}
                                 className="text-center lg:text-left"
                             >
-                                <motion.h1 variants={fadeInUp} className="mb-8 text-5xl md:text-7xl font-bold tracking-tighter text-zinc-900 leading-[1]">
+                                <motion.h1 variants={fadeInUp} className="mb-8 text-5xl md:text-7xl font-medium tracking-tighter text-zinc-900 leading-[1]">
                                     Envie orçamentos como sempre. <br />
                                     O Ritmo faz o follow-up.
                                 </motion.h1>
@@ -141,7 +141,7 @@ export default function LandingPage() {
                                 <div className="text-left space-y-8">
 
                                     <div className="space-y-4">
-                                        <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white leading-tight">
+                                        <h2 className="text-3xl md:text-5xl font-medium tracking-tight text-white leading-tight">
                                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Funciona com o que</span> <br />
                                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">você já usa.</span>
                                         </h2>
@@ -193,7 +193,7 @@ export default function LandingPage() {
                                             alt="Ritmo"
                                             width={120}
                                             height={120}
-                                            className="object-contain"
+                                            className="object-contain mix-blend-lighten"
                                         />
                                     </motion.div>
 
@@ -264,7 +264,7 @@ export default function LandingPage() {
                 <section id="how-it-works" className="py-24 px-6 bg-zinc-50 border-y border-zinc-100">
                     <div className="container mx-auto max-w-7xl">
                         <div className="text-center mb-16">
-                            <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-zinc-900 mb-4">
+                            <h2 className="text-3xl md:text-5xl font-medium tracking-tight text-zinc-900 mb-4">
                                 Entra no seu processo atual em 3 passos.
                             </h2>
                             <p className="text-xl text-zinc-500 max-w-3xl mx-auto">
@@ -277,7 +277,7 @@ export default function LandingPage() {
                             <div className="flex flex-col md:flex-row items-center gap-8 lg:gap-16">
                                 <div className="w-full md:w-[30%] space-y-6 text-left">
                                     <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-zinc-100 text-zinc-900 font-bold text-lg mb-2">1</div>
-                                    <h3 className="text-3xl md:text-4xl font-bold text-zinc-900 tracking-tight leading-tight">
+                                    <h3 className="text-3xl md:text-4xl font-medium text-zinc-900 tracking-tight leading-tight">
                                         Registe o orçamento
                                     </h3>
                                     <p className="text-lg text-zinc-600 leading-relaxed">
@@ -302,7 +302,7 @@ export default function LandingPage() {
                             <div className="flex flex-col md:flex-row-reverse items-center gap-8 lg:gap-16">
                                 <div className="w-full md:w-[30%] space-y-6 text-left">
                                     <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-zinc-100 text-zinc-900 font-bold text-lg mb-2">2</div>
-                                    <h3 className="text-3xl md:text-4xl font-bold text-zinc-900 tracking-tight leading-tight">
+                                    <h3 className="text-3xl md:text-4xl font-medium text-zinc-900 tracking-tight leading-tight">
                                         Envie como sempre
                                     </h3>
                                     <p className="text-lg text-zinc-600 leading-relaxed">
@@ -327,7 +327,7 @@ export default function LandingPage() {
                             <div className="flex flex-col md:flex-row items-center gap-8 lg:gap-16">
                                 <div className="w-full md:w-[30%] space-y-6 text-left">
                                     <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-zinc-100 text-zinc-900 font-bold text-lg mb-2">3</div>
-                                    <h3 className="text-3xl md:text-4xl font-bold text-zinc-900 tracking-tight leading-tight">
+                                    <h3 className="text-3xl md:text-4xl font-medium text-zinc-900 tracking-tight leading-tight">
                                         Faça o que aparece hoje
                                     </h3>
                                     <p className="text-lg text-zinc-600 leading-relaxed">
@@ -363,7 +363,7 @@ export default function LandingPage() {
                     <div className="container mx-auto max-w-7xl">
                         <div className="grid lg:grid-cols-2 gap-16 items-center">
                             <div>
-                                <h2 className="text-4xl md:text-6xl font-bold tracking-tight text-zinc-900 mb-8 leading-tight">
+                                <h2 className="text-4xl md:text-6xl font-medium tracking-tight text-zinc-900 mb-8 leading-tight">
                                     O cockpit de follow-up que faltava.
                                 </h2>
                                 <div className="space-y-8">
@@ -419,7 +419,7 @@ export default function LandingPage() {
                 <section id="pricing" className="py-24 px-6 bg-zinc-50 border-t border-zinc-100">
                     <div className="container mx-auto max-w-7xl">
                         <div className="text-center mb-12">
-                            <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-zinc-900 mb-4">
+                            <h2 className="text-3xl md:text-5xl font-medium tracking-tight text-zinc-900 mb-4">
                                 Planos para PMEs que enviam orçamentos.
                             </h2>
                             <p className="text-lg text-zinc-500 max-w-2xl mx-auto mb-2">
@@ -605,7 +605,7 @@ export default function LandingPage() {
                             {/* Left Column: Intro & Support */}
                             <div className="lg:col-span-4 space-y-8">
                                 <div>
-                                    <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-zinc-900 mb-6 text-left">
+                                    <h2 className="text-4xl md:text-5xl font-medium tracking-tight text-zinc-900 mb-6 text-left">
                                         Perguntas <br />
                                         <span className="bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">frequentes</span>
                                     </h2>
@@ -701,7 +701,7 @@ export default function LandingPage() {
                     {/* Subtle gradient glow */}
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-blue-500/10 via-emerald-500/5 to-transparent blur-3xl pointer-events-none" />
                     <div className="relative z-10 container mx-auto text-center max-w-4xl">
-                        <h2 className="mb-8 text-5xl md:text-7xl font-bold tracking-tighter">
+                        <h2 className="mb-8 text-5xl md:text-7xl font-medium tracking-tighter">
                             Comece hoje.
                         </h2>
                         <p className="mb-12 text-xl text-zinc-400 max-w-2xl mx-auto">
