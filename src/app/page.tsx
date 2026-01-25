@@ -193,7 +193,7 @@ export default function LandingPage() {
                                             alt="Ritmo"
                                             width={120}
                                             height={120}
-                                            className="object-contain"
+                                            className="object-contain mix-blend-lighten"
                                         />
                                     </motion.div>
 

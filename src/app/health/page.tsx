@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardContent, Badge } from "@/components/ui";
 import { CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
+import { Logo } from "@/components/brand";
 
 interface HealthResponse {
     status: "operational" | "degraded";
@@ -58,7 +59,7 @@ export default async function HealthPage() {
                         <ArrowLeft className="h-4 w-4" />
                         Voltar
                     </Link>
-                    <span className="text-xl font-bold text-gradient">Ritmo</span>
+                    <Logo size="sm" />
                 </div>
             </header>
 
