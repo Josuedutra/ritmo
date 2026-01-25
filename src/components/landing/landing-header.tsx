@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui";
 import { Menu, X } from "lucide-react";
+import { Logo } from "@/components/brand";
 
 const navLinks = [
     { href: "#como-funciona", label: "Como funciona" },
@@ -18,9 +19,7 @@ export function LandingHeader() {
         <header className="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-background)]/95 backdrop-blur supports-[backdrop-filter]:bg-[var(--color-background)]/80">
             <div className="container-app flex h-16 items-center justify-between">
                 {/* Logo */}
-                <Link href="/" className="text-2xl font-bold text-gradient">
-                    Ritmo
-                </Link>
+                <Logo href="/" size="md" />
 
                 {/* Desktop Nav */}
                 <nav className="hidden items-center gap-8 md:flex">

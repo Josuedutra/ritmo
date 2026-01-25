@@ -293,6 +293,26 @@ h4 {
   background: linear-gradient(to right, var(--color-brand-from), var(--color-brand-to));
 }
 
+/* Hero premium background - off-white with subtle brand glow */
+.bg-hero-premium {
+  background:
+    radial-gradient(
+      ellipse 100% 60% at 50% -10%,
+      oklch(0.70 0.15 240 / 0.06),
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse 80% 40% at 80% 50%,
+      oklch(0.69 0.14 165 / 0.04),
+      transparent 40%
+    );
+}
+
+/* Radial gradient utility for glow effects */
+.bg-gradient-radial {
+  background: radial-gradient(circle at center, var(--tw-gradient-stops));
+}
+
 /* Container */
 .container-app {
   max-width: 1200px;

@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import {
     LayoutDashboard,
@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { ModeToggle } from "@/components/mode-toggle";
+import { Logo } from "@/components/brand";
 
 interface NavItem {
     href: string;
@@ -43,10 +44,7 @@ export function AppHeader({ user }: AppHeaderProps) {
         <header className="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-sidebar)]">
             <div className="container-app flex h-14 items-center justify-between">
                 {/* Logo */}
-                {/* Logo */}
-                <Link href="/dashboard" className="flex items-center gap-2 transition-opacity hover:opacity-80">
-                    <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent tracking-tight">Ritmo</span>
-                </Link>
+                <Logo href="/dashboard" size="md" />
 
                 {/* Desktop Navigation */}
                 <nav className="hidden items-center gap-1 md:flex">
