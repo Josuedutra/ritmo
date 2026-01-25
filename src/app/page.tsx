@@ -169,7 +169,7 @@ export default function LandingPage() {
                                         <div className="absolute w-[460px] h-[460px] rounded-full border border-white/5 opacity-40 animate-[spin_80s_linear_infinite]" />
                                     </div>
 
-                                    {/* Center Hub - Seamless Dark */}
+                                    {/* Center Hub - 3D R Logo */}
                                     <motion.div
                                         initial={{ scale: 0.8, opacity: 0 }}
                                         whileInView={{ scale: 1, opacity: 1 }}
@@ -186,9 +186,15 @@ export default function LandingPage() {
                                             scale: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 },
                                             filter: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }
                                         }}
-                                        className="relative z-20 flex flex-col items-center justify-center w-auto h-auto p-4 bg-zinc-900 rounded-full"
+                                        className="relative z-20 flex items-center justify-center"
                                     >
-                                        <div className="bg-gradient-to-r from-blue-500 to-emerald-400 text-transparent bg-clip-text font-bold text-3xl tracking-tighter">Ritmo</div>
+                                        <Image
+                                            src="/brand/ritmo-3d-hero.png"
+                                            alt="Ritmo"
+                                            width={120}
+                                            height={120}
+                                            className="object-contain"
+                                        />
                                     </motion.div>
 
                                     {/* Orbiting Elements - Individual Icons - Using Reliable Wikipedia Sources */}
