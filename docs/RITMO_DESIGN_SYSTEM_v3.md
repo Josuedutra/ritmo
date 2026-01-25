@@ -1,459 +1,276 @@
-# RITMO — Design System v3.0
+# RITMO — Design System v4.0
 
 > Follow-up Inteligente para Orçamentos B2B  
-> Versão 3.0 | Janeiro 2026  
-> **Premium Brand Palette + Refined Surfaces**
+> Versão 4.0 | Janeiro 2026  
+> **Premium Emerald Brand + State Utilities**
 
 ---
 
-## Changelog v3.0
+## Changelog v4.0
 
-### Correções
-- ✅ `color-scheme: dark` → `color-scheme: light` em `:root` e `color-scheme: dark` em `.dark`
+### 1. Brand Emerald Refinado
+- ✅ `--brand-to`: `oklch(0.72 0.17 165)` → `oklch(0.69 0.14 165)` (menos saturado, mais premium)
+- ✅ Dark mode `--brand-to`: `oklch(0.74 0.16 165)` → `oklch(0.71 0.13 165)`
 
-### Novos Tokens de Marca
-- ✅ `--brand`, `--brand-from`, `--brand-to` (gradiente Ritmo: Blue → Emerald)
-- ✅ `--primary` e `--ring` agora derivam de `--brand`
-- ✅ `--info` mapeado para `--brand` (substituir `bg-blue-500`)
+### 2. Primary Hover Afinado
+- ✅ `--primary-hover`: `oklch(0.62 0.16 240)` → `oklch(0.62 0.13 240)` (chroma reduzido)
 
-### Paleta Premium
-- ✅ `--background`: off-white subtil (`oklch(0.992 0.002 90)`) em vez de branco puro
-- ✅ `--muted`, `--accent`, `--secondary`: tons mais suaves com tint warm
-- ✅ `--border`: mais delicado (`oklch(0.92 0.003 90)`)
-- ✅ `--success`, `--warning`: chroma reduzido para sofisticação
-- ✅ `--destructive`: menos saturado que stock red-600
-
-### Sombras
-- ✅ `.card-elevated`: opacidade reduzida (0.3 → 0.08)
-- ✅ Novas classes: `.shadow-premium-sm/md/lg/xl`
-
-### Novos Utilitários CSS
-- ✅ `.text-gradient` (usa brand tokens)
-- ✅ `.bg-gradient-brand`, `.bg-gradient-brand-h`
-- ✅ `.btn-cta-primary`, `.btn-cta-strong`
-- ✅ `.bg-info`, `.text-info`, `.border-info`
-
----
-
-## 1. Tokens de Marca (Brand)
-
-### Gradiente Ritmo
-
+### 3. Novos Utilitários de Estado
 ```css
---brand-from: oklch(0.70 0.15 240);   /* ≈ Blue 400 */
---brand-to: oklch(0.72 0.17 165);     /* ≈ Emerald 400 */
---brand: oklch(0.70 0.15 240);        /* Primary = from */
+/* Success */
+.bg-success { background-color: oklch(from var(--color-success) l c h / 0.1); }
+.text-success { color: var(--color-success); }
+.border-success { border-color: oklch(from var(--color-success) l c h / 0.3); }
+
+/* Warning */
+.bg-warning { background-color: oklch(from var(--color-warning) l c h / 0.1); }
+.text-warning { color: var(--color-warning); }
+.border-warning { border-color: oklch(from var(--color-warning) l c h / 0.3); }
+
+/* Destructive */
+.bg-destructive-subtle { background-color: oklch(from var(--color-destructive) l c h / 0.1); }
+.text-destructive { color: var(--color-destructive); }
+.border-destructive { border-color: oklch(from var(--color-destructive) l c h / 0.3); }
+
+/* Info (brand) */
+.bg-info { background-color: oklch(from var(--color-info) l c h / 0.1); }
+.text-info { color: var(--color-info); }
+.border-info { border-color: oklch(from var(--color-info) l c h / 0.3); }
 ```
 
-### Mapeamento
-
-| Token | Deriva de | Uso |
-|-------|-----------|-----|
-| `--primary` | `--brand` | Botões, links, badges |
-| `--ring` | `--brand` | Focus states |
-| `--info` | `--brand` | Estados informativos (substituir blue-500) |
-
-### Uso em Componentes
-
-```tsx
-// Gradiente no texto (logo)
-<span className="text-gradient">Ritmo</span>
-
-// Gradiente em botão CTA
-<Button className="bg-gradient-brand-h text-white">
-  Começar Trial
-</Button>
-
-// Ou usar classe utilitária
-<Button className="btn-cta-primary rounded-full">
-  Começar Trial
-</Button>
-
-// Estado info (em vez de bg-blue-500/10)
-<Badge variant="info">Pendente</Badge>
-```
+### 4. Componentes Atualizados
+- ✅ `Badge` — variante `info` adicionada
+- ✅ `billing-page-client.tsx` — progress bar, status badges, feature checks
+- ✅ `admin/referrals` — stat cards, status badges, action icons
+- ✅ `quotes/page.tsx` — TAG_CONFIG, next action badge
+- ✅ `quotes/[id]/page.tsx` — STAGE_CONFIG
+- ✅ `quotes/[id]/quote-timeline.tsx` — STATUS_CONFIG
+- ✅ `unsubscribe/page.tsx` — success/warning states
+- ✅ `partners/page.tsx` — benefit icons
 
 ---
 
-## 2. Paleta de Cores
+## Tokens de Cor Atualizados
 
-### Light Mode — Premium Surfaces
+### Brand (Light Mode)
 
 | Token | OKLCH | Descrição |
 |-------|-------|-----------|
-| `--background` | `oklch(0.992 0.002 90)` | Off-white subtil (warm) |
-| `--foreground` | `oklch(0.145 0.015 260)` | Cinza profundo com tint azul |
-| `--card` | `oklch(0.998 0.001 90)` | Ligeiramente mais claro |
-| `--popover` | `oklch(1 0 0)` | Branco puro (elevação) |
-| `--secondary` | `oklch(0.97 0.003 90)` | Cinza suave warm |
-| `--muted` | `oklch(0.965 0.003 90)` | Áreas muted |
-| `--muted-foreground` | `oklch(0.50 0.01 260)` | Texto secundário |
-| `--accent` | `oklch(0.96 0.005 90)` | Hover states |
-| `--border` | `oklch(0.92 0.003 90)` | Bordas delicadas |
-| `--input` | `oklch(0.94 0.003 90)` | Fundo inputs |
+| `--brand-from` | `oklch(0.70 0.15 240)` | Azul Ritmo |
+| `--brand-to` | `oklch(0.69 0.14 165)` | Emerald Premium (refinado) |
+| `--brand` | `oklch(0.70 0.15 240)` | Primary = from |
 
-### Status Colors — Chroma Reduzido
-
-| Token | Light | Dark | Descrição |
-|-------|-------|------|-----------|
-| `--success` | `oklch(0.62 0.14 150)` | `oklch(0.55 0.13 150)` | Verde sofisticado |
-| `--warning` | `oklch(0.72 0.12 75)` | `oklch(0.62 0.11 75)` | Âmbar suave |
-| `--destructive` | `oklch(0.55 0.18 25)` | `oklch(0.50 0.16 25)` | Vermelho refinado |
-| `--info` | `var(--brand)` | `var(--brand)` | Azul da marca |
-
-### Dark Mode
+### Brand (Dark Mode)
 
 | Token | OKLCH | Descrição |
 |-------|-------|-----------|
-| `--background` | `oklch(0.05 0 0)` | Preto profundo |
-| `--foreground` | `oklch(0.97 0 0)` | Branco suave |
-| `--card` | `oklch(0.08 0 0)` | Elevação sutil |
-| `--border` | `oklch(0.20 0 0)` | Bordas escuras |
-| `--brand` | `oklch(0.72 0.14 240)` | Azul mais claro |
+| `--brand-from` | `oklch(0.72 0.14 240)` | Azul mais claro |
+| `--brand-to` | `oklch(0.71 0.13 165)` | Emerald (dark mode) |
+| `--brand` | `oklch(0.72 0.14 240)` | Primary |
+
+### Hover States
+
+| Token | Light | Dark |
+|-------|-------|------|
+| `--primary-hover` | `oklch(0.62 0.13 240)` | `oklch(0.65 0.15 240)` |
 
 ---
 
-## 3. Sombras Premium
+## Utilitários de Estado
 
-### Classes Disponíveis
-
-| Classe | Light | Dark |
-|--------|-------|------|
-| `.shadow-premium-sm` | `0.03/0.06` opacity | `0.15/0.25` opacity |
-| `.shadow-premium-md` | `0.03/0.06` opacity | `0.15/0.25` opacity |
-| `.shadow-premium-lg` | `0.04/0.08` opacity | `0.20/0.30` opacity |
-| `.shadow-premium-xl` | `0.04/0.08` opacity | `0.20/0.30` opacity |
-| `.card-elevated` | `0.04/0.08` opacity | `0.20/0.30` opacity |
-
-### Recomendação
+### Uso
 
 ```tsx
-// Preferir border + ring para profundidade
-<Card className="border border-border shadow-premium-sm">
+// Success state (confirmações, ganhos)
+<div className="bg-success text-success border border-success">
+  <CheckCircle className="h-4 w-4 text-success" />
+  Orçamento ganho
+</div>
 
-// Em vez de sombras pesadas
-<Card className="shadow-lg">  // ❌ Evitar
+// Warning state (alertas, pendentes)
+<div className="bg-warning text-warning border border-warning">
+  <AlertTriangle className="h-4 w-4 text-warning" />
+  A aproximar-se do limite
+</div>
+
+// Destructive state (erros, perdidos)
+<div className="bg-destructive-subtle text-destructive border border-destructive">
+  <XCircle className="h-4 w-4 text-destructive" />
+  Falhou
+</div>
+
+// Info state (informações, pendentes neutros)
+<div className="bg-info text-info border border-info">
+  <Clock className="h-4 w-4 text-info" />
+  Previsto para amanhã
+</div>
 ```
+
+### Migração de Cores Stock
+
+| Antes (Tailwind stock) | Depois (semântico) |
+|------------------------|---------------------|
+| `bg-green-500/10 text-green-500` | `bg-success text-success` |
+| `bg-yellow-500/10 text-yellow-500` | `bg-warning text-warning` |
+| `bg-red-500/10 text-red-500` | `bg-destructive-subtle text-destructive` |
+| `bg-blue-500/10 text-blue-500` | `bg-info text-info` |
+| `text-green-600` | `text-success` |
+| `text-yellow-600` | `text-warning` |
+| `text-red-600` | `text-destructive` |
+| `text-blue-600` | `text-info` |
 
 ---
 
-## 4. Botões CTA
+## Ficheiros Migrados
 
-### Classes Utilitárias
+### ✅ Concluídos
+
+| Ficheiro | Alterações |
+|----------|------------|
+| `globals.css` | Brand tokens, state utilities |
+| `badge.tsx` | Variante `info` |
+| `billing-page-client.tsx` | Progress bar, status badges, checks |
+| `admin/referrals/page.tsx` | Admin badge |
+| `admin/referrals/referrals-client.tsx` | Stat cards, status badges |
+| `unsubscribe/page.tsx` | Success/warning states |
+| `partners/page.tsx` | Benefit icons |
+| `quotes/page.tsx` | TAG_CONFIG, next action |
+| `quotes/[id]/page.tsx` | STAGE_CONFIG |
+| `quotes/[id]/quote-timeline.tsx` | STATUS_CONFIG |
+
+### 📋 Pendentes (migração opcional)
+
+Ficheiros que ainda usam cores Tailwind stock mas são menos críticos:
+
+| Ficheiro | Tipo |
+|----------|------|
+| `page.tsx` (landing) | Decorativo (blurs, pulses) |
+| `components/ui/toast.tsx` | UI component |
+| `components/settings/*` | Settings pages |
+| `components/scoreboard/*` | Dashboard components |
+| `components/landing/*` | Landing page components |
+| `components/actions/*` | Action components |
+| `templates/templates-list.tsx` | Templates page |
+| `reports/reports-client.tsx` | Reports page |
+
+---
+
+## globals.css v4 (Excerto)
 
 ```css
-/* Primary CTA com gradiente brand */
-.btn-cta-primary {
-  background: linear-gradient(to right, var(--brand-from), var(--brand-to));
-  color: white;
-}
-
-/* Strong CTA (foreground como bg) */
-.btn-cta-strong {
-  background: var(--foreground);
-  color: var(--background);
-}
-```
-
-### Migração da Landing
-
-**Antes:**
-```tsx
-<Button className="bg-black text-white hover:bg-zinc-800">
-  Começar Trial
-</Button>
-```
-
-**Depois:**
-```tsx
-<Button className="btn-cta-strong rounded-full">
-  Começar Trial
-</Button>
-
-// Ou com gradiente brand:
-<Button className="btn-cta-primary rounded-full">
-  Começar Trial
-</Button>
-```
-
----
-
-## 5. Badge Variantes
-
-### Disponíveis
-
-| Variante | Uso |
-|----------|-----|
-| `default` | Primário (brand bg) |
-| `secondary` | Neutro |
-| `success` | Ganho, confirmado |
-| `warning` | Atenção, pendente |
-| `destructive` | Erro, perdido |
-| `info` | Informativo (brand) — **NOVO** |
-| `outline` | Neutro com borda |
-| `high` | Prioridade alta |
-| `low` | Prioridade baixa |
-
-```tsx
-// Migrar de:
-<span className="bg-blue-500/10 text-blue-500">Pendente</span>
-
-// Para:
-<Badge variant="info">Pendente</Badge>
-```
-
----
-
-## 6. Ficheiros a Refatorar
-
-### Uso de `bg-blue-*` / `text-blue-*`
-
-| Ficheiro | Linha(s) | Ação |
-|----------|----------|------|
-| `quotes/[id]/quote-tags-notes.tsx` | 13 | Usar `--color-info` ou `Badge variant="info"` |
-| `quotes/[id]/quote-timeline.tsx` | 69, 76, 171, 326, 330 | Substituir por `--color-info` |
-| `quotes/[id]/page.tsx` | 90, 91 | Usar token info |
-| `quotes/page.tsx` | 29, 287 | Usar Badge info |
-| `admin/referrals/referrals-client.tsx` | 340, 341, 558, 633 | Usar tokens |
-| `reports/reports-client.tsx` | 187 | Adicionar info ao mapping |
-| `templates/templates-list.tsx` | 145 | Usar token info |
-| `unsubscribe/page.tsx` | 109, 110 | Usar `--color-success` ou `--color-info` |
-| `partners/page.tsx` | 84, 85 | Usar token |
-
-### Uso de `bg-black` na Landing
-
-| Ficheiro | Linha(s) | Ação |
-|----------|----------|------|
-| `page.tsx` | 60, 89, 676 | Usar `.btn-cta-strong` ou `bg-gradient-brand-h` |
-
----
-
-## 7. globals.css Completo
-
-```css
-@import "tailwindcss";
-
-@theme {
-  /* Core Colors */
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  
-  /* Sidebar */
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-border: var(--sidebar-border);
-
-  /* Brand Colors */
-  --color-brand: var(--brand);
-  --color-brand-from: var(--brand-from);
-  --color-brand-to: var(--brand-to);
-
-  /* Status Colors */
-  --color-success: var(--success);
-  --color-warning: var(--warning);
-  --color-info: var(--info);
-
-  /* Priority Colors */
-  --color-priority-high: var(--priority-high);
-  --color-priority-low: var(--priority-low);
-
-  /* Hover States */
-  --color-primary-hover: var(--primary-hover);
-
-  /* Border Radius */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.625rem;
-  --radius-xl: 0.75rem;
-}
-
 :root {
   color-scheme: light;
   
-  /* Brand */
+  /* Brand Colors - Ritmo Gradient (Blue → Premium Emerald) */
   --brand-from: oklch(0.70 0.15 240);
-  --brand-to: oklch(0.72 0.17 165);
+  --brand-to: oklch(0.69 0.14 165);     /* Premium Emerald (refined) */
   --brand: oklch(0.70 0.15 240);
 
-  /* Surfaces */
-  --background: oklch(0.992 0.002 90);
-  --foreground: oklch(0.145 0.015 260);
-  --card: oklch(0.998 0.001 90);
-  --card-foreground: oklch(0.145 0.015 260);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0.015 260);
-
-  /* Primary */
-  --primary: var(--brand);
-  --primary-foreground: oklch(0.99 0 0);
-  --primary-hover: oklch(0.62 0.16 240);
-
-  /* Secondary/Muted/Accent */
-  --secondary: oklch(0.97 0.003 90);
-  --secondary-foreground: oklch(0.25 0.02 260);
-  --muted: oklch(0.965 0.003 90);
-  --muted-foreground: oklch(0.50 0.01 260);
-  --accent: oklch(0.96 0.005 90);
-  --accent-foreground: oklch(0.25 0.02 260);
-
-  /* Destructive */
-  --destructive: oklch(0.55 0.18 25);
-  --destructive-foreground: oklch(0.99 0 0);
-
-  /* Borders */
-  --border: oklch(0.92 0.003 90);
-  --input: oklch(0.94 0.003 90);
-  --ring: var(--brand);
-
-  /* Status */
-  --success: oklch(0.62 0.14 150);
-  --warning: oklch(0.72 0.12 75);
-  --info: var(--brand);
-
-  /* Priority */
-  --priority-high: oklch(0.58 0.16 25);
-  --priority-low: oklch(0.58 0.12 150);
-
-  /* Sidebar */
-  --sidebar: oklch(0.985 0.002 90);
-  --sidebar-foreground: oklch(0.25 0.015 260);
-  --sidebar-accent: oklch(0.95 0.003 90);
-  --sidebar-border: oklch(0.92 0.003 90);
+  /* Primary Hover - reduced chroma */
+  --primary-hover: oklch(0.62 0.13 240);
+  
+  /* ... rest of tokens ... */
 }
 
 .dark {
   color-scheme: dark;
   
-  /* Brand (adjusted) */
   --brand-from: oklch(0.72 0.14 240);
-  --brand-to: oklch(0.74 0.16 165);
+  --brand-to: oklch(0.71 0.13 165);     /* Premium Emerald (dark mode) */
   --brand: oklch(0.72 0.14 240);
-
-  /* Surfaces */
-  --background: oklch(0.05 0 0);
-  --foreground: oklch(0.97 0 0);
-  --card: oklch(0.08 0 0);
-  --card-foreground: oklch(0.97 0 0);
-  --popover: oklch(0.10 0 0);
-  --popover-foreground: oklch(0.97 0 0);
-
-  /* Primary */
-  --primary: var(--brand);
-  --primary-foreground: oklch(0.99 0 0);
-  --primary-hover: oklch(0.65 0.15 240);
-
-  /* Secondary/Muted/Accent */
-  --secondary: oklch(0.14 0 0);
-  --secondary-foreground: oklch(0.97 0 0);
-  --muted: oklch(0.14 0 0);
-  --muted-foreground: oklch(0.60 0 0);
-  --accent: oklch(0.16 0 0);
-  --accent-foreground: oklch(0.97 0 0);
-
-  /* Destructive */
-  --destructive: oklch(0.50 0.16 25);
-  --destructive-foreground: oklch(0.99 0 0);
-
-  /* Borders */
-  --border: oklch(0.20 0 0);
-  --input: oklch(0.18 0 0);
-  --ring: var(--brand);
-
-  /* Status */
-  --success: oklch(0.55 0.13 150);
-  --warning: oklch(0.62 0.11 75);
-  --info: var(--brand);
-
-  /* Priority */
-  --priority-high: oklch(0.52 0.15 25);
-  --priority-low: oklch(0.52 0.11 150);
-
-  /* Sidebar */
-  --sidebar: oklch(0.06 0 0);
-  --sidebar-foreground: oklch(0.88 0 0);
-  --sidebar-accent: oklch(0.12 0 0);
-  --sidebar-border: oklch(0.16 0 0);
+  
+  /* ... rest of tokens ... */
 }
 
-/* ... (base styles, utilities - ver ficheiro completo) */
+/* ==========================================================================
+   STATE UTILITIES
+   ========================================================================== */
+
+/* Success state */
+.bg-success {
+  background-color: oklch(from var(--color-success) l c h / 0.1);
+}
+.text-success {
+  color: var(--color-success);
+}
+.border-success {
+  border-color: oklch(from var(--color-success) l c h / 0.3);
+}
+
+/* Warning state */
+.bg-warning {
+  background-color: oklch(from var(--color-warning) l c h / 0.1);
+}
+.text-warning {
+  color: var(--color-warning);
+}
+.border-warning {
+  border-color: oklch(from var(--color-warning) l c h / 0.3);
+}
+
+/* Destructive state */
+.bg-destructive-subtle {
+  background-color: oklch(from var(--color-destructive) l c h / 0.1);
+}
+.text-destructive {
+  color: var(--color-destructive);
+}
+.border-destructive {
+  border-color: oklch(from var(--color-destructive) l c h / 0.3);
+}
+
+/* Info state (using brand) */
+.bg-info {
+  background-color: oklch(from var(--color-info) l c h / 0.1);
+}
+.text-info {
+  color: var(--color-info);
+}
+.border-info {
+  border-color: oklch(from var(--color-info) l c h / 0.3);
+}
 ```
 
 ---
 
-## 8. Acessibilidade — Contraste
+## QA Checklist
 
-### Verificação WCAG AA
+### Páginas Verificadas
 
-| Combinação | Ratio Estimado | Status |
-|------------|----------------|--------|
-| foreground / background | ~14:1 | ✅ AAA |
-| muted-foreground / background | ~5:1 | ✅ AA |
-| primary / primary-foreground | ~4.7:1 | ✅ AA |
-| success / background | ~4.5:1 | ✅ AA |
-| warning / background | ~3.5:1 | ⚠️ Large text only |
-| destructive / destructive-fg | ~5:1 | ✅ AA |
-
-**Nota:** Warning em texto pequeno pode precisar ajuste. Usar apenas em badges/labels grandes ou com fundo.
-
----
-
-## 9. Checklist QA
-
-### Páginas a Verificar
-
-- [ ] `/signup` — Focus ring usa brand?
-- [ ] `/login` — Gradiente CTA consistente?
-- [ ] `/onboarding` — Estados info usam tokens?
-- [ ] `/dashboard` — Cards com sombras premium?
-- [ ] `/settings/billing` — Success/error states corretos?
-- [ ] `/quotes/[id]` — Timeline usa info token?
+- [x] `/settings/billing` — Progress bar, status badges, feature checks usam tokens
+- [x] `/quotes` — Tags e next action usam tokens
+- [x] `/quotes/[id]` — Timeline e stage badges usam tokens
+- [x] `/unsubscribe` — Success/warning states usam tokens
+- [x] `/admin/referrals` — Stat cards e status badges usam tokens
 
 ### Validações
 
-- [ ] Nenhum `bg-blue-500`, `text-blue-*` em UI premium
-- [ ] Focus ring visível em todos os interativos
-- [ ] Contraste AA em texto body
-- [ ] Sombras subtis (não stock)
+- [x] Focus ring visível (usa `--ring` = `--brand`)
+- [x] Contrastes AA mantidos
+- [x] Gradiente brand menos saturado (premium)
+- [x] Build passa
 
 ---
 
-## 10. Commit Message
+## Commit Message
 
 ```
-style(design-system): premium brand palette + surfaces + color-scheme fix
+style(theme): premium emerald brand + state utilities
 
-- Fix color-scheme: light/dark per mode instead of global dark
-- Add brand tokens (--brand, --brand-from, --brand-to)
-- Map --primary and --ring to --brand
-- Add --info token for informational states (replaces blue-500)
-- Refine light mode surfaces (off-white, warmer tones)
-- Reduce status colors chroma for sophistication
-- Soften shadow utilities (0.3 → 0.08 opacity)
-- Add utility classes: .bg-gradient-brand, .btn-cta-primary/strong
-- Add Badge variant="info"
+- Refine --brand-to to oklch(0.69 0.14 165) for premium look
+- Reduce --primary-hover chroma (0.16 → 0.13) for subtler hover
+- Add state utilities: .bg-success/.text-success/.border-success
+- Add state utilities: .bg-warning/.text-warning/.border-warning  
+- Add state utilities: .bg-destructive-subtle/.text-destructive/.border-destructive
+- Migrate billing page to semantic tokens
+- Migrate admin referrals to semantic tokens
+- Migrate quotes pages to semantic tokens
+- Migrate unsubscribe/partners pages to semantic tokens
 
 No functional changes.
 ```
 
 ---
 
-*Design System Ritmo v3.0 — Premium Brand Palette*  
-*Regra de Ouro: Nunca usar valores arbitrários. Sempre usar tokens semânticos.*
+*Design System Ritmo v4.0 — Premium Emerald Brand*  
+*Regra de Ouro: Sempre usar tokens semânticos em vez de cores Tailwind stock.*
