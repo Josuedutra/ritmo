@@ -101,10 +101,6 @@ jobs:
         run: pnpm db:generate
 
       - name: Build
-        run: pnpm build
+        run: pnpm build:ci
         env:
           SKIP_ENV_VALIDATION: true
-          # Minimal required env vars for build
-          DATABASE_URL: "postgresql://placeholder:placeholder@localhost:5432/placeholder"
-          NEXTAUTH_SECRET: "build-secret-placeholder"
-          NEXTAUTH_URL: "http://localhost:3000"
