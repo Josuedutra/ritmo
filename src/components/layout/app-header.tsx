@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { ModeToggle } from "@/components/mode-toggle";
-import { Logo } from "@/components/brand";
 
 interface NavItem {
     href: string;
@@ -44,7 +43,9 @@ export function AppHeader({ user }: AppHeaderProps) {
         <header className="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-sidebar)]">
             <div className="container-app flex h-14 items-center justify-between">
                 {/* Logo */}
-                <Logo href="/dashboard" size="md" />
+                <Link href="/dashboard" className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent tracking-tight transition-opacity hover:opacity-80">
+                    Ritmo
+                </Link>
 
                 {/* Desktop Navigation */}
                 <nav className="hidden items-center gap-1 md:flex">

@@ -141,7 +141,7 @@ export default function LandingPage() {
                                 <div className="text-left space-y-8">
 
                                     <div className="space-y-4">
-                                        <h2 className="text-3xl md:text-5xl font-medium tracking-tight text-white leading-tight">
+                                        <h2 className="text-3xl md:text-5xl font-medium tracking-tighter text-white leading-[1.1]">
                                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Funciona com o que</span> <br />
                                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">você já usa.</span>
                                         </h2>
@@ -264,7 +264,7 @@ export default function LandingPage() {
                 <section id="how-it-works" className="py-24 px-6 bg-zinc-50 border-y border-zinc-100">
                     <div className="container mx-auto max-w-7xl">
                         <div className="text-center mb-16">
-                            <h2 className="text-3xl md:text-5xl font-medium tracking-tight text-zinc-900 mb-4">
+                            <h2 className="text-3xl md:text-5xl font-medium tracking-tighter text-zinc-900 mb-4 leading-[1.1]">
                                 Entra no seu processo atual em 3 passos.
                             </h2>
                             <p className="text-xl text-zinc-500 max-w-3xl mx-auto">
@@ -277,7 +277,7 @@ export default function LandingPage() {
                             <div className="flex flex-col md:flex-row items-center gap-8 lg:gap-16">
                                 <div className="w-full md:w-[30%] space-y-6 text-left">
                                     <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-zinc-100 text-zinc-900 font-bold text-lg mb-2">1</div>
-                                    <h3 className="text-3xl md:text-4xl font-medium text-zinc-900 tracking-tight leading-tight">
+                                    <h3 className="text-3xl md:text-4xl font-medium text-zinc-900 tracking-tighter leading-[1.1]">
                                         Registe o orçamento
                                     </h3>
                                     <p className="text-lg text-zinc-600 leading-relaxed">
@@ -302,7 +302,7 @@ export default function LandingPage() {
                             <div className="flex flex-col md:flex-row-reverse items-center gap-8 lg:gap-16">
                                 <div className="w-full md:w-[30%] space-y-6 text-left">
                                     <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-zinc-100 text-zinc-900 font-bold text-lg mb-2">2</div>
-                                    <h3 className="text-3xl md:text-4xl font-medium text-zinc-900 tracking-tight leading-tight">
+                                    <h3 className="text-3xl md:text-4xl font-medium text-zinc-900 tracking-tighter leading-[1.1]">
                                         Envie como sempre
                                     </h3>
                                     <p className="text-lg text-zinc-600 leading-relaxed">
@@ -327,7 +327,7 @@ export default function LandingPage() {
                             <div className="flex flex-col md:flex-row items-center gap-8 lg:gap-16">
                                 <div className="w-full md:w-[30%] space-y-6 text-left">
                                     <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-zinc-100 text-zinc-900 font-bold text-lg mb-2">3</div>
-                                    <h3 className="text-3xl md:text-4xl font-medium text-zinc-900 tracking-tight leading-tight">
+                                    <h3 className="text-3xl md:text-4xl font-medium text-zinc-900 tracking-tighter leading-[1.1]">
                                         Faça o que aparece hoje
                                     </h3>
                                     <p className="text-lg text-zinc-600 leading-relaxed">
@@ -363,7 +363,7 @@ export default function LandingPage() {
                     <div className="container mx-auto max-w-7xl">
                         <div className="grid lg:grid-cols-2 gap-16 items-center">
                             <div>
-                                <h2 className="text-4xl md:text-6xl font-medium tracking-tight text-zinc-900 mb-8 leading-tight">
+                                <h2 className="text-4xl md:text-6xl font-medium tracking-tighter text-zinc-900 mb-8 leading-[1]">
                                     O cockpit de follow-up que faltava.
                                 </h2>
                                 <div className="space-y-8">
@@ -419,7 +419,7 @@ export default function LandingPage() {
                 <section id="pricing" className="py-24 px-6 bg-zinc-50 border-t border-zinc-100">
                     <div className="container mx-auto max-w-7xl">
                         <div className="text-center mb-12">
-                            <h2 className="text-3xl md:text-5xl font-medium tracking-tight text-zinc-900 mb-4">
+                            <h2 className="text-3xl md:text-5xl font-medium tracking-tighter text-zinc-900 mb-4 leading-[1.1]">
                                 Planos para PMEs que enviam orçamentos.
                             </h2>
                             <p className="text-lg text-zinc-500 max-w-2xl mx-auto mb-2">
@@ -605,7 +605,7 @@ export default function LandingPage() {
                             {/* Left Column: Intro & Support */}
                             <div className="lg:col-span-4 space-y-8">
                                 <div>
-                                    <h2 className="text-4xl md:text-5xl font-medium tracking-tight text-zinc-900 mb-6 text-left">
+                                    <h2 className="text-4xl md:text-5xl font-medium tracking-tighter text-zinc-900 mb-6 text-left leading-[1.1]">
                                         Perguntas <br />
                                         <span className="bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">frequentes</span>
                                     </h2>
