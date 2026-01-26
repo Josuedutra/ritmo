@@ -4,8 +4,8 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Check, ListChecks, FileText, Zap, Bell, X, Users, BarChart3, Shield, Headphones } from "lucide-react";
-import { AntigravityParticles } from "@/components/landing/antigravity-particles";
+import { ArrowRight, Check, ListChecks, FileText, Zap, Bell, X } from "lucide-react";
+import { Logo } from "@/components/brand";
 import {
     Accordion,
     AccordionContent,
@@ -31,19 +31,12 @@ const staggerContainer = {
 
 export default function LandingPage() {
     return (
-        <div className="flex min-h-screen flex-col bg-white text-zinc-950 font-sans selection:bg-blue-100 selection:text-blue-900">
-
-            <AntigravityParticles />
+        <div className="flex min-h-screen flex-col bg-[#FAFAF9] bg-hero-premium text-zinc-950 font-sans selection:bg-blue-100 selection:text-blue-900">
 
             {/* Header */}
-            <header className="fixed top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-transparent">
+            <header className="fixed top-0 z-50 w-full bg-[#FAFAF9]/80 backdrop-blur-md border-b border-transparent">
                 <div className="container mx-auto flex h-16 items-center justify-between px-6">
-                    <div className="flex items-center gap-2">
-                        {/* Antigravity-like minimalist logo text */}
-                        <Link href="/" className="flex items-center gap-2 transition-opacity hover:opacity-80">
-                            <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent tracking-tight">Ritmo</span>
-                        </Link>
-                    </div>
+                    <Logo href="/" size="md" />
 
                     <nav className="hidden items-center gap-10 text-sm font-medium text-zinc-600 md:flex">
                         <a href="#how-it-works" className="hover:text-black transition-colors">Como funciona</a>
@@ -68,45 +61,70 @@ export default function LandingPage() {
             <main className="flex-1 relative z-10 pt-32">
 
                 {/* HERO SECTION */}
-                <section className="relative px-6 pb-20 md:pb-32 text-center">
-                    <motion.div
-                        initial="initial"
-                        animate="animate"
-                        variants={staggerContainer}
-                        className="container mx-auto max-w-5xl"
-                    >
-                        <motion.h1 variants={fadeInUp} className="mb-8 text-5xl md:text-7xl font-bold tracking-tighter text-zinc-900 leading-[1]">
-                            Envie orçamentos como sempre. <br />
-                            O Ritmo faz o follow-up.
-                        </motion.h1>
+                <section className="relative px-6 pb-20 md:pb-32">
+                    <div className="container mx-auto max-w-7xl">
+                        <div className="grid lg:grid-cols-2 gap-12 items-center">
+                            {/* Left: Text Content */}
+                            <motion.div
+                                initial="initial"
+                                animate="animate"
+                                variants={staggerContainer}
+                                className="text-center lg:text-left"
+                            >
+                                <motion.h1 variants={fadeInUp} className="mb-8 text-5xl md:text-7xl font-medium tracking-tighter text-zinc-900 leading-[1]">
+                                    Envie orçamentos como sempre. <br />
+                                    O Ritmo faz o follow-up.
+                                </motion.h1>
 
-                        <motion.p variants={fadeInUp} className="mx-auto mb-10 max-w-2xl text-xl leading-relaxed text-zinc-600 font-light">
-                            Pare de perder negócios por falta de tempo. O Ritmo gere a cadência dos seus orçamentos para que a sua equipa se foque em fechar vendas.
-                        </motion.p>
+                                <motion.p variants={fadeInUp} className="mb-10 max-w-2xl text-xl leading-relaxed text-zinc-600 font-light">
+                                    Pare de perder negócios por falta de tempo. O Ritmo gere a cadência dos seus orçamentos para que a sua equipa se foque em fechar vendas.
+                                </motion.p>
 
-                        <motion.div variants={fadeInUp} className="flex flex-col items-center justify-center gap-4 sm:flex-row mb-6">
-                            <Link href="/signup">
-                                <Button size="lg" className="h-14 rounded-full px-10 text-lg bg-black text-white hover:bg-zinc-800 shadow-xl transition-all hover:scale-105">
-                                    Começar trial grátis
-                                    <ArrowRight className="ml-2 h-5 w-5" />
-                                </Button>
-                            </Link>
-                            <Link href="/signup?provider=google">
-                                <Button size="lg" variant="outline" className="h-14 rounded-full px-10 text-lg border-zinc-300 hover:bg-zinc-50 shadow-sm transition-all hover:scale-105 gap-3">
-                                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none">
-                                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                                    </svg>
-                                    Continuar com Google
-                                </Button>
-                            </Link>
-                        </motion.div>
+                                <motion.div variants={fadeInUp} className="flex flex-col items-center lg:items-start justify-center gap-4 sm:flex-row mb-6">
+                                    <Link href="/signup">
+                                        <Button size="lg" className="h-14 rounded-full px-10 text-lg bg-gradient-to-r from-blue-400 to-emerald-400 hover:from-blue-500 hover:to-emerald-500 text-white shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 hover:shadow-xl">
+                                            Começar trial grátis
+                                            <ArrowRight className="ml-2 h-5 w-5" />
+                                        </Button>
+                                    </Link>
+                                    <Link href="/signup?provider=google">
+                                        <Button size="lg" variant="outline" className="h-14 rounded-full px-10 text-lg border-zinc-300 hover:bg-zinc-50 shadow-sm transition-all hover:scale-105 gap-3">
+                                            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                                            </svg>
+                                            Continuar com Google
+                                        </Button>
+                                    </Link>
+                                </motion.div>
 
-                        {/* Microcopy Removed */}
-                        <motion.p variants={fadeInUp} className="h-4 mb-20"></motion.p>
-                    </motion.div>
+                                <motion.p variants={fadeInUp} className="text-sm text-zinc-500">
+                                    14 dias · 20 envios · sem cartão
+                                </motion.p>
+                            </motion.div>
+
+                            {/* Right: 3D R Render (Desktop Only) */}
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.8, delay: 0.3 }}
+                                className="hidden lg:flex items-center justify-center relative"
+                            >
+                                {/* Glow effect behind 3D render */}
+                                <div className="absolute inset-0 bg-gradient-radial from-blue-400/15 via-emerald-400/10 to-transparent blur-3xl" />
+                                <Image
+                                    src="/brand/ritmo-3d-hero.png"
+                                    alt="Ritmo 3D Logo"
+                                    width={450}
+                                    height={450}
+                                    priority
+                                    className="relative z-10 drop-shadow-2xl"
+                                />
+                            </motion.div>
+                        </div>
+                    </div>
                 </section>
 
                 {/* WORKS WITH WHAT YOU USE */}
@@ -123,7 +141,7 @@ export default function LandingPage() {
                                 <div className="text-left space-y-8">
 
                                     <div className="space-y-4">
-                                        <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white leading-tight">
+                                        <h2 className="text-3xl md:text-5xl font-medium tracking-tighter text-white leading-[1.1]">
                                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Funciona com o que</span> <br />
                                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">você já usa.</span>
                                         </h2>
@@ -151,7 +169,7 @@ export default function LandingPage() {
                                         <div className="absolute w-[460px] h-[460px] rounded-full border border-white/5 opacity-40 animate-[spin_80s_linear_infinite]" />
                                     </div>
 
-                                    {/* Center Hub - Seamless Dark */}
+                                    {/* Center Hub - 3D R Logo */}
                                     <motion.div
                                         initial={{ scale: 0.8, opacity: 0 }}
                                         whileInView={{ scale: 1, opacity: 1 }}
@@ -168,9 +186,15 @@ export default function LandingPage() {
                                             scale: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 },
                                             filter: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }
                                         }}
-                                        className="relative z-20 flex flex-col items-center justify-center w-auto h-auto p-4 bg-zinc-900 rounded-full"
+                                        className="relative z-20 flex items-center justify-center"
                                     >
-                                        <div className="bg-gradient-to-r from-blue-500 to-emerald-400 text-transparent bg-clip-text font-bold text-3xl tracking-tighter">Ritmo</div>
+                                        <Image
+                                            src="/brand/r-3d-transparent.png"
+                                            alt="Ritmo"
+                                            width={120}
+                                            height={120}
+                                            className="object-contain mix-blend-lighten"
+                                        />
                                     </motion.div>
 
                                     {/* Orbiting Elements - Individual Icons - Using Reliable Wikipedia Sources */}
@@ -240,7 +264,7 @@ export default function LandingPage() {
                 <section id="how-it-works" className="py-24 px-6 bg-zinc-50 border-y border-zinc-100">
                     <div className="container mx-auto max-w-7xl">
                         <div className="text-center mb-16">
-                            <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-zinc-900 mb-4">
+                            <h2 className="text-3xl md:text-5xl font-medium tracking-tighter text-zinc-900 mb-4 leading-[1.1]">
                                 Entra no seu processo atual em 3 passos.
                             </h2>
                             <p className="text-xl text-zinc-500 max-w-3xl mx-auto">
@@ -253,7 +277,7 @@ export default function LandingPage() {
                             <div className="flex flex-col md:flex-row items-center gap-8 lg:gap-16">
                                 <div className="w-full md:w-[30%] space-y-6 text-left">
                                     <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-zinc-100 text-zinc-900 font-bold text-lg mb-2">1</div>
-                                    <h3 className="text-3xl md:text-4xl font-bold text-zinc-900 tracking-tight leading-tight">
+                                    <h3 className="text-3xl md:text-4xl font-medium text-zinc-900 tracking-tighter leading-[1.1]">
                                         Registe o orçamento
                                     </h3>
                                     <p className="text-lg text-zinc-600 leading-relaxed">
@@ -278,7 +302,7 @@ export default function LandingPage() {
                             <div className="flex flex-col md:flex-row-reverse items-center gap-8 lg:gap-16">
                                 <div className="w-full md:w-[30%] space-y-6 text-left">
                                     <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-zinc-100 text-zinc-900 font-bold text-lg mb-2">2</div>
-                                    <h3 className="text-3xl md:text-4xl font-bold text-zinc-900 tracking-tight leading-tight">
+                                    <h3 className="text-3xl md:text-4xl font-medium text-zinc-900 tracking-tighter leading-[1.1]">
                                         Envie como sempre
                                     </h3>
                                     <p className="text-lg text-zinc-600 leading-relaxed">
@@ -303,7 +327,7 @@ export default function LandingPage() {
                             <div className="flex flex-col md:flex-row items-center gap-8 lg:gap-16">
                                 <div className="w-full md:w-[30%] space-y-6 text-left">
                                     <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-zinc-100 text-zinc-900 font-bold text-lg mb-2">3</div>
-                                    <h3 className="text-3xl md:text-4xl font-bold text-zinc-900 tracking-tight leading-tight">
+                                    <h3 className="text-3xl md:text-4xl font-medium text-zinc-900 tracking-tighter leading-[1.1]">
                                         Faça o que aparece hoje
                                     </h3>
                                     <p className="text-lg text-zinc-600 leading-relaxed">
@@ -339,7 +363,7 @@ export default function LandingPage() {
                     <div className="container mx-auto max-w-7xl">
                         <div className="grid lg:grid-cols-2 gap-16 items-center">
                             <div>
-                                <h2 className="text-4xl md:text-6xl font-bold tracking-tight text-zinc-900 mb-8 leading-tight">
+                                <h2 className="text-4xl md:text-6xl font-medium tracking-tighter text-zinc-900 mb-8 leading-[1]">
                                     O cockpit de follow-up que faltava.
                                 </h2>
                                 <div className="space-y-8">
@@ -395,7 +419,7 @@ export default function LandingPage() {
                 <section id="pricing" className="py-24 px-6 bg-zinc-50 border-t border-zinc-100">
                     <div className="container mx-auto max-w-7xl">
                         <div className="text-center mb-12">
-                            <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-zinc-900 mb-4">
+                            <h2 className="text-3xl md:text-5xl font-medium tracking-tighter text-zinc-900 mb-4 leading-[1.1]">
                                 Planos para PMEs que enviam orçamentos.
                             </h2>
                             <p className="text-lg text-zinc-500 max-w-2xl mx-auto mb-2">
@@ -581,7 +605,7 @@ export default function LandingPage() {
                             {/* Left Column: Intro & Support */}
                             <div className="lg:col-span-4 space-y-8">
                                 <div>
-                                    <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-zinc-900 mb-6 text-left">
+                                    <h2 className="text-4xl md:text-5xl font-medium tracking-tighter text-zinc-900 mb-6 text-left leading-[1.1]">
                                         Perguntas <br />
                                         <span className="bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">frequentes</span>
                                     </h2>
@@ -674,9 +698,10 @@ export default function LandingPage() {
 
                 {/* BOTTOM CTA */}
                 <section className="relative py-32 px-6 bg-black text-white overflow-hidden">
-                    <AntigravityParticles />
+                    {/* Subtle gradient glow */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-blue-500/10 via-emerald-500/5 to-transparent blur-3xl pointer-events-none" />
                     <div className="relative z-10 container mx-auto text-center max-w-4xl">
-                        <h2 className="mb-8 text-5xl md:text-7xl font-bold tracking-tighter">
+                        <h2 className="mb-8 text-5xl md:text-7xl font-medium tracking-tighter">
                             Comece hoje.
                         </h2>
                         <p className="mb-12 text-xl text-zinc-400 max-w-2xl mx-auto">
@@ -685,7 +710,7 @@ export default function LandingPage() {
 
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
                             <Link href="/signup">
-                                <Button size="lg" className="h-16 rounded-full px-12 text-lg bg-white text-black hover:bg-zinc-200 font-bold transition-transform hover:scale-105">
+                                <Button size="lg" className="h-16 rounded-full px-12 text-lg bg-gradient-to-r from-blue-400 to-emerald-400 hover:from-blue-500 hover:to-emerald-500 text-white font-bold shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 hover:shadow-xl">
                                     Começar trial grátis
                                 </Button>
                             </Link>

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Button, Input, Label, Card, CardHeader, CardContent, CardFooter } from "@/components/ui";
 import { AlertCircle, Eye, EyeOff, Info, Loader2 } from "lucide-react";
 import { Footer } from "@/components/marketing";
+import { Logo } from "@/components/brand";
 
 // Google Icon SVG
 function GoogleIcon({ className }: { className?: string }) {
@@ -237,9 +238,7 @@ export default function LoginPage() {
             {/* Header */}
             <header className="border-b border-[var(--color-border)]">
                 <div className="container-app flex h-14 items-center justify-between">
-                    <Link href="/" className="text-xl font-bold text-gradient">
-                        Ritmo
-                    </Link>
+                    <Logo href="/" size="sm" />
                     <Link href="/signup" className="text-sm text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]">
                         Criar conta
                     </Link>

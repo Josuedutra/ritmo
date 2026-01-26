@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Link } from "lucide-react";
+import { Logo } from "@/components/brand";
 import {
     LayoutDashboard,
     FileText,
@@ -24,10 +24,7 @@ export function DashboardPreview() {
             {/* Minimal App Header */}
             <div className="flex items-center justify-between px-6 py-3 border-b border-zinc-100 dark:border-zinc-900 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-sm">
                 <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded bg-primary text-white flex items-center justify-center text-xs font-bold">R</div>
-                        <span className="font-semibold text-zinc-900 dark:text-zinc-100">Ritmo</span>
-                    </div>
+                    <Logo size="sm" />
                     <div className="hidden md:flex items-center gap-4 text-sm text-zinc-500">
                         <span className="text-zinc-900 font-medium">Dashboard</span>
                         <span>Orçamentos</span>

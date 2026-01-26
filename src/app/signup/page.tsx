@@ -15,6 +15,7 @@ import {
 } from "@/components/ui";
 import { AlertCircle, Eye, EyeOff, Check, Users, Loader2 } from "lucide-react";
 import { Footer } from "@/components/marketing";
+import { Logo } from "@/components/brand";
 
 // Google Icon SVG
 function GoogleIcon({ className }: { className?: string }) {
@@ -379,9 +380,7 @@ export default function SignupPage() {
             {/* Header */}
             <header className="border-b border-[var(--color-border)]">
                 <div className="container-app flex h-14 items-center justify-between">
-                    <Link href="/" className="text-xl font-bold text-gradient">
-                        Ritmo
-                    </Link>
+                    <Logo href="/" size="sm" />
                     <Link href="/login" className="text-sm text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]">
                         Já tem conta? Entrar
                     </Link>

@@ -16,8 +16,8 @@ export default async function UnsubscribePage({ searchParams }: PageProps) {
             <div className="flex min-h-screen items-center justify-center bg-[var(--color-background)] p-4">
                 <Card className="w-full max-w-md">
                     <CardHeader className="text-center">
-                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10">
-                            <CheckCircle className="h-8 w-8 text-green-500" />
+                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success">
+                            <CheckCircle className="h-8 w-8 text-success" />
                         </div>
                         <CardTitle>Subscrição cancelada</CardTitle>
                     </CardHeader>
@@ -106,8 +106,8 @@ export default async function UnsubscribePage({ searchParams }: PageProps) {
             <div className="flex min-h-screen items-center justify-center bg-[var(--color-background)] p-4">
                 <Card className="w-full max-w-md">
                     <CardHeader className="text-center">
-                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-500/10">
-                            <CheckCircle className="h-8 w-8 text-blue-500" />
+                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-info">
+                            <CheckCircle className="h-8 w-8 text-info" />
                         </div>
                         <CardTitle>Já está removido</CardTitle>
                     </CardHeader>
@@ -125,8 +125,8 @@ export default async function UnsubscribePage({ searchParams }: PageProps) {
         <div className="flex min-h-screen items-center justify-center bg-[var(--color-background)] p-4">
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-orange-500/10">
-                        <MailX className="h-8 w-8 text-orange-500" />
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-warning">
+                        <MailX className="h-8 w-8 text-warning" />
                     </div>
                     <CardTitle>Cancelar subscrição</CardTitle>
                 </CardHeader>
