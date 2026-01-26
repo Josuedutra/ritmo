@@ -242,7 +242,7 @@ export function ActionCard({
                                     ? isHigh
                                         ? "bg-amber-500/15 text-amber-600"
                                         : "bg-green-500/10 text-green-500"
-                                    : "bg-blue-500/10 text-blue-500"
+                                    : "bg-[var(--color-info-muted)] text-[var(--color-info)]"
                             }`}
                         >
                             <Icon className={isCall ? "h-6 w-6" : "h-5 w-5"} />

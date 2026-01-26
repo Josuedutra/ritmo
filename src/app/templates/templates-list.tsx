@@ -142,7 +142,7 @@ export function TemplatesList({ templates }: TemplatesListProps) {
                             <div className={`rounded-md p-2 ${
                                 info?.type === "call"
                                     ? "bg-green-500/10 text-green-500"
-                                    : "bg-blue-500/10 text-blue-500"
+                                    : "bg-[var(--color-info-muted)] text-[var(--color-info)]"
                             }`}>
                                 <Icon className="h-4 w-4" />
                             </div>

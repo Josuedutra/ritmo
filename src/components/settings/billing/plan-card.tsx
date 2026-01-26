@@ -34,7 +34,7 @@ export function PlanCard({ subscription, organization }: PlanCardProps) {
         statusColor = "text-gray-500";
     } else if (isTrial) {
         statusDisplay = `Termina em ${format(new Date(organization.trialEndsAt!), "dd MMM yyyy", { locale: pt })}`;
-        statusColor = "text-blue-600";
+        statusColor = "text-[var(--color-info-foreground)]";
     }
 
     // Determine "Includes" text

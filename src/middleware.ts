@@ -17,6 +17,72 @@ function generateRequestId(): string {
 }
 
 /**
+ * Check Basic Auth for staging/preview environments
+ * Returns 401 if credentials are invalid, null if valid or not applicable
+ */
+function checkStagingAuth(request: NextRequest): NextResponse | null {
+    const stagingPassword = process.env.STAGING_PASSWORD;
+
+    if (!stagingPassword) {
+        return null; // No password configured, skip auth
+    }
+
+    // Check if this is a staging environment:
+    // 1. Vercel preview deployments (VERCEL_ENV=preview)
+    // 2. staging.useritmo.pt domain (custom staging domain)
+    const isPreview = process.env.VERCEL_ENV === "preview";
+    const host = request.headers.get("host") || "";
+    const isStagingDomain = host.includes("staging.");
+
+    if (!isPreview && !isStagingDomain) {
+        return null; // Not a staging environment
+    }
+
+    // Skip auth for health check endpoint
+    if (request.nextUrl.pathname === "/api/health") {
+        return null;
+    }
+
+    const authHeader = request.headers.get("authorization");
+
+    if (!authHeader || !authHeader.startsWith("Basic ")) {
+        return new NextResponse("Authentication required", {
+            status: 401,
+            headers: {
+                "WWW-Authenticate": 'Basic realm="Ritmo Staging"',
+            },
+        });
+    }
+
+    // Decode and verify credentials
+    // Expected format: "Basic base64(username:password)"
+    // Username can be anything, only password matters
+    try {
+        const base64Credentials = authHeader.substring(6);
+        const credentials = atob(base64Credentials);
+        const [, password] = credentials.split(":");
+
+        if (password !== stagingPassword) {
+            return new NextResponse("Invalid credentials", {
+                status: 401,
+                headers: {
+                    "WWW-Authenticate": 'Basic realm="Ritmo Staging"',
+                },
+            });
+        }
+    } catch {
+        return new NextResponse("Invalid authorization header", {
+            status: 401,
+            headers: {
+                "WWW-Authenticate": 'Basic realm="Ritmo Staging"',
+            },
+        });
+    }
+
+    return null; // Auth successful
+}
+
+/**
  * Lightweight middleware using auth.config (no Prisma)
  * This keeps bundle under 1MB for Vercel Hobby plan
  *
@@ -25,6 +91,12 @@ function generateRequestId(): string {
  * Uses next-auth v5 middleware wrapper pattern.
  */
 export const middleware = auth(async function middleware(request) {
+    // Check staging authentication first
+    const stagingAuthResponse = checkStagingAuth(request);
+    if (stagingAuthResponse) {
+        return stagingAuthResponse;
+    }
+
     // Generate or propagate request ID
     const requestId = request.headers.get(REQUEST_ID_HEADER) || generateRequestId();
 

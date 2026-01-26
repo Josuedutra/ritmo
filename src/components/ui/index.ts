@@ -1,5 +1,17 @@
 // UI Components - Barrel export
 export { Button } from "./button";
+export {
+    Dialog,
+    DialogPortal,
+    DialogOverlay,
+    DialogClose,
+    DialogTrigger,
+    DialogContent,
+    DialogHeader,
+    DialogFooter,
+    DialogTitle,
+    DialogDescription,
+} from "./dialog";
 export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent } from "./card";
 export { Badge, badgeVariants } from "./badge";
 export { Alert, AlertTitle, AlertDescription } from "./alert";
@@ -47,3 +59,4 @@ export {
     DropdownMenuSubTrigger,
     DropdownMenuRadioGroup,
 } from "./dropdown-menu";
+export { StatusBadge, type StatusBadgeStatus } from "./status-badge";

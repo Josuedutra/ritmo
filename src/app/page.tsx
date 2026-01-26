@@ -1,9 +1,12 @@
 "use client";
 
+import { useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui";
 import { ArrowRight, Check, ListChecks, FileText, Zap, Bell, X } from "lucide-react";
 import { Logo } from "@/components/brand";
 import {
@@ -29,9 +32,30 @@ const staggerContainer = {
     }
 };
 
+// Component to handle signed_out toast (needs Suspense boundary)
+function SignedOutToast() {
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        if (searchParams.get("signed_out") === "1") {
+            toast.success("Sessão terminada.");
+            // Clean up the URL
+            window.history.replaceState({}, "", "/");
+        }
+    }, [searchParams]);
+
+    return null;
+}
+
 export default function LandingPage() {
+
     return (
         <div className="flex min-h-screen flex-col bg-[#FAFAF9] bg-hero-premium text-zinc-950 font-sans selection:bg-blue-100 selection:text-blue-900">
+
+            {/* Handle signed_out toast with Suspense boundary */}
+            <Suspense fallback={null}>
+                <SignedOutToast />
+            </Suspense>
 
             {/* Header */}
             <header className="fixed top-0 z-50 w-full bg-[#FAFAF9]/80 backdrop-blur-md border-b border-transparent">
@@ -620,7 +644,7 @@ export default function LandingPage() {
                             <div className="lg:col-span-8 space-y-4">
                                 <Accordion type="single" collapsible className="w-full space-y-4">
                                     <AccordionItem value="item-1" className="bg-white rounded-2xl border border-zinc-100 shadow-sm px-2 overflow-hidden hover:shadow-md transition-shadow duration-200">
-                                        <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-blue-600">
+                                        <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-[var(--color-primary)]">
                                             <span className="text-base font-medium text-zinc-700">O Ritmo vai &quot;parecer robô&quot; com emails automáticos?</span>
                                         </AccordionTrigger>
                                         <AccordionContent className="px-6 pb-6 text-zinc-600 leading-relaxed bg-white">
@@ -629,7 +653,7 @@ export default function LandingPage() {
                                     </AccordionItem>
 
                                     <AccordionItem value="item-2" className="bg-white rounded-2xl border border-zinc-100 shadow-sm px-2 overflow-hidden hover:shadow-md transition-shadow duration-200">
-                                        <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-blue-600">
+                                        <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-[var(--color-primary)]">
                                             <span className="text-base font-medium text-zinc-700">O que conta como &quot;envio&quot;?</span>
                                         </AccordionTrigger>
                                         <AccordionContent className="px-6 pb-6 text-zinc-600 leading-relaxed bg-white">
@@ -638,7 +662,7 @@ export default function LandingPage() {
                                     </AccordionItem>
 
                                     <AccordionItem value="item-3" className="bg-white rounded-2xl border border-zinc-100 shadow-sm px-2 overflow-hidden hover:shadow-md transition-shadow duration-200">
-                                        <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-blue-600">
+                                        <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-[var(--color-primary)]">
                                             <span className="text-base font-medium text-zinc-700">Preciso anexar a proposta no Ritmo para começar?</span>
                                         </AccordionTrigger>
                                         <AccordionContent className="px-6 pb-6 text-zinc-600 leading-relaxed bg-white">
@@ -647,7 +671,7 @@ export default function LandingPage() {
                                     </AccordionItem>
 
                                     <AccordionItem value="item-4" className="bg-white rounded-2xl border border-zinc-100 shadow-sm px-2 overflow-hidden hover:shadow-md transition-shadow duration-200">
-                                        <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-blue-600">
+                                        <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-[var(--color-primary)]">
                                             <span className="text-base font-medium text-zinc-700">Como funciona a captura de propostas por BCC?</span>
                                         </AccordionTrigger>
                                         <AccordionContent className="px-6 pb-6 text-zinc-600 leading-relaxed bg-white">
@@ -656,7 +680,7 @@ export default function LandingPage() {
                                     </AccordionItem>
 
                                     <AccordionItem value="item-5" className="bg-white rounded-2xl border border-zinc-100 shadow-sm px-2 overflow-hidden hover:shadow-md transition-shadow duration-200">
-                                        <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-blue-600">
+                                        <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-[var(--color-primary)]">
                                             <span className="text-base font-medium text-zinc-700">Posso usar sem automação?</span>
                                         </AccordionTrigger>
                                         <AccordionContent className="px-6 pb-6 text-zinc-600 leading-relaxed bg-white">
@@ -665,7 +689,7 @@ export default function LandingPage() {
                                     </AccordionItem>
 
                                     <AccordionItem value="item-6" className="bg-white rounded-2xl border border-zinc-100 shadow-sm px-2 overflow-hidden hover:shadow-md transition-shadow duration-200">
-                                        <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-blue-600">
+                                        <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-[var(--color-primary)]">
                                             <span className="text-base font-medium text-zinc-700">Posso ter mais do que um utilizador?</span>
                                         </AccordionTrigger>
                                         <AccordionContent className="px-6 pb-6 text-zinc-600 leading-relaxed bg-white">
@@ -674,7 +698,7 @@ export default function LandingPage() {
                                     </AccordionItem>
 
                                     <AccordionItem value="item-7" className="bg-white rounded-2xl border border-zinc-100 shadow-sm px-2 overflow-hidden hover:shadow-md transition-shadow duration-200">
-                                        <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-blue-600">
+                                        <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-[var(--color-primary)]">
                                             <span className="text-base font-medium text-zinc-700">O trial é mesmo sem cartão?</span>
                                         </AccordionTrigger>
                                         <AccordionContent className="px-6 pb-6 text-zinc-600 leading-relaxed bg-white">
@@ -683,7 +707,7 @@ export default function LandingPage() {
                                     </AccordionItem>
 
                                     <AccordionItem value="item-8" className="bg-white rounded-2xl border border-zinc-100 shadow-sm px-2 overflow-hidden hover:shadow-md transition-shadow duration-200">
-                                        <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-blue-600">
+                                        <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-[var(--color-primary)]">
                                             <span className="text-base font-medium text-zinc-700">Posso cancelar quando quiser?</span>
                                         </AccordionTrigger>
                                         <AccordionContent className="px-6 pb-6 text-zinc-600 leading-relaxed bg-white">

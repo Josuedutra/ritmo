@@ -355,8 +355,22 @@ function SignupForm() {
 
                     <p className="text-center text-xs text-[var(--color-muted-foreground)]">
                         Ao criar conta, aceita os{" "}
-                        <Link href="/terms" className="underline">
+                        <Link
+                            href="/termos"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline hover:text-[var(--color-foreground)]"
+                        >
                             Termos de Serviço
+                        </Link>
+                        {" "}e a{" "}
+                        <Link
+                            href="/privacidade"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline hover:text-[var(--color-foreground)]"
+                        >
+                            Política de Privacidade
                         </Link>
                     </p>
                 </CardContent>
