@@ -7,6 +7,9 @@
 
 import { PUBLIC_APP_URL } from "./config";
 
+// Static URL for email assets (must be publicly accessible, no auth)
+const EMAIL_ASSETS_URL = "https://useritmo.pt";
+
 // Brand colors
 const BRAND = {
     primary: "#4F46E5", // Indigo
@@ -40,7 +43,7 @@ function baseLayout(content: string): string {
                     <tr>
                         <td align="center" style="padding: 32px 40px 24px 40px; border-bottom: 1px solid ${BRAND.border};">
                             <a href="${PUBLIC_APP_URL}" style="text-decoration: none;">
-                                <img src="${PUBLIC_APP_URL}/logo-ritmo.png" alt="Ritmo" width="160" height="auto" style="display: block; max-width: 160px; height: auto;" />
+                                <img src="${EMAIL_ASSETS_URL}/logo-ritmo.png" alt="Ritmo" width="160" height="auto" style="display: block; max-width: 160px; height: auto;" />
                             </a>
                         </td>
                     </tr>
