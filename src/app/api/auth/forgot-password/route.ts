@@ -9,7 +9,8 @@ import {
     RateLimitConfigs,
     rateLimitedResponse,
 } from "@/lib/security/rate-limit";
-import { APP_ORIGIN, DEFAULT_EMAIL_FROM } from "@/lib/config";
+import { APP_ORIGIN } from "@/lib/config";
+import { passwordResetEmail } from "@/lib/email-templates";
 
 const log = logger.child({ endpoint: "auth/forgot-password" });
 
@@ -157,36 +158,17 @@ export async function POST(request: NextRequest) {
 
         // Send email (non-blocking, but we await to log errors)
         try {
+            const emailContent = passwordResetEmail({
+                userName: user.name || undefined,
+                resetUrl,
+                expiryMinutes: PASSWORD_RESET_TTL_MINUTES,
+            });
+
             await sendEmail({
                 to: user.email,
                 subject: "Repor password do Ritmo",
-                html: `
-                    <p>Olá${user.name ? ` ${user.name}` : ""},</p>
-                    <p>Recebemos um pedido para repor a sua password no Ritmo.</p>
-                    <p>
-                        <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 6px;">
-                            Repor password
-                        </a>
-                    </p>
-                    <p>Ou copie este link: ${resetUrl}</p>
-                    <p><strong>Este link expira em ${PASSWORD_RESET_TTL_MINUTES} minutos.</strong></p>
-                    <p>Se não pediu para repor a password, ignore este email.</p>
-                    <p>— Equipa Ritmo</p>
-                `,
-                text: `
-Olá${user.name ? ` ${user.name}` : ""},
-
-Recebemos um pedido para repor a sua password no Ritmo.
-
-Clique aqui para repor: ${resetUrl}
-
-Este link expira em ${PASSWORD_RESET_TTL_MINUTES} minutos.
-
-Se não pediu para repor a password, ignore este email.
-
-— Equipa Ritmo
-                `.trim(),
-                from: DEFAULT_EMAIL_FROM,
+                html: emailContent.html,
+                text: emailContent.text,
             });
 
             log.info(
