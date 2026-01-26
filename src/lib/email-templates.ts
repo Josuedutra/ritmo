@@ -39,19 +39,9 @@ function baseLayout(content: string): string {
                     <!-- Header with Logo -->
                     <tr>
                         <td align="center" style="padding: 32px 40px 24px 40px; border-bottom: 1px solid ${BRAND.border};">
-                            <table role="presentation" cellspacing="0" cellpadding="0">
-                                <tr>
-                                    <td style="padding-right: 10px;">
-                                        <!-- Stylized R icon -->
-                                        <div style="width: 36px; height: 36px; background: linear-gradient(135deg, ${BRAND.primaryLight}, ${BRAND.accent}); border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;">
-                                            <span style="color: white; font-size: 20px; font-weight: 700; line-height: 36px;">R</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span style="font-size: 24px; font-weight: 700; color: ${BRAND.text}; letter-spacing: -0.5px;">Ritmo</span>
-                                    </td>
-                                </tr>
-                            </table>
+                            <a href="${PUBLIC_APP_URL}" style="text-decoration: none;">
+                                <img src="${PUBLIC_APP_URL}/logo-ritmo.png" alt="Ritmo" width="160" height="auto" style="display: block; max-width: 160px; height: auto;" />
+                            </a>
                         </td>
                     </tr>
 
