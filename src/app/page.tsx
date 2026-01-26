@@ -4,7 +4,6 @@ import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui";
 import { ArrowRight, Check, ListChecks, FileText, Zap, Bell, X } from "lucide-react";
@@ -87,24 +86,23 @@ export default function LandingPage() {
                 {/* HERO SECTION */}
                 <section className="relative px-6 pb-20 md:pb-32">
                     <div className="container mx-auto max-w-7xl">
-                        <div className="grid lg:grid-cols-2 gap-12 items-center">
-                            {/* Left: Text Content */}
+                        <div className="max-w-4xl mx-auto">
                             <motion.div
                                 initial="initial"
                                 animate="animate"
                                 variants={staggerContainer}
-                                className="text-center lg:text-left"
+                                className="text-center"
                             >
                                 <motion.h1 variants={fadeInUp} className="mb-8 text-5xl md:text-7xl font-medium tracking-tighter text-zinc-900 leading-[1]">
                                     Envie orçamentos como sempre. <br />
                                     O Ritmo faz o follow-up.
                                 </motion.h1>
 
-                                <motion.p variants={fadeInUp} className="mb-10 max-w-2xl text-xl leading-relaxed text-zinc-600 font-light">
+                                <motion.p variants={fadeInUp} className="mb-10 max-w-2xl mx-auto text-xl leading-relaxed text-zinc-600 font-light">
                                     Pare de perder negócios por falta de tempo. O Ritmo gere a cadência dos seus orçamentos para que a sua equipa se foque em fechar vendas.
                                 </motion.p>
 
-                                <motion.div variants={fadeInUp} className="flex flex-col items-center lg:items-start justify-center gap-4 sm:flex-row mb-6">
+                                <motion.div variants={fadeInUp} className="flex flex-col items-center justify-center gap-4 sm:flex-row mb-6">
                                     <Link href="/signup">
                                         <Button size="lg" className="h-14 rounded-full px-10 text-lg bg-gradient-to-r from-blue-400 to-emerald-400 hover:from-blue-500 hover:to-emerald-500 text-white shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 hover:shadow-xl">
                                             Começar trial grátis
@@ -127,25 +125,6 @@ export default function LandingPage() {
                                 <motion.p variants={fadeInUp} className="text-sm text-zinc-500">
                                     14 dias · 20 envios · sem cartão
                                 </motion.p>
-                            </motion.div>
-
-                            {/* Right: 3D R Render (Desktop Only) */}
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ duration: 0.8, delay: 0.3 }}
-                                className="hidden lg:flex items-center justify-center relative"
-                            >
-                                {/* Glow effect behind 3D render */}
-                                <div className="absolute inset-0 bg-gradient-radial from-blue-400/15 via-emerald-400/10 to-transparent blur-3xl" />
-                                <Image
-                                    src="/brand/ritmo-3d-hero.png"
-                                    alt="Ritmo 3D Logo"
-                                    width={450}
-                                    height={450}
-                                    priority
-                                    className="relative z-10 drop-shadow-2xl"
-                                />
                             </motion.div>
                         </div>
                     </div>
