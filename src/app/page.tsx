@@ -4,6 +4,7 @@ import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui";
 import { ArrowRight, Check, ListChecks, FileText, Zap, Bell, X } from "lucide-react";
