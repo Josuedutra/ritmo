@@ -5,9 +5,9 @@
 | Field | Value |
 |-------|-------|
 | **Staging URL** | `https://staging.useritmo.pt` |
-| **Commit SHA** | `4cfe1e2` |
+| **Commit SHA** | `c4be099` |
 | **Branch** | `release-candidate` |
-| **Date** | 2026-01-23 |
+| **Date** | 2026-01-27 |
 | **Tester** | Claude Code (automated) + Manual QA |
 
 ## Environment Variables Configured
@@ -356,7 +356,7 @@
 
 | Test | Status | Evidence |
 |------|--------|----------|
-| Free tier limit is 5 quotes/month | [ ] | |
+| Free tier limit is 10 quotes/month | [ ] | |
 | Manual send counts toward limit | [ ] | Check MANUAL_SEND_MARKED event |
 | BCC inbound NOT allowed (bccInboundEnabled=false) | [ ] | |
 | Scoreboard shows teaser/locked | [ ] | |
@@ -431,7 +431,7 @@ The following code patterns have been verified through static analysis:
 - **UI Integration**: `src/components/scoreboard/scoreboard-card.tsx:59-63,177-181` - highlight ring with brand token
 
 ### Entitlements Constants
-- `FREE_TIER_LIMIT = 5` (entitlements.ts:20)
+- `FREE_TIER_LIMIT = 10` (entitlements.ts:20)
 - `TRIAL_LIMIT = 20` (entitlements.ts:22)
 - `TRIAL_DURATION_DAYS = 14` (entitlements.ts:24)
 - `TRIAL_BCC_INBOUND_LIMIT = 1` (entitlements.ts:28)
@@ -452,8 +452,8 @@ The following code patterns have been verified through static analysis:
 
 | Role | Name | Signature | Date |
 |------|------|-----------|------|
-| QA / Tester | Claude Code | ✓ Automated verification PASS | 2026-01-23 |
-| Tech Lead | Josué Dutra | _pending manual sign-off_ | 2026-01-23 |
+| QA / Tester | Claude Code | ✓ Typecheck PASS, code evidence verified | 2026-01-27 |
+| Tech Lead | Josué Dutra | _pending manual smoke tests_ | |
 
 ---
 
@@ -462,8 +462,11 @@ The following code patterns have been verified through static analysis:
 _Document any issues found during testing here_
 
 1. All automated code verification passed (see Code Evidence section)
-2. Build passes: 213 tests green, no TypeScript errors
-3. Manual staging smoke tests pending for checkout flows
+2. `npx tsc --noEmit` — 0 errors (2026-01-27, commit c4be099)
+3. `@types/bcryptjs` removed — bcryptjs 3.x ships bundled types
+4. Seat add-on blocked on annual: UI (disabled stepper) + API (400) + state reset
+5. FREE_TIER_LIMIT updated: 5 → 10 quotes/month
+6. Manual staging smoke tests pending: deploy staging, run pre-migrate, execute smoke tests
 
 ---
 
@@ -538,5 +541,5 @@ After staging approval:
 29. [ ] Duplicate Cloudflare ingestion with same `providerMessageId = "test-msg-001"` is deduplicated — returns existing record, no new row created
 
 ### Build / Typecheck
-30. [ ] `npx tsc --noEmit` — 0 errors (bcryptjs uses bundled types, `@types/bcryptjs` removed)
+30. [x] `npx tsc --noEmit` — 0 errors (bcryptjs uses bundled types, `@types/bcryptjs` removed) — PASS 2026-01-27
 31. [ ] `pnpm build` — passes with DATABASE_URL configured

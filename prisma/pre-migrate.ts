@@ -386,10 +386,16 @@ async function main() {
             && colType[0].udt_name === 'InboundProvider';
         if (colType.length > 0 && !isAlreadyEnum) {
             console.log("📝 Converting provider column to enum...");
+            // Drop old text default BEFORE type conversion (PG can't auto-cast text default to enum)
+            await prisma.$executeRaw`
+                ALTER TABLE inbound_ingestions
+                ALTER COLUMN provider DROP DEFAULT
+            `;
             await prisma.$executeRaw`
                 ALTER TABLE inbound_ingestions
                 ALTER COLUMN provider TYPE "InboundProvider" USING provider::"InboundProvider"
             `;
+            // Set new enum-typed default AFTER conversion
             await prisma.$executeRaw`
                 ALTER TABLE inbound_ingestions
                 ALTER COLUMN provider SET DEFAULT 'cloudflare'::"InboundProvider"
