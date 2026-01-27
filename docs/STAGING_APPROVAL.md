@@ -22,8 +22,11 @@
 | `GOOGLE_CLIENT_SECRET` | [ ] | OAuth configured |
 | `STRIPE_SECRET_KEY` | [ ] | **Must be sk_test_...** |
 | `STRIPE_WEBHOOK_SECRET` | [ ] | Staging webhook endpoint |
-| `STRIPE_PRICE_STARTER` | [ ] | Test mode price |
-| `STRIPE_PRICE_PRO` | [ ] | Test mode price |
+| `STRIPE_PRICE_STARTER` | [ ] | Test mode monthly price |
+| `STRIPE_PRICE_STARTER_ANNUAL` | [ ] | Test mode annual price (€390/yr) |
+| `STRIPE_PRICE_PRO` | [ ] | Test mode monthly price |
+| `STRIPE_PRICE_PRO_ANNUAL` | [ ] | Test mode annual price (€990/yr) |
+| `STRIPE_PRICE_STARTER_SEAT_ADDON` | [ ] | Test mode seat addon (€15/mo) |
 | `STRIPE_PRICE_PRO_PLUS` | [ ] | Test mode price (optional) |
 | `NEXT_PUBLIC_PAYMENTS_ENABLED` | [ ] | Set to "true" for billing tests |
 | `RESEND_API_KEY` | [ ] | Configured |
@@ -124,6 +127,62 @@
 | `subscriptions` table updated with planId=starter | [ ] | |
 | `stripe_events` table has checkout.session.completed event | [ ] | status=PROCESSED |
 | Entitlements reflect new plan (quotesLimit=80) | [ ] | |
+
+### 2.3 Annual Billing Checkout
+
+| Test | Status | Evidence |
+|------|--------|----------|
+| Toggle billing to "Anual" on billing page | [ ] | Toggle shows "2 meses grátis" badge |
+| Starter annual price shows €32/mês (€390/ano) | [ ] | Strikethrough on €39 |
+| Pro annual price shows €82/mês (€990/ano) | [ ] | Strikethrough on €99 |
+| Click "Fazer upgrade" for Starter (annual) | [ ] | |
+| Stripe Checkout opens with annual price ID | [ ] | Line item shows €390.00/year |
+| Complete checkout with test card `4242 4242 4242 4242` | [ ] | |
+| `subscriptions` table: `billing_interval=annual` | [ ] | |
+| Entitlements reflect Starter plan (quotesLimit=80) | [ ] | |
+
+### 2.4 Extra Seats Add-on (Starter Only)
+
+| Test | Status | Evidence |
+|------|--------|----------|
+| Starter card shows extra seats stepper | [ ] | "Utilizadores extra" with +/- buttons |
+| Set extra seats to 2 | [ ] | Total shows "€39/mês + €30/mês (2 utilizadores)" |
+| Click "Fazer upgrade" for Starter + 2 seats | [ ] | |
+| Stripe Checkout shows 2 line items | [ ] | Starter €39 + Seat addon €15 × 2 |
+| Complete checkout with test card | [ ] | |
+| `subscriptions` table: `extra_seats=2` | [ ] | |
+| Entitlements: `maxUsers = 2 + 2 = 4` | [ ] | |
+| Pro card does NOT show extra seats stepper | [ ] | Stepper only on Starter |
+
+### 2.5 Extra Seats + Annual Billing (Consistency Guard)
+
+| Test | Status | Evidence |
+|------|--------|----------|
+| Toggle to annual billing on billing page | [ ] | Stepper is disabled (opacity-50), shows "Utilizadores extra disponíveis apenas no plano mensal." |
+| Toggle back to monthly | [ ] | Stepper re-enables, extra seats can be added |
+| Set 2 extra seats, then toggle to annual | [ ] | `starterExtraSeats` resets to 0, stepper disabled |
+| POST `/api/billing/checkout` with `extraSeats=2, billingInterval=annual` | [ ] | Returns 400: "Utilizadores extra só estão disponíveis no plano mensal..." |
+| POST `/api/billing/checkout` with `extraSeats=2, billingInterval=monthly` | [ ] | Checkout proceeds normally |
+| Webhook: annual subscription has no seat addon item | [ ] | `extractBillingDetailsFromSubscription` returns `extraSeats=0` |
+
+### 2.6 Annual Price Not Configured (Graceful Degradation)
+
+
+| Test | Status | Evidence |
+|------|--------|----------|
+| Remove `STRIPE_PRICE_STARTER_ANNUAL` env var | [ ] | Redeploy if needed |
+| Toggle to annual, click upgrade for Starter | [ ] | |
+| Returns 503 with `ANNUAL_NOT_AVAILABLE` | [ ] | Toast: "Plano anual em breve" |
+| Monthly checkout still works | [ ] | |
+
+### 2.7 Downgrade Resets Billing Details
+
+| Test | Status | Evidence |
+|------|--------|----------|
+| Cancel subscription via Stripe Dashboard | [ ] | |
+| Webhook processes `customer.subscription.deleted` | [ ] | |
+| `subscriptions` table: `billing_interval=monthly`, `extra_seats=0` | [ ] | Reset to defaults |
+| Entitlements: `maxUsers` reverts to plan default | [ ] | |
 
 ---
 
@@ -424,3 +483,60 @@ After staging approval:
    - [ ] `NEXT_PUBLIC_PAYMENTS_ENABLED=true`
    - [ ] Verify all secrets are production-unique
 4. [ ] Smoke test in production after deploy
+
+---
+
+## Cockpit v1 Test Cases
+
+### Free tier
+1. [ ] Cockpit loads — "Em risco hoje" card visible, KPI shows count
+2. [ ] "Recuperados (30 dias)" metric card shows teaser (blur + "Ativar Starter")
+3. [ ] "Taxa de resposta (30 dias)" metric card shows teaser (blur + "Ativar Starter")
+4. [ ] "Recuperados" tab limits to 3 items with upgrade CTA
+5. [ ] Upgrade CTA fires `cockpit_upgrade_clicked` event
+
+### Trial tier
+6. [ ] Cockpit loads — all metrics visible (no teaser)
+7. [ ] AHA banner: "Ativar captura BCC" shown if no BCC capture yet
+8. [ ] AHA banner: "Captura BCC concluida" shown after first BCC capture
+
+### Paid tier (Starter/Pro)
+9. [ ] Cockpit loads — all metrics, lists, tabs fully accessible
+10. [ ] No AHA banner shown
+
+### Empty states
+11. [ ] riskToday = 0: shows "Hoje esta controlado." with checkmark icon
+12. [ ] Empty tabs show appropriate empty messages
+13. [ ] replyRate30d = null (sentCount30d < 10): shows "—" with hint text
+
+### Functional
+14. [ ] "Abrir" button navigates to correct quote detail page
+15. [ ] Pipeline tabs switch correctly between "Em risco", "Aguardando resposta", "Recuperados"
+16. [ ] `cockpit_viewed` event fires on page load (once)
+
+### Recovered definition v1.1 (reply-signal-based)
+17. [ ] Quote in negotiation + follow-up sent, but negotiation set BEFORE first follow-up -> NOT in recovered list
+18. [ ] Quote with inbound BCC reply (InboundIngestion status=processed) received AFTER follow-up sent -> appears in recovered list
+19. [ ] Quote manually marked as negotiation AFTER follow-up sent -> appears in recovered list
+20. [ ] Quote with inbound BCC reply but NO cadence follow-up (no sent/completed events) -> NOT in recovered list
+21. [ ] recovered30d count == length of recovered list (when total < 10, exact match)
+22. [ ] Empty recovered tab shows "Sem recuperações registadas ainda."
+23. [ ] repliedAt in CockpitItem uses InboundIngestion.receivedAt when BCC reply exists, falls back to quote.updatedAt for manual negotiation
+24. [ ] REPLIED status badge shown for quotes with reply signal (inbound or manual), not just negotiation status
+
+### Responsive
+25. [ ] Mobile layout: columns stack vertically
+26. [ ] Build passes (`npm run build`)
+
+---
+
+## Inbound Provider Enum + Composite Idempotency
+
+### Composite Unique (provider + providerMessageId)
+27. [ ] Cloudflare ingestion with `providerMessageId = "test-msg-001"` succeeds — creates InboundIngestion with `provider = cloudflare`
+28. [ ] Mailgun ingestion with same `providerMessageId = "test-msg-001"` succeeds — no unique constraint violation, creates separate InboundIngestion with `provider = mailgun`
+29. [ ] Duplicate Cloudflare ingestion with same `providerMessageId = "test-msg-001"` is deduplicated — returns existing record, no new row created
+
+### Build / Typecheck
+30. [ ] `npx tsc --noEmit` — 0 errors (bcryptjs uses bundled types, `@types/bcryptjs` removed)
+31. [ ] `pnpm build` — passes with DATABASE_URL configured

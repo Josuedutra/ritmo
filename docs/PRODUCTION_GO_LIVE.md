@@ -44,8 +44,11 @@
 |----------|----------------|----------|
 | `STRIPE_SECRET_KEY` | `sk_live_...` (NOT sk_test_) | [ ] |
 | `STRIPE_WEBHOOK_SECRET` | `whsec_...` (live endpoint) | [ ] |
-| `STRIPE_PRICE_STARTER` | `price_...` (live Starter) | [ ] |
-| `STRIPE_PRICE_PRO` | `price_...` (live Pro) | [ ] |
+| `STRIPE_PRICE_STARTER` | `price_...` (live Starter monthly) | [ ] |
+| `STRIPE_PRICE_STARTER_ANNUAL` | `price_...` (live Starter annual €390/yr) | [ ] |
+| `STRIPE_PRICE_PRO` | `price_...` (live Pro monthly) | [ ] |
+| `STRIPE_PRICE_PRO_ANNUAL` | `price_...` (live Pro annual €990/yr) | [ ] |
+| `STRIPE_PRICE_STARTER_SEAT_ADDON` | `price_...` (live Starter seat add-on €15/mo, monthly only) | [ ] |
 | `NEXT_PUBLIC_PAYMENTS_ENABLED` | `true` | [ ] |
 
 ### Email (Resend)
@@ -83,8 +86,11 @@
 
 | Product | Price | Currency | Billing | Notes |
 |---------|-------|----------|---------|-------|
-| Ritmo Starter | €39.00 | EUR | Monthly | 80 quotes/month |
-| Ritmo Pro | €99.00 | EUR | Monthly | 250 quotes/month |
+| Ritmo Starter (monthly) | €39.00 | EUR | Monthly | 80 quotes/month |
+| Ritmo Starter (annual) | €390.00 | EUR | Yearly | ~€32/mês, 2 meses gratis |
+| Ritmo Starter Seat Add-on | €15.00 | EUR | Monthly | Per extra user (monthly only) |
+| Ritmo Pro (monthly) | €99.00 | EUR | Monthly | 250 quotes/month |
+| Ritmo Pro (annual) | €990.00 | EUR | Yearly | ~€82/mês, 2 meses gratis |
 
 4. Copy Price IDs (`price_...`) for env vars
 
@@ -143,6 +149,9 @@ npx tsx prisma/pre-migrate.ts
 - Duplicate cleanup complete
 - Plans updated with frozen pricing
 - stripe_events has status column
+- InboundProvider enum created + provider column converted
+- Old provider_message_id unique constraint dropped
+- Validation: 0 NULL, 0 invalid provider values
 
 ### 3.2 Run Schema Push
 
@@ -169,7 +178,7 @@ ORDER BY price_cents;
 **Expected:**
 | key | name | is_public | is_active | monthly_quote_limit | price_cents |
 |-----|------|-----------|-----------|---------------------|-------------|
-| free | Gratuito | true | true | 5 | 0 |
+| free | Gratuito | true | true | 10 | 0 |
 | starter | Starter | true | true | 80 | 3900 |
 | pro | Pro | true | true | 250 | 9900 |
 | pro_plus | Pro+ | false | true | 500 | 14900 |
@@ -289,7 +298,23 @@ git push origin release-candidate:main
 
 > **Cleanup**: After test, refund the charge in Stripe Dashboard if needed.
 
-### 5.7 SignOut UX Test
+### 5.7 Cockpit (Dashboard)
+
+| Test | Action | Expected | Status |
+|------|--------|----------|--------|
+| Cockpit loads | Visit `/dashboard` | "Em risco hoje" KPI card visible | [ ] |
+| Pipeline tabs | Click each tab | "Em risco", "Aguardando resposta", "Recuperados" switch | [ ] |
+| Recovered v1.1 | Check recovered list | Only quotes with reply signal AFTER follow-up | [ ] |
+
+### 5.8 Inbound Ingestion (Cloudflare)
+
+| Test | Action | Expected | Status |
+|------|--------|----------|--------|
+| BCC capture | Send email to `all+{orgShortId}+{quotePublicId}@inbound.useritmo.pt` | 200 response | [ ] |
+| InboundIngestion created | Check DB | `provider = 'cloudflare'`, `status = 'processed'` | [ ] |
+| Idempotency | Send same email again | Returns duplicate, no new row | [ ] |
+
+### 5.9 SignOut UX Test
 
 | Test | Action | Expected | Status |
 |------|--------|----------|--------|
@@ -297,7 +322,7 @@ git push origin release-candidate:main
 | Toast shown | Check landing page | "Sessão terminada" toast appears | [ ] |
 | URL clean | Check URL bar | `?signed_out=1` appears briefly then cleans up | [ ] |
 
-### 5.8 Webhook Health (Final)
+### 5.10 Webhook Health (Final)
 
 | Test | Action | Expected | Status |
 |------|--------|----------|--------|
