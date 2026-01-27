@@ -12,9 +12,34 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-    title: "Ritmo - Follow-up Inteligente para Orçamentos",
-    description: "Cadência automática + painel + envio para follow-up de orçamentos B2B",
-    keywords: ["follow-up", "orçamentos", "CRM", "vendas", "B2B"],
+    metadataBase: new URL('https://ritmo.pt'),
+    title: {
+        default: "Ritmo - Follow-up Inteligente para Orçamentos",
+        template: "%s | Ritmo"
+    },
+    description: "Cadência automática + painel + envio para follow-up de orçamentos B2B. Recupere propostas sem resposta.",
+    keywords: ["follow-up", "orçamentos", "CRM", "vendas", "B2B", "automação de vendas"],
+    openGraph: {
+        type: 'website',
+        locale: 'pt_PT',
+        url: 'https://ritmo.pt',
+        siteName: 'Ritmo',
+        images: [
+            {
+                url: '/brand/r-3d-transparent.png', // Using existing brand asset as fallback until specific OG image is created
+                width: 1200,
+                height: 630,
+                alt: 'Ritmo - Follow-up de Orçamentos',
+            },
+        ],
+    },
+    alternates: {
+        canonical: '/',
+    },
+    robots: {
+        index: true,
+        follow: true,
+    }
 };
 
 export default function RootLayout({

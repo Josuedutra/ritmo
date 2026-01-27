@@ -58,6 +58,58 @@ export default function LandingPage() {
             </Suspense>
 
             {/* Header */}
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "FAQPage",
+                        "mainEntity": [
+                            {
+                                "@type": "Question",
+                                "name": "O Ritmo vai \"parecer robô\" com emails automáticos?",
+                                "acceptedAnswer": { "@type": "Answer", "text": "Não. Os templates são curtos, humanos e editáveis. E o Ritmo alterna email com ações de chamada (D+7) para evitar pressão excessiva." }
+                            },
+                            {
+                                "@type": "Question",
+                                "name": "O que conta como \"envio\"?",
+                                "acceptedAnswer": { "@type": "Answer", "text": "Conta apenas o 1º envio por orçamento quando o marca como Enviado. Reenvios não contam. Isto evita medo de testar e ajustar." }
+                            },
+                            {
+                                "@type": "Question",
+                                "name": "Preciso anexar a proposta no Ritmo para começar?",
+                                "acceptedAnswer": { "@type": "Answer", "text": "Não. Pode continuar a criar o orçamento em Excel/Word e enviar por Outlook/Gmail. O Ritmo entra para garantir o follow-up. A proposta pode ser adicionada depois (link ou upload)." }
+                            },
+                            {
+                                "@type": "Question",
+                                "name": "Como funciona a captura de propostas por BCC?",
+                                "acceptedAnswer": { "@type": "Answer", "text": "Basta colocar o endereço BCC do Ritmo no email de envio. Se a proposta vier em PDF (ou link), o Ritmo associa ao orçamento automaticamente." }
+                            },
+                            {
+                                "@type": "Question",
+                                "name": "Posso usar sem automação?",
+                                "acceptedAnswer": { "@type": "Answer", "text": "Sim. O plano Free funciona em modo manual: o Ritmo cria a cadência e as tarefas, mas você decide quando enviar." }
+                            },
+                            {
+                                "@type": "Question",
+                                "name": "Posso ter mais do que um utilizador?",
+                                "acceptedAnswer": { "@type": "Answer", "text": "Sim. Free tem 1 utilizador, Starter 2, Pro 5. Se precisar de mais, fale connosco." }
+                            },
+                            {
+                                "@type": "Question",
+                                "name": "O trial é mesmo sem cartão?",
+                                "acceptedAnswer": { "@type": "Answer", "text": "Sim. 14 dias, 20 envios, 2 utilizadores, sem cartão. No fim, escolhe se quer continuar no Free ou fazer upgrade." }
+                            },
+                            {
+                                "@type": "Question",
+                                "name": "Posso cancelar quando quiser?",
+                                "acceptedAnswer": { "@type": "Answer", "text": "Sim. Pode gerir a subscrição na página de faturação e cancelar a qualquer momento." }
+                            }
+                        ]
+                    })
+                }}
+            />
+
             <header className="fixed top-0 z-50 w-full bg-[#FAFAF9]/80 backdrop-blur-md border-b border-transparent">
                 <div className="container mx-auto flex h-16 items-center justify-between px-6">
                     <Logo href="/" size="md" />
@@ -210,7 +262,7 @@ export default function LandingPage() {
                                         animate={{ y: [0, -10, 0] }}
                                         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                                     >
-                                        <img src="https://img.icons8.com/fluency/96/microsoft-excel-2019.png" alt="Excel" className="w-10 h-10 drop-shadow-lg" />
+                                        <Image src="/icons/excel.png" alt="Excel" width={40} height={40} className="w-10 h-10 drop-shadow-lg" />
                                     </motion.div>
 
                                     {/* Word - Middle Orbit */}
@@ -220,7 +272,7 @@ export default function LandingPage() {
                                         animate={{ y: [0, 10, 0] }}
                                         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
                                     >
-                                        <img src="https://img.icons8.com/fluency/96/microsoft-word-2019.png" alt="Word" className="w-10 h-10 drop-shadow-lg" />
+                                        <Image src="/icons/word.png" alt="Word" width={40} height={40} className="w-10 h-10 drop-shadow-lg" />
                                     </motion.div>
 
                                     {/* Gmail - Middle Orbit */}
@@ -230,7 +282,7 @@ export default function LandingPage() {
                                         animate={{ y: [0, -12, 0] }}
                                         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                                     >
-                                        <img src="https://img.icons8.com/fluency/96/gmail-new.png" alt="Gmail" className="w-10 h-10 drop-shadow-lg" />
+                                        <Image src="/icons/gmail.png" alt="Gmail" width={40} height={40} className="w-10 h-10 drop-shadow-lg" />
                                     </motion.div>
 
                                     {/* Outlook - Outer Orbit */}
@@ -240,7 +292,7 @@ export default function LandingPage() {
                                         animate={{ y: [0, 15, 0] }}
                                         transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
                                     >
-                                        <img src="https://img.icons8.com/fluency/96/microsoft-outlook-2019.png" alt="Outlook" className="w-10 h-10 drop-shadow-lg" />
+                                        <Image src="/icons/outlook.png" alt="Outlook" width={40} height={40} className="w-10 h-10 drop-shadow-lg" />
                                     </motion.div>
 
                                     {/* PDF - Outer Orbit */}
@@ -250,7 +302,7 @@ export default function LandingPage() {
                                         animate={{ y: [0, -8, 0] }}
                                         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }}
                                     >
-                                        <img src="https://img.icons8.com/fluency/96/adobe-acrobat.png" alt="PDF" className="w-10 h-10 drop-shadow-lg" />
+                                        <Image src="/icons/pdf.png" alt="PDF" width={40} height={40} className="w-10 h-10 drop-shadow-lg" />
                                     </motion.div>
 
                                     {/* Decorative Particles */}
