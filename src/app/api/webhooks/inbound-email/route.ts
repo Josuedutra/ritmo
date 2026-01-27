@@ -7,8 +7,9 @@ export const dynamic = "force-dynamic";
 /**
  * POST /api/webhooks/inbound-email
  * 
- * Inbound email webhook for BCC capture.
- * Provider: Resend / Mailgun / SendGrid (to be decided)
+ * Inbound email webhook for BCC capture (legacy stub — Sprint 0).
+ * Primary provider is Cloudflare Email Workers (see /api/inbound/cloudflare).
+ * Mailgun fallback available at /api/inbound/mailgun.
  * 
  * Expected payload format (Resend-like):
  * {
@@ -58,6 +59,7 @@ export async function POST(request: NextRequest) {
                 rawTo: Array.isArray(payload.to) ? payload.to.join(", ") : payload.to,
                 rawSubject: payload.subject || null,
                 rawBodyText: payload.text?.slice(0, 10000) || null, // Limit size
+                provider: "cloudflare", // Legacy stub — default to primary provider
                 status: "pending",
             },
         });

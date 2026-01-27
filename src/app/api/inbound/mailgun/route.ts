@@ -113,9 +113,14 @@ export async function POST(request: NextRequest) {
         // Generate idempotency key
         const idempotencyKey = generateIdempotencyKey(messageId, timestamp, token);
 
-        // Check for duplicate (idempotency)
+        // Check for duplicate (idempotency) — scoped to provider
         const existing = await prisma.inboundIngestion.findUnique({
-            where: { providerMessageId: idempotencyKey },
+            where: {
+                provider_providerMessageId: {
+                    provider: "mailgun",
+                    providerMessageId: idempotencyKey,
+                },
+            },
         });
 
         if (existing) {

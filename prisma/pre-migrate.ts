@@ -340,6 +340,96 @@ async function main() {
         }
     }
 
+    // Migrate inbound_ingestions.provider from String to InboundProvider enum
+    // Must run BEFORE prisma db push so the column type is compatible
+    if (await tableExists("inbound_ingestions")) {
+        // Step 1: Backfill orphaned stub rows (Sprint 0) from "mailgun"/NULL to "cloudflare"
+        console.log("📝 Backfilling orphaned inbound_ingestions provider...");
+        const backfilled = await prisma.$executeRaw`
+            UPDATE inbound_ingestions
+            SET provider = 'cloudflare'
+            WHERE (provider = 'mailgun' OR provider IS NULL)
+              AND organization_id IS NULL
+              AND quote_id IS NULL
+              AND status = 'pending'
+        `;
+        console.log(`✅ Backfilled ${backfilled} orphaned rows`);
+
+        // Step 2: Sanitize any invalid provider values (NULL, whitespace, unknown) before enum conversion
+        console.log("📝 Sanitizing invalid provider values...");
+        const sanitized = await prisma.$executeRaw`
+            UPDATE inbound_ingestions
+            SET provider = 'cloudflare'
+            WHERE provider IS NULL
+               OR TRIM(provider) NOT IN ('cloudflare', 'mailgun')
+        `;
+        if (sanitized > 0) console.log(`  ↳ Sanitized ${sanitized} rows`);
+
+        // Step 3: Create InboundProvider enum type if not exists
+        console.log("📝 Creating InboundProvider enum type...");
+        await prisma.$executeRaw`
+            DO $$ BEGIN
+                CREATE TYPE "InboundProvider" AS ENUM ('cloudflare', 'mailgun');
+            EXCEPTION
+                WHEN duplicate_object THEN null;
+            END $$;
+        `;
+
+        // Step 4: Convert provider column from text to enum
+        // Check if it's still text (not already the InboundProvider enum)
+        const colType = await prisma.$queryRaw<{ data_type: string; udt_name: string }[]>`
+            SELECT data_type, udt_name FROM information_schema.columns
+            WHERE table_name = 'inbound_ingestions' AND column_name = 'provider'
+        `;
+        const isAlreadyEnum = colType.length > 0
+            && colType[0].data_type === 'USER-DEFINED'
+            && colType[0].udt_name === 'InboundProvider';
+        if (colType.length > 0 && !isAlreadyEnum) {
+            console.log("📝 Converting provider column to enum...");
+            await prisma.$executeRaw`
+                ALTER TABLE inbound_ingestions
+                ALTER COLUMN provider TYPE "InboundProvider" USING provider::"InboundProvider"
+            `;
+            await prisma.$executeRaw`
+                ALTER TABLE inbound_ingestions
+                ALTER COLUMN provider SET DEFAULT 'cloudflare'::"InboundProvider"
+            `;
+            console.log("✅ Provider column converted to enum");
+        } else {
+            console.log("✅ Provider column already enum");
+        }
+
+        // Step 5: Drop old global unique on provider_message_id (if exists)
+        // The new schema uses @@unique([provider, providerMessageId]) instead
+        console.log("📝 Dropping old provider_message_id unique constraint...");
+        await prisma.$executeRaw`
+            DROP INDEX IF EXISTS "inbound_ingestions_provider_message_id_key"
+        `;
+        // Also drop the standalone index (@@index([providerMessageId]))
+        await prisma.$executeRaw`
+            DROP INDEX IF EXISTS "inbound_ingestions_provider_message_id_idx"
+        `;
+        console.log("✅ Old provider_message_id indexes dropped");
+
+        // Post-migration validation
+        const providerDist = await prisma.$queryRaw<{ provider: string; count: bigint }[]>`
+            SELECT provider::text, COUNT(*) as count FROM inbound_ingestions GROUP BY provider
+        `;
+        console.log("📊 Provider distribution:", providerDist.map(r => `${r.provider}=${r.count}`).join(", ") || "(empty table)");
+
+        const nullCount = await prisma.$queryRaw<{ count: bigint }[]>`
+            SELECT COUNT(*) as count FROM inbound_ingestions WHERE provider IS NULL
+        `;
+        const invalidCount = await prisma.$queryRaw<{ count: bigint }[]>`
+            SELECT COUNT(*) as count FROM inbound_ingestions WHERE provider::text NOT IN ('cloudflare', 'mailgun')
+        `;
+        if (Number(nullCount[0]?.count) > 0 || Number(invalidCount[0]?.count) > 0) {
+            console.error(`❌ Validation failed: ${nullCount[0]?.count} NULL, ${invalidCount[0]?.count} invalid provider values`);
+            throw new Error("Provider migration validation failed — aborting");
+        }
+        console.log("✅ Validation passed: 0 NULL, 0 invalid provider values");
+    }
+
     console.log("✅ Pre-migration complete");
 }
 

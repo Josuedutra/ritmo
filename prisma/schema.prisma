@@ -81,6 +81,11 @@ enum SubscriptionStatus {
   trialing
 }
 
+enum InboundProvider {
+  cloudflare
+  mailgun
+}
+
 enum IngestStatus {
   pending
   processed
@@ -631,9 +636,9 @@ model InboundIngestion {
   organizationId  String?      @map("organization_id")
   quoteId         String?      @map("quote_id")
 
-  // Provider info (Mailgun)
-  provider        String       @default("mailgun") // mailgun | sendgrid
-  providerMessageId String?    @unique @map("provider_message_id") // For idempotency
+  // Provider info (Cloudflare Email Workers is primary; Mailgun is legacy fallback)
+  provider          InboundProvider @default(cloudflare)
+  providerMessageId String?         @map("provider_message_id")
   bodyChecksum    String?      @map("body_checksum") // SHA256 of body for dedupe
 
   // Raw email data
@@ -660,7 +665,9 @@ model InboundIngestion {
   quote           Quote?        @relation(fields: [quoteId], references: [id])
   attachment      Attachment?   @relation(fields: [attachmentId], references: [id])
 
-  @@index([providerMessageId])
+  @@unique([provider, providerMessageId])
+  @@index([quoteId, status, receivedAt])
+  @@index([organizationId, status, receivedAt])
   @@index([bodyChecksum])
   @@map("inbound_ingestions")
 }
