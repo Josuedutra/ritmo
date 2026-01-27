@@ -4,11 +4,11 @@
 
 | Field | Value |
 |-------|-------|
-| **Commit SHA** | `4cfe1e2` |
-| **Branch** | `release-candidate` |
-| **Source Branch** | `staging-hardening` |
-| **Date** | 2026-01-23 |
-| **Tag** | `rc-20260123-final` |
+| **Commit SHA** | `6ce92c5` |
+| **Branch** | `main` |
+| **Source Branch** | `main` |
+| **Date** | 2026-01-27 |
+| **Tag** | `rc-20260127` |
 
 ---
 
@@ -29,7 +29,7 @@
 - Gradient CTA only on primary buttons
 
 ### 3. Entitlements Hardening
-- **Free tier**: 5 quotes/month, no BCC inbound, scoreboard locked
+- **Free tier**: 10 quotes/month, no BCC inbound, scoreboard locked
 - **Trial tier**: 20 quotes, 1 BCC capture, scoreboard ON, 14 days
 - **Paid tiers**: Unlimited BCC captures, full scoreboard, automation
 
@@ -71,6 +71,19 @@
 - Returns subscription details for success page
 - Lazy Stripe initialization (build-safe)
 
+### 9. Annual Pricing + Starter Seat Add-on (NEW)
+- **Annual billing toggle**: Monthly/Annual switch on billing page with "2 meses grátis" badge
+  - Starter annual: €32/mês (€390/ano, ~17% discount)
+  - Pro annual: €82/mês (€990/ano, ~17% discount)
+  - Graceful degradation: returns 503 `ANNUAL_NOT_AVAILABLE` if annual price IDs not configured
+- **Extra seat add-on (Starter only)**: +€15/mês per extra seat via Stripe multi-line_item checkout
+  - Stepper UI on billing page (0-10 seats)
+  - Entitlements: `maxUsers = plan.maxUsers + extraSeats`
+- **Free plan limit increase**: 5 → 10 quotes/month
+- **Schema changes**: `Plan.stripePriceIdAnnual`, `Subscription.billingInterval`, `Subscription.extraSeats`
+- **Webhook hardening**: Extracts billing interval + seat count from Stripe subscription items, filters addon items from plan resolution
+- **Landing page pricing section**: Annual toggle with strikethrough prices, "+1 utilizador extra por €15/mês" copy, cost-of-inaction copy
+
 ---
 
 ## Security Changes
@@ -100,8 +113,59 @@ aha_first_bcc_capture    BOOLEAN DEFAULT false
 aha_first_bcc_capture_at TIMESTAMP
 ```
 
+### New Fields (Plan)
+```sql
+stripe_price_id_annual  TEXT  -- Annual Stripe price ID
+```
+
+### New Fields (Subscription)
+```sql
+billing_interval  TEXT DEFAULT 'monthly'  -- "monthly" | "annual"
+extra_seats       INT  DEFAULT 0          -- Starter seat add-on quantity
+```
+
 ### Modified Fields
 - `trial_bcc_captures` INT (existing, used by atomic function)
+
+### InboundIngestion: Provider Enum + Composite Idempotency + Cockpit Indexes
+
+#### Enum Migration
+```sql
+-- Create InboundProvider enum type
+CREATE TYPE "InboundProvider" AS ENUM ('cloudflare', 'mailgun');
+
+-- Convert provider column from text to enum
+ALTER TABLE inbound_ingestions
+  ALTER COLUMN provider TYPE "InboundProvider" USING provider::"InboundProvider";
+ALTER TABLE inbound_ingestions
+  ALTER COLUMN provider SET DEFAULT 'cloudflare'::"InboundProvider";
+```
+- **Pre-migrate steps:** Backfill orphaned stubs → sanitize invalid values → create enum → convert column
+- **Idempotent:** All steps use `IF NOT EXISTS` / `EXCEPTION WHEN duplicate_object` guards
+
+#### Composite Unique Constraint
+```sql
+-- Old: global unique on provider_message_id (dropped)
+DROP INDEX IF EXISTS "inbound_ingestions_provider_message_id_key";
+DROP INDEX IF EXISTS "inbound_ingestions_provider_message_id_idx";
+
+-- New: composite unique (provider + provider_message_id)
+@@unique([provider, providerMessageId])
+```
+- **Reason:** Same `providerMessageId` from different providers (Cloudflare vs Mailgun) should not collide
+- **Idempotency lookups updated:** Cloudflare + Mailgun routes use `provider_providerMessageId` composite key
+
+#### Cockpit Performance Indexes
+```sql
+-- Cockpit reply-signal queries (quote-scoped)
+@@index([quoteId, status, receivedAt])
+
+-- Cockpit org-level queries
+@@index([organizationId, status, receivedAt])
+```
+
+- **Applied by:** `pre-migrate.ts` (enum + index changes) then `prisma db push`
+- **Risk:** Low — additive indexes, enum conversion is safe with pre-sanitization
 
 ---
 
