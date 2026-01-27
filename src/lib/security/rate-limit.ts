@@ -280,6 +280,9 @@ export const RateLimitConfigs = {
 
     /** Billing checkout/portal: 20 per 10 minutes per org - fail-open (revenue-critical) */
     billing: { limit: 20, windowSec: 600, failMode: "fail-open" as const },
+
+    /** Public tracking endpoints (roi-calculator): 60 per 5 min per IP - fail-open (non-critical) */
+    publicTracking: { limit: 60, windowSec: 300, failMode: "fail-open" as const },
 } as const;
 
 /**
