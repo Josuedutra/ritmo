@@ -1,10 +1,9 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireOnboardingComplete } from "@/lib/onboarding-gate";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
 import { startOfDay, endOfDay } from "date-fns";
-import { AppHeader, PageHeader, StatCard } from "@/components/layout";
+import { AppHeader, PageHeader } from "@/components/layout";
 import {
     Button,
     Card,
@@ -12,11 +11,12 @@ import {
     CardTitle,
     CardContent,
 } from "@/components/ui";
-import { Plus, FileText, Clock, TrendingUp } from "lucide-react";
+import { FileText, Clock, Plus } from "lucide-react";
 import { ActionsList } from "@/components/actions";
 import { OnboardingChecklist } from "@/components/onboarding";
 import { LifecycleBanner } from "@/components/lifecycle";
 import { ScoreboardCard, BenchmarkCard } from "@/components/scoreboard";
+import { CockpitLoader } from "@/components/dashboard/cockpit-view";
 import { getEntitlements, type Entitlements } from "@/lib/entitlements";
 
 // Usage Meter Component - shows correct limits based on tier
@@ -392,9 +392,15 @@ export default async function DashboardPage() {
 
             <main className="container-app py-6">
                 <PageHeader
-                    title="Dashboard"
-                    description="Visão geral das suas ações de follow-up"
+                    title="Cockpit"
+                    description="Acompanhamento dos orçamentos que precisam de follow-up."
                 >
+                    <Link href="/quotes">
+                        <Button variant="outline">
+                            <FileText className="mr-2 h-4 w-4" />
+                            Ver orçamentos
+                        </Button>
+                    </Link>
                     <Link href="/quotes/new">
                         <Button>
                             <Plus className="mr-2 h-4 w-4" />
@@ -409,33 +415,11 @@ export default async function DashboardPage() {
                 {/* Lifecycle Banner (Trial/Free tier messaging) */}
                 <LifecycleBanner />
 
-                {/* Stats Grid */}
-                <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <StatCard
-                        label="Ações hoje"
-                        value={data.stats.actionsToday}
-                        icon={<Clock className="h-4 w-4" />}
-                    />
-                    <StatCard
-                        label="Orçamentos enviados"
-                        value={data.stats.quotesSent}
-                        icon={<FileText className="h-4 w-4" />}
-                    />
-                    <StatCard
-                        label="Sem resposta"
-                        value={data.stats.pendingResponses}
-                        icon={<TrendingUp className="h-4 w-4" />}
-                    />
-                    <StatCard
-                        label="Em pipeline"
-                        value={`€${data.stats.pipelineValue.toLocaleString("pt-PT")}`}
-                        icon={<TrendingUp className="h-4 w-4" />}
-                    />
-                </div>
+                {/* Cockpit v1: Recovery-focused view */}
+                <CockpitLoader />
 
-                {/* Content Grid */}
-                <div className="grid gap-6 lg:grid-cols-3">
-                    {/* Actions Today */}
+                {/* Actions detail section */}
+                <div className="mt-8 grid gap-6 lg:grid-cols-3">
                     <div className="lg:col-span-2">
                         <Card>
                             <CardHeader className="pb-4">
@@ -457,45 +441,7 @@ export default async function DashboardPage() {
                         </Card>
                     </div>
 
-                    {/* Quick Actions */}
                     <div className="space-y-4">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Acções rápidas</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                <Link
-                                    href="/quotes/new"
-                                    className="flex items-center gap-3 rounded-md border border-[var(--color-border)] p-3 transition-colors hover:bg-[var(--color-accent)]"
-                                >
-                                    <div className="rounded-md bg-[var(--color-primary)]/10 p-2">
-                                        <Plus className="h-4 w-4 text-[var(--color-primary)]" />
-                                    </div>
-                                    <div>
-                                        <div className="text-sm font-medium">Novo orçamento</div>
-                                        <div className="text-xs text-[var(--color-muted-foreground)]">
-                                            Criar e acompanhar
-                                        </div>
-                                    </div>
-                                </Link>
-
-                                <Link
-                                    href="/quotes"
-                                    className="flex items-center gap-3 rounded-md border border-[var(--color-border)] p-3 transition-colors hover:bg-[var(--color-accent)]"
-                                >
-                                    <div className="rounded-md bg-[var(--color-secondary)] p-2">
-                                        <FileText className="h-4 w-4 text-[var(--color-muted-foreground)]" />
-                                    </div>
-                                    <div>
-                                        <div className="text-sm font-medium">Ver orçamentos</div>
-                                        <div className="text-xs text-[var(--color-muted-foreground)]">
-                                            Lista completa
-                                        </div>
-                                    </div>
-                                </Link>
-                            </CardContent>
-                        </Card>
-
                         {/* Usage Meter - uses entitlements for correct limits */}
                         <UsageMeter entitlements={entitlements} />
 

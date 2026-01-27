@@ -58,6 +58,15 @@ export const ProductEventNames = {
     SCOREBOARD_VIEWED: "scoreboard_viewed",
     // Manual send tracking (Free tier)
     MANUAL_SEND_MARKED: "manual_send_marked",
+    // ROI calculator (landing page)
+    ROI_CALCULATOR_VIEWED: "roi_calculator_viewed",
+    ROI_CALCULATOR_CHANGED: "roi_calculator_changed",
+    ROI_CALCULATOR_CTA_CLICKED: "roi_calculator_cta_clicked",
+    ROI_CALCULATOR_POSITIVE_BALANCE: "roi_calculator_positive_balance",
+    // Cockpit v1 (dashboard)
+    COCKPIT_VIEWED: "cockpit_viewed",
+    COCKPIT_FOLLOWUPS_CTA_CLICKED: "cockpit_followups_cta_clicked",
+    COCKPIT_UPGRADE_CLICKED: "cockpit_upgrade_clicked",
 } as const;
 
 export type ProductEventName = (typeof ProductEventNames)[keyof typeof ProductEventNames];
