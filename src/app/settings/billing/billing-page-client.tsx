@@ -36,6 +36,7 @@ interface Plan {
     priceMonthly: number;
     maxUsers: number;
     hasStripePrice: boolean;
+    hasAnnualPrice: boolean;
     features: PlanFeature[];
 }
 
@@ -54,6 +55,8 @@ interface BillingData {
         hasStripeCustomer: boolean;
         hasStripeSubscription: boolean;
         isHiddenPlan?: boolean; // True for pro_plus, enterprise (early access)
+        billingInterval?: string;
+        extraSeats?: number;
     } | null;
     entitlements: {
         tier: "trial" | "free" | "paid";
@@ -80,11 +83,24 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
     const router = useRouter();
     const pathname = usePathname();
     const [loading, setLoading] = useState<string | null>(null);
+    const [isAnnual, setIsAnnual] = useState(false);
+    const [starterExtraSeats, setStarterExtraSeats] = useState(0);
+
+    // Reset extra seats when switching to annual (no annual seat addon available)
+    const handleBillingIntervalChange = (annual: boolean) => {
+        setIsAnnual(annual);
+        if (annual) {
+            setStarterExtraSeats(0);
+        }
+    };
 
     const success = searchParams.get("success") === "true";
     const canceled = searchParams.get("canceled") === "true";
 
     const { subscription, entitlements, plans } = data;
+
+    // Check if any plan has annual pricing available
+    const anyAnnualAvailable = plans.some((p) => p.hasAnnualPrice);
 
     // Show toasts for success/cancel query params and clear them
     useEffect(() => {
@@ -122,8 +138,13 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
         });
     };
 
-    const formatPrice = (cents: number) => {
+    const formatPrice = (cents: number, planId?: string) => {
         if (cents === 0) return "Grátis";
+        if (isAnnual && planId !== "free") {
+            // Annual: 10 months for price of 12 → monthly equivalent
+            const annualMonthly = Math.floor((cents * 10) / 12);
+            return `€${(annualMonthly / 100).toFixed(0)}/mês`;
+        }
         return `€${(cents / 100).toFixed(0)}/mês`;
     };
 
@@ -165,7 +186,11 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
             const response = await fetch("/api/billing/checkout", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ planKey: planId }),
+                body: JSON.stringify({
+                    planKey: planId,
+                    billingInterval: isAnnual ? "annual" : "monthly",
+                    extraSeats: planId === "starter" ? starterExtraSeats : 0,
+                }),
             });
             const result = await response.json();
 
@@ -175,6 +200,11 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                 toast({
                     title: "Pagamentos em breve",
                     description: result.message || "O sistema de pagamentos ainda não está disponível.",
+                });
+            } else if (result.error === "ANNUAL_NOT_AVAILABLE") {
+                toast({
+                    title: "Plano anual em breve",
+                    description: result.message || "Estamos a preparar esta opção.",
                 });
             } else {
                 toast.error("Erro", result.error || "Erro ao criar checkout");
@@ -524,11 +554,32 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
 
             {/* C. Planos */}
             <div id="plans-section">
-                <div className="mb-4">
-                    <h2 className="text-lg font-semibold">Planos</h2>
-                    <p className="text-sm text-muted-foreground">
-                        Escolha o nível certo para o seu volume de envios.
-                    </p>
+                <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <h2 className="text-lg font-semibold">Planos</h2>
+                        <p className="text-sm text-muted-foreground">
+                            Escolha o nível certo para o seu volume de envios.
+                        </p>
+                    </div>
+
+                    {/* Billing interval toggle */}
+                    {anyAnnualAvailable && (
+                        <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-muted)] p-1">
+                            <button
+                                onClick={() => handleBillingIntervalChange(false)}
+                                className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${!isAnnual ? "bg-[var(--color-background)] shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                            >
+                                Mensal
+                            </button>
+                            <button
+                                onClick={() => handleBillingIntervalChange(true)}
+                                className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all flex items-center gap-1.5 ${isAnnual ? "bg-[var(--color-background)] shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                            >
+                                Anual
+                                <Badge variant="success" className="text-[10px] px-1.5 py-0">2 meses grátis</Badge>
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Payments disabled banner */}
@@ -570,7 +621,67 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
                                     <CardDescription>{plan.quotesLimit} envios/mês</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                    <div className="text-2xl font-bold">{formatPrice(plan.priceMonthly)}</div>
+                                    <div>
+                                        <div className="text-2xl font-bold">
+                                            {formatPrice(plan.priceMonthly, plan.id)}
+                                            {isAnnual && plan.priceMonthly > 0 && (
+                                                <span className="ml-2 text-sm font-normal text-muted-foreground line-through">
+                                                    €{(plan.priceMonthly / 100).toFixed(0)}
+                                                </span>
+                                            )}
+                                        </div>
+                                        {isAnnual && plan.priceMonthly > 0 && (
+                                            <p className="text-xs text-success mt-1">
+                                                Faturado €{((plan.priceMonthly * 10) / 100).toFixed(0)}/ano
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    {/* Extra seats stepper (Starter only) */}
+                                    {plan.id === "starter" && !isCurrent && (
+                                        <div className={`rounded-lg border border-[var(--color-border)] p-3 space-y-2 ${isAnnual ? "opacity-50" : ""}`}>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-muted-foreground">Utilizadores extra</span>
+                                                <div className="flex items-center gap-2">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="h-7 w-7 p-0"
+                                                        disabled={isAnnual || starterExtraSeats <= 0}
+                                                        onClick={() => setStarterExtraSeats(Math.max(0, starterExtraSeats - 1))}
+                                                    >
+                                                        -
+                                                    </Button>
+                                                    <span className="text-sm font-medium w-4 text-center">{starterExtraSeats}</span>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="h-7 w-7 p-0"
+                                                        disabled={isAnnual || starterExtraSeats >= 5}
+                                                        onClick={() => setStarterExtraSeats(Math.min(5, starterExtraSeats + 1))}
+                                                    >
+                                                        +
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                            {isAnnual ? (
+                                                <p className="text-xs text-muted-foreground">
+                                                    Utilizadores extra disponíveis apenas no plano mensal.
+                                                </p>
+                                            ) : (
+                                                <>
+                                                    {starterExtraSeats > 0 && (
+                                                        <p className="text-xs text-muted-foreground">
+                                                            +€{starterExtraSeats * 15}/mês ({plan.maxUsers + starterExtraSeats} utilizadores total)
+                                                        </p>
+                                                    )}
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Inclui {plan.maxUsers} utilizadores. €15/mês por extra.
+                                                    </p>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
 
                                     {/* Features */}
                                     {plan.features.length > 0 && (

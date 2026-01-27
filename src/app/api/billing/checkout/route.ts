@@ -19,6 +19,8 @@ const PAYMENTS_ENABLED = process.env.NEXT_PUBLIC_PAYMENTS_ENABLED === "true";
 
 const checkoutSchema = z.object({
     planKey: z.string().min(1, "Plan key is required"),
+    billingInterval: z.enum(["monthly", "annual"]).default("monthly"),
+    extraSeats: z.number().int().min(0).max(10).default(0),
 });
 
 /**
@@ -85,7 +87,17 @@ export async function POST(request: NextRequest) {
             return badRequest(parsed.error.errors[0].message);
         }
 
-        const { planKey } = parsed.data;
+        const { planKey, billingInterval, extraSeats } = parsed.data;
+
+        // Validate extra seats only allowed on Starter
+        if (extraSeats > 0 && planKey !== "starter") {
+            return badRequest("Utilizadores extra só estão disponíveis no plano Starter");
+        }
+
+        // Validate extra seats not allowed on annual billing (no annual seat addon price exists)
+        if (extraSeats > 0 && billingInterval === "annual") {
+            return badRequest("Utilizadores extra só estão disponíveis no plano mensal. Altere para faturação mensal para adicionar lugares.");
+        }
 
         // Validate plan exists and has a Stripe price
         const plan = await getPlanById(planKey);
@@ -95,7 +107,22 @@ export async function POST(request: NextRequest) {
             return badRequest(`Plano inválido: ${planKey}`);
         }
 
-        if (!plan.stripePriceId) {
+        // Check price availability for the requested interval
+        const priceId = billingInterval === "annual"
+            ? plan.stripePriceIdAnnual
+            : plan.stripePriceId;
+
+        if (!priceId) {
+            if (billingInterval === "annual") {
+                log.info({ planKey }, "Annual pricing not yet available");
+                return NextResponse.json(
+                    {
+                        error: "ANNUAL_NOT_AVAILABLE",
+                        message: "Plano anual em breve. Estamos a preparar esta opção.",
+                    },
+                    { status: 503 }
+                );
+            }
             log.warn({ planKey }, "Plan has no Stripe price configured");
             return badRequest(`Plano "${plan.name}" não disponível para subscrição`);
         }
@@ -131,7 +158,8 @@ export async function POST(request: NextRequest) {
             session.user.organizationId,
             planKey,
             successUrl,
-            cancelUrl
+            cancelUrl,
+            { billingInterval, extraSeats }
         );
 
         if (result.error) {
@@ -140,6 +168,8 @@ export async function POST(request: NextRequest) {
                     error: result.error,
                     organizationId: session.user.organizationId,
                     planKey,
+                    billingInterval,
+                    extraSeats,
                 },
                 "Failed to create checkout session"
             );
@@ -151,6 +181,16 @@ export async function POST(request: NextRequest) {
                 );
             }
 
+            if (result.error === "ANNUAL_NOT_AVAILABLE") {
+                return NextResponse.json(
+                    {
+                        error: "ANNUAL_NOT_AVAILABLE",
+                        message: "Plano anual em breve. Estamos a preparar esta opção.",
+                    },
+                    { status: 503 }
+                );
+            }
+
             return NextResponse.json(
                 { error: "Erro ao criar sessão de checkout" },
                 { status: 500 }
@@ -158,7 +198,7 @@ export async function POST(request: NextRequest) {
         }
 
         log.info(
-            { organizationId: session.user.organizationId, planKey },
+            { organizationId: session.user.organizationId, planKey, billingInterval, extraSeats },
             "Checkout session created"
         );
 
@@ -166,6 +206,8 @@ export async function POST(request: NextRequest) {
             url: result.url,
             planName: plan.name,
             priceMonthly: plan.priceMonthly,
+            billingInterval,
+            extraSeats,
         });
     } catch (error) {
         return serverError(error, "POST /api/billing/checkout");

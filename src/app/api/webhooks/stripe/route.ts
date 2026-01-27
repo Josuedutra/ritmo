@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { trackEvent, ProductEventNames } from "@/lib/product-events";
 import { getStorageQuotaForPlan, PLAN_LIMITS } from "@/lib/entitlements";
+import { STRIPE_PRICE_SEAT_ADDON } from "@/lib/stripe";
 import Stripe from "stripe";
 
 export const dynamic = "force-dynamic";
@@ -294,7 +295,7 @@ async function handleCheckoutCompleted(
     session: Stripe.Checkout.Session,
     log: AppLogger
 ) {
-    const { organizationId, planId } = session.metadata || {};
+    const { organizationId, planId, billingInterval: metaBillingInterval, extraSeats: metaExtraSeats } = session.metadata || {};
 
     if (!organizationId) {
         log.warn(
@@ -322,6 +323,8 @@ async function handleCheckoutCompleted(
 
     const quotesLimit = plan?.monthlyQuoteLimit || 50;
     const finalPlanId = plan?.id || "starter";
+    const billingInterval = metaBillingInterval === "annual" ? "annual" : "monthly";
+    const extraSeats = parseInt(metaExtraSeats || "0", 10) || 0;
 
     // Upsert subscription by organizationId
     await prisma.subscription.upsert({
@@ -332,6 +335,8 @@ async function handleCheckoutCompleted(
             planId: finalPlanId,
             quotesLimit,
             status: "active",
+            billingInterval,
+            extraSeats,
         },
         create: {
             organizationId,
@@ -340,6 +345,8 @@ async function handleCheckoutCompleted(
             planId: finalPlanId,
             quotesLimit,
             status: "active",
+            billingInterval,
+            extraSeats,
             currentPeriodStart: new Date(),
             currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         },
@@ -353,7 +360,7 @@ async function handleCheckoutCompleted(
     });
 
     log.info(
-        { organizationId, planId: finalPlanId, storageQuotaBytes },
+        { organizationId, planId: finalPlanId, billingInterval, extraSeats, storageQuotaBytes },
         "Subscription created from checkout - storage quota synced"
     );
 }
@@ -382,6 +389,7 @@ async function handleSubscriptionCreated(
     const planId = await getPlanIdFromSubscription(subscription);
     const plan = await prisma.plan.findUnique({ where: { id: planId } });
     const quotesLimit = plan?.monthlyQuoteLimit || 50;
+    const { billingInterval, extraSeats } = extractBillingDetailsFromSubscription(subscription);
 
     await prisma.subscription.update({
         where: { id: existingSubscription.id },
@@ -393,6 +401,8 @@ async function handleSubscriptionCreated(
             currentPeriodStart: new Date(subscription.current_period_start * 1000),
             currentPeriodEnd: new Date(subscription.current_period_end * 1000),
             cancelAtPeriodEnd: subscription.cancel_at_period_end,
+            billingInterval,
+            extraSeats,
         },
     });
 
@@ -404,7 +414,7 @@ async function handleSubscriptionCreated(
     });
 
     log.info(
-        { organizationId: existingSubscription.organizationId, planId, storageQuotaBytes },
+        { organizationId: existingSubscription.organizationId, planId, billingInterval, extraSeats, storageQuotaBytes },
         "Subscription created event processed - storage quota synced"
     );
 }
@@ -439,6 +449,7 @@ async function handleSubscriptionUpdated(
     const planId = await getPlanIdFromSubscription(subscription);
     const plan = await prisma.plan.findUnique({ where: { id: planId } });
     const quotesLimit = plan?.monthlyQuoteLimit || 50;
+    const { billingInterval, extraSeats } = extractBillingDetailsFromSubscription(subscription);
 
     await prisma.subscription.update({
         where: { id: existingSubscription.id },
@@ -450,6 +461,8 @@ async function handleSubscriptionUpdated(
             currentPeriodStart: new Date(subscription.current_period_start * 1000),
             currentPeriodEnd: new Date(subscription.current_period_end * 1000),
             cancelAtPeriodEnd: subscription.cancel_at_period_end,
+            billingInterval,
+            extraSeats,
         },
     });
 
@@ -464,6 +477,8 @@ async function handleSubscriptionUpdated(
         {
             organizationId: existingSubscription.organizationId,
             planId,
+            billingInterval,
+            extraSeats,
             status: subscription.status,
             storageQuotaBytes,
         },
@@ -503,6 +518,8 @@ async function handleSubscriptionDeleted(
             status: "cancelled",
             stripeSubscriptionId: null, // Clear the subscription ID
             cancelAtPeriodEnd: false,
+            billingInterval: "monthly", // Reset to monthly
+            extraSeats: 0,             // Remove add-on seats
         },
     });
 
@@ -813,21 +830,37 @@ function mapStripeStatus(
 }
 
 /**
- * Extract plan ID from Stripe subscription items
- * Matches price ID to our plan definitions in DB
+ * Extract plan ID from Stripe subscription items.
+ * Matches price ID to our plan definitions in DB.
+ * Filters out seat add-on items (only matches base plan).
  */
 async function getPlanIdFromSubscription(
     subscription: Stripe.Subscription
 ): Promise<string> {
-    const priceId = subscription.items.data[0]?.price?.id;
+    // Filter out seat addon items to find the base plan item
+    const seatAddonPriceId = STRIPE_PRICE_SEAT_ADDON;
+    const planItems = subscription.items.data.filter(
+        (item) => item.price?.id !== seatAddonPriceId
+    );
+
+    const priceId = planItems[0]?.price?.id;
 
     if (!priceId) {
         return "free";
     }
 
-    // Find plan by stripe_price_id
-    const plan = await prisma.plan.findFirst({
+    // Find plan by stripe_price_id (monthly)
+    let plan = await prisma.plan.findFirst({
         where: { stripePriceId: priceId },
+    });
+
+    if (plan) {
+        return plan.id;
+    }
+
+    // Try matching by annual price ID
+    plan = await prisma.plan.findFirst({
+        where: { stripePriceIdAnnual: priceId },
     });
 
     if (plan) {
@@ -836,4 +869,29 @@ async function getPlanIdFromSubscription(
 
     // Default to starter if no match found
     return "starter";
+}
+
+/**
+ * Extract billing interval and extra seats from Stripe subscription items.
+ */
+function extractBillingDetailsFromSubscription(
+    subscription: Stripe.Subscription
+): { billingInterval: string; extraSeats: number } {
+    // Determine billing interval from the first plan item's recurring interval
+    const seatAddonPriceId = STRIPE_PRICE_SEAT_ADDON;
+    const planItems = subscription.items.data.filter(
+        (item) => item.price?.id !== seatAddonPriceId
+    );
+
+    const recurring = planItems[0]?.price?.recurring;
+    const billingInterval = recurring?.interval === "year" ? "annual" : "monthly";
+
+    // Count extra seats from seat addon item
+    // Guard: extra seats only valid on monthly billing (no annual seat addon price exists)
+    const seatItem = seatAddonPriceId
+        ? subscription.items.data.find((item) => item.price?.id === seatAddonPriceId)
+        : null;
+    const extraSeats = billingInterval === "annual" ? 0 : (seatItem?.quantity ?? 0);
+
+    return { billingInterval, extraSeats };
 }

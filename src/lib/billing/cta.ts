@@ -43,7 +43,8 @@ export function getRecommendedPlan(
             // If on starter, recommend pro for 12-month retention
             return currentPlan === "starter" ? "pro" : "starter";
         case "seat_limit":
-            return "pro";
+            // If on starter, suggest adding extra seats via billing page before jumping to Pro
+            return currentPlan === "starter" ? "starter" : "pro";
         case "benchmark_locked":
             // Benchmark is Pro+ exclusive
             return "pro_plus";

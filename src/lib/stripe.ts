@@ -23,14 +23,18 @@ function getStripe(): Stripe | null {
  * Hidden plans (pro_plus, enterprise) must ONLY exist in the database.
  * This prevents "phantom plans" appearing when DB is down.
  */
+// Seat add-on price ID (Starter only: +€15/mo per extra seat)
+export const STRIPE_PRICE_SEAT_ADDON = process.env.STRIPE_PRICE_STARTER_SEAT_ADDON || null;
+
 export const PLANS_FALLBACK = {
     free: {
         id: "free",
         name: "Gratuito",
-        quotesLimit: 5,
+        quotesLimit: 10,
         maxUsers: 1,
         priceMonthly: 0,
         stripePriceId: null,
+        stripePriceIdAnnual: null,
         isPublic: true,
     },
     starter: {
@@ -39,7 +43,8 @@ export const PLANS_FALLBACK = {
         quotesLimit: 80,
         maxUsers: 2,
         priceMonthly: 3900,
-        stripePriceId: process.env.STRIPE_PRICE_STARTER,
+        stripePriceId: process.env.STRIPE_PRICE_STARTER || null,
+        stripePriceIdAnnual: process.env.STRIPE_PRICE_STARTER_ANNUAL || null,
         isPublic: true,
     },
     pro: {
@@ -48,7 +53,8 @@ export const PLANS_FALLBACK = {
         quotesLimit: 250,
         maxUsers: 5,
         priceMonthly: 9900,
-        stripePriceId: process.env.STRIPE_PRICE_PRO,
+        stripePriceId: process.env.STRIPE_PRICE_PRO || null,
+        stripePriceIdAnnual: process.env.STRIPE_PRICE_PRO_ANNUAL || null,
         isPublic: true,
     },
     // NOTE: pro_plus and enterprise are intentionally NOT included here.
@@ -77,6 +83,7 @@ export async function getPlanById(planId: string) {
                 quotesLimit: plan.monthlyQuoteLimit,
                 priceMonthly: plan.priceMonthly,
                 stripePriceId: plan.stripePriceId,
+                stripePriceIdAnnual: plan.stripePriceIdAnnual,
                 isPublic: plan.isPublic,
                 maxUsers: plan.maxUsers,
             };
@@ -120,6 +127,7 @@ export async function getActivePlans() {
                 quotesLimit: plan.monthlyQuoteLimit,
                 priceMonthly: plan.priceMonthly,
                 stripePriceId: plan.stripePriceId,
+                stripePriceIdAnnual: plan.stripePriceIdAnnual,
                 isPublic: plan.isPublic,
                 maxUsers: plan.maxUsers,
             }));
@@ -146,6 +154,7 @@ export async function getAllPlansForAdmin(): Promise<{
         priceMonthly: number;
         maxUsers: number;
         stripePriceId: string | null;
+        stripePriceIdAnnual: string | null;
         isPublic: boolean;
     }>;
     dbAvailable: boolean;
@@ -163,6 +172,7 @@ export async function getAllPlansForAdmin(): Promise<{
                 priceMonthly: plan.priceMonthly,
                 maxUsers: plan.maxUsers,
                 stripePriceId: plan.stripePriceId,
+                stripePriceIdAnnual: plan.stripePriceIdAnnual,
                 isPublic: plan.isPublic,
             })),
             dbAvailable: true,
@@ -223,7 +233,11 @@ export async function createCheckoutSession(
     organizationId: string,
     planId: string,
     successUrl: string,
-    cancelUrl: string
+    cancelUrl: string,
+    options?: {
+        billingInterval?: "monthly" | "annual";
+        extraSeats?: number;
+    }
 ): Promise<{ url: string | null; error?: string }> {
     const plan = await getPlanById(planId);
 
@@ -231,7 +245,18 @@ export async function createCheckoutSession(
         return { url: null, error: "Plan not found" };
     }
 
-    if (!plan.stripePriceId) {
+    const billingInterval = options?.billingInterval ?? "monthly";
+    const extraSeats = options?.extraSeats ?? 0;
+
+    // Select price ID based on billing interval
+    const priceId = billingInterval === "annual"
+        ? plan.stripePriceIdAnnual
+        : plan.stripePriceId;
+
+    if (!priceId) {
+        if (billingInterval === "annual") {
+            return { url: null, error: "ANNUAL_NOT_AVAILABLE" };
+        }
         return { url: null, error: "Plan has no Stripe price" };
     }
 
@@ -241,20 +266,33 @@ export async function createCheckoutSession(
     }
 
     try {
+        // Build line items: base plan + optional seat add-on
+        const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
+            {
+                price: priceId,
+                quantity: 1,
+            },
+        ];
+
+        // Add seat add-on if extra seats requested (Starter only)
+        if (extraSeats > 0 && planId === "starter" && STRIPE_PRICE_SEAT_ADDON) {
+            lineItems.push({
+                price: STRIPE_PRICE_SEAT_ADDON,
+                quantity: extraSeats,
+            });
+        }
+
         const session = await stripe.checkout.sessions.create({
             mode: "subscription",
             payment_method_types: ["card"],
-            line_items: [
-                {
-                    price: plan.stripePriceId,
-                    quantity: 1,
-                },
-            ],
+            line_items: lineItems,
             success_url: successUrl,
             cancel_url: cancelUrl,
             metadata: {
                 organizationId,
                 planId,
+                billingInterval,
+                extraSeats: String(extraSeats),
             },
         });
 

@@ -72,6 +72,7 @@ function createMockOrgData(overrides: Partial<{
         status: string;
         quotesLimit: number;
         planId: string;
+        extraSeats: number;
         plan: { id: string; name: string; monthlyQuoteLimit: number; maxUsers: number } | null;
     } | null;
 }> = {}) {

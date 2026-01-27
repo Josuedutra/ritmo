@@ -81,8 +81,11 @@ export async function GET(request: NextRequest) {
             })
             : null;
 
+        const isAnnual = subscription.billingInterval === "annual";
         const priceFormatted = subscription.plan
-            ? `€${subscription.plan.priceMonthly}/mês`
+            ? isAnnual
+                ? `€${Math.round((subscription.plan.priceMonthly * 10) / 12) / 10}/mês (anual)`
+                : `€${subscription.plan.priceMonthly / 100}/mês`
             : "—";
 
         return NextResponse.json({
@@ -91,6 +94,8 @@ export async function GET(request: NextRequest) {
             priceFormatted,
             nextBillingDate,
             status: subscription.status,
+            billingInterval: subscription.billingInterval,
+            extraSeats: subscription.extraSeats,
         });
     } catch (error) {
         log.error({ error }, "Error verifying checkout session");

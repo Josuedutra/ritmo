@@ -61,6 +61,8 @@ export default async function BillingPage() {
                   hasStripeCustomer: !!subscription.stripeCustomerId,
                   hasStripeSubscription: !!subscription.stripeSubscriptionId,
                   isHiddenPlan: currentPlanIsHidden, // Flag for hidden plans (pro_plus, etc)
+                  billingInterval: subscription.billingInterval,
+                  extraSeats: subscription.extraSeats,
               }
             : null,
         entitlements: {
@@ -80,6 +82,7 @@ export default async function BillingPage() {
             priceMonthly: p.priceMonthly,
             maxUsers: p.maxUsers,
             hasStripePrice: !!p.stripePriceId,
+            hasAnnualPrice: !!p.stripePriceIdAnnual,
             // Features based on plan - aligned with landing page pricing
             features:
                 p.id === "free"

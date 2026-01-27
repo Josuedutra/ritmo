@@ -5,7 +5,7 @@
  * Determines what an org can do based on:
  * - Active subscription (paid plan)
  * - Active trial (14 days, 20 quotes)
- * - Free tier (5 quotes, no automation)
+ * - Free tier (10 quotes, no automation)
  *
  * Usage:
  *   const entitlements = await getEntitlements(orgId);
@@ -17,7 +17,7 @@
 import { prisma } from "@/lib/prisma";
 
 // Constants - Frozen pricing
-export const FREE_TIER_LIMIT = 5;
+export const FREE_TIER_LIMIT = 10;
 export const FREE_MAX_USERS = 1;
 export const TRIAL_LIMIT = 20;
 export const TRIAL_MAX_USERS = 2;
@@ -30,10 +30,10 @@ export const TRIAL_BCC_INBOUND_LIMIT = 1; // 1 BCC capture for "aha moment"
 // Plan limits (single source of truth for UI consistency)
 // Storage quotas and retention aligned with P0-STO-FIX-01 decisions
 export const PLAN_LIMITS = {
-    free: { monthlyQuotes: 5, maxUsers: 1, price: 0, storageQuotaBytes: 100 * 1024 * 1024, retentionDays: 30 }, // 100 MB, 30 days
-    starter: { monthlyQuotes: 80, maxUsers: 2, price: 3900, storageQuotaBytes: 5 * 1024 * 1024 * 1024, retentionDays: 180 }, // 5 GB, 180 days
-    pro: { monthlyQuotes: 250, maxUsers: 5, price: 9900, storageQuotaBytes: 20 * 1024 * 1024 * 1024, retentionDays: 365 }, // 20 GB, 365 days
-    enterprise: { monthlyQuotes: 1000, maxUsers: 999, price: 0, storageQuotaBytes: 50 * 1024 * 1024 * 1024, retentionDays: 730 }, // 50 GB, 2 years
+    free: { monthlyQuotes: 10, maxUsers: 1, price: 0, priceAnnual: 0, seatAddonPrice: 0, storageQuotaBytes: 100 * 1024 * 1024, retentionDays: 30 }, // 100 MB, 30 days
+    starter: { monthlyQuotes: 80, maxUsers: 2, price: 3900, priceAnnual: 39000, seatAddonPrice: 1500, storageQuotaBytes: 5 * 1024 * 1024 * 1024, retentionDays: 180 }, // 5 GB, 180 days — annual €390/yr (€32/mo), seat addon €15/mo
+    pro: { monthlyQuotes: 250, maxUsers: 5, price: 9900, priceAnnual: 99000, seatAddonPrice: 0, storageQuotaBytes: 20 * 1024 * 1024 * 1024, retentionDays: 365 }, // 20 GB, 365 days — annual €990/yr (€82/mo)
+    enterprise: { monthlyQuotes: 1000, maxUsers: 999, price: 0, priceAnnual: 0, seatAddonPrice: 0, storageQuotaBytes: 50 * 1024 * 1024 * 1024, retentionDays: 730 }, // 50 GB, 2 years
 } as const;
 
 // Storage constants
@@ -106,6 +106,7 @@ interface OrgData {
         status: string;
         quotesLimit: number;
         planId: string;
+        extraSeats: number;
         plan: {
             id: string;
             name: string;
@@ -138,7 +139,11 @@ export async function getEntitlements(organizationId: string): Promise<Entitleme
             storageUsedBytes: true,
             storageQuotaBytes: true,
             subscription: {
-                include: {
+                select: {
+                    status: true,
+                    quotesLimit: true,
+                    planId: true,
+                    extraSeats: true,
                     plan: {
                         select: {
                             id: true,
@@ -212,7 +217,8 @@ export function calculateEntitlements(
         quotesUsed = periodQuotesSent;
         planName = subscription.plan?.name ?? "Pago";
         planId = subscription.plan?.id ?? subscription.planId;
-        maxUsers = subscription.plan?.maxUsers ?? 1;
+        const extraSeats = subscription.extraSeats ?? 0;
+        maxUsers = (subscription.plan?.maxUsers ?? 1) + extraSeats;
         // Paid plans get all features
         autoEmailEnabled = true;
         bccInboundEnabled = true;

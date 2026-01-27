@@ -15,7 +15,7 @@ const PLANS: Plan[] = [
         id: "free",
         name: "Gratuito",
         price: "€0/mês",
-        limit: "5 envios/mês",
+        limit: "10 envios/mês",
         features: ["Cadência e tarefas (manual)", "Templates e scripts"],
     },
     {

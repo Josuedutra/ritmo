@@ -84,11 +84,13 @@ export async function GET() {
                       hasStripeCustomer: !!subscription.stripeCustomerId,
                       hasStripeSubscription: !!subscription.stripeSubscriptionId,
                       isHiddenPlan: currentPlanIsHidden, // Flag for hidden plans (pro_plus, etc)
+                      billingInterval: subscription.billingInterval,
+                      extraSeats: subscription.extraSeats,
                   }
                 : null,
             usage: {
                 quotesSent: usageCounter?.quotesSent || 0,
-                quotesLimit: subscription?.quotesLimit || 5,
+                quotesLimit: subscription?.quotesLimit || 10,
                 periodStart: periodStart,
             },
             // P0-BILL-09: entitlements included in response
@@ -108,7 +110,9 @@ export async function GET() {
                 name: p.name,
                 quotesLimit: p.monthlyQuoteLimit,
                 priceMonthly: p.priceMonthly,
+                maxUsers: p.maxUsers,
                 hasStripePrice: !!p.stripePriceId,
+                hasAnnualPrice: !!p.stripePriceIdAnnual,
             })),
         };
 

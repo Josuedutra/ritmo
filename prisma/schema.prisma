@@ -530,9 +530,10 @@ model Plan {
   monthlyQuoteLimit Int      @map("monthly_quote_limit")
   priceMonthly      Int      @default(0) @map("price_monthly") // In cents (EUR)
   maxUsers          Int      @default(1) @map("max_users")     // Max team members
-  stripePriceId     String?  @map("stripe_price_id")
-  isActive          Boolean  @default(true) @map("is_active")
-  isPublic          Boolean  @default(true) @map("is_public")  // Hidden plans (pro_plus) = false
+  stripePriceId        String?  @map("stripe_price_id")
+  stripePriceIdAnnual  String?  @map("stripe_price_id_annual") // Annual billing price
+  isActive             Boolean  @default(true) @map("is_active")
+  isPublic             Boolean  @default(true) @map("is_public")  // Hidden plans (pro_plus) = false
 
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
@@ -573,6 +574,8 @@ model Subscription {
   currentPeriodStart    DateTime?          @map("current_period_start")
   currentPeriodEnd      DateTime?          @map("current_period_end")
   cancelAtPeriodEnd     Boolean            @default(false) @map("cancel_at_period_end")
+  billingInterval       String             @default("monthly") @map("billing_interval") // "monthly" | "annual"
+  extraSeats            Int                @default(0) @map("extra_seats")              // Starter seat add-on quantity
 
   createdAt             DateTime           @default(now()) @map("created_at")
   updatedAt             DateTime           @updatedAt @map("updated_at")

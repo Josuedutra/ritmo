@@ -13,14 +13,14 @@ async function main() {
     console.log("🌱 Seeding database...");
 
     // Create Plans (Ensure they exist for subscription foreign keys)
-    // Pricing frozen: Free=5, Starter=€39/80, Pro=€99/250, Pro+=€149/500
+    // Pricing frozen: Free=10, Starter=€39/80, Pro=€99/250, Pro+=€149/500
     // Note: Pro+ and Enterprise are hidden (isPublic=false)
     const plans = [
-        { id: "free", name: "Gratuito", limit: 5, price: 0, maxUsers: 1, stripeId: null, active: true, isPublic: true },
-        { id: "starter", name: "Starter", limit: 80, price: 3900, maxUsers: 2, stripeId: process.env.STRIPE_PRICE_STARTER || null, active: true, isPublic: true },
-        { id: "pro", name: "Pro", limit: 250, price: 9900, maxUsers: 5, stripeId: process.env.STRIPE_PRICE_PRO || null, active: true, isPublic: true },
-        { id: "pro_plus", name: "Pro+", limit: 500, price: 14900, maxUsers: 10, stripeId: process.env.STRIPE_PRICE_PRO_PLUS || null, active: true, isPublic: false },
-        { id: "enterprise", name: "Enterprise", limit: 1000, price: 0, maxUsers: 999, stripeId: null, active: false, isPublic: false },
+        { id: "free", name: "Gratuito", limit: 10, price: 0, maxUsers: 1, stripeId: null, stripeIdAnnual: null, active: true, isPublic: true },
+        { id: "starter", name: "Starter", limit: 80, price: 3900, maxUsers: 2, stripeId: process.env.STRIPE_PRICE_STARTER || null, stripeIdAnnual: process.env.STRIPE_PRICE_STARTER_ANNUAL || null, active: true, isPublic: true },
+        { id: "pro", name: "Pro", limit: 250, price: 9900, maxUsers: 5, stripeId: process.env.STRIPE_PRICE_PRO || null, stripeIdAnnual: process.env.STRIPE_PRICE_PRO_ANNUAL || null, active: true, isPublic: true },
+        { id: "pro_plus", name: "Pro+", limit: 500, price: 14900, maxUsers: 10, stripeId: process.env.STRIPE_PRICE_PRO_PLUS || null, stripeIdAnnual: null, active: true, isPublic: false },
+        { id: "enterprise", name: "Enterprise", limit: 1000, price: 0, maxUsers: 999, stripeId: null, stripeIdAnnual: null, active: false, isPublic: false },
     ];
 
     for (const p of plans) {
@@ -32,6 +32,7 @@ async function main() {
                 priceMonthly: p.price,
                 maxUsers: p.maxUsers,
                 stripePriceId: p.stripeId,
+                stripePriceIdAnnual: p.stripeIdAnnual,
                 isActive: p.active,
                 isPublic: p.isPublic,
             },
@@ -42,12 +43,13 @@ async function main() {
                 priceMonthly: p.price,
                 maxUsers: p.maxUsers,
                 stripePriceId: p.stripeId,
+                stripePriceIdAnnual: p.stripeIdAnnual,
                 isActive: p.active,
                 isPublic: p.isPublic,
             },
         });
     }
-    console.log("✅ Plans seeded/updated (Free=5, Starter=€39/80, Pro=€99/250, Pro+=€149/500 hidden)");
+    console.log("✅ Plans seeded/updated (Free=10, Starter=€39/80, Pro=€99/250, Pro+=€149/500 hidden)");
 
     // Create demo organization
     const org = await prisma.organization.upsert({
@@ -123,7 +125,7 @@ async function main() {
             organizationId: org.id,
             planId: "free",
             status: "active",
-            quotesLimit: 5,
+            quotesLimit: 10,
             currentPeriodStart: new Date(),
             currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // +30 days
         },
