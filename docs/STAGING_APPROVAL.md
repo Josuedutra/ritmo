@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | **Staging URL** | `https://staging.useritmo.pt` |
-| **Commit SHA** | `c4be099` |
+| **Commit SHA** | `4ce463a` |
 | **Branch** | `release-candidate` |
 | **Date** | 2026-01-27 |
 | **Tester** | Claude Code (automated) + Manual QA |

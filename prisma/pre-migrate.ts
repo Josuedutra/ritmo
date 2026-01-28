@@ -343,40 +343,7 @@ async function main() {
     // Migrate inbound_ingestions.provider from String to InboundProvider enum
     // Must run BEFORE prisma db push so the column type is compatible
     if (await tableExists("inbound_ingestions")) {
-        // Step 1: Backfill orphaned stub rows (Sprint 0) from "mailgun"/NULL to "cloudflare"
-        console.log("📝 Backfilling orphaned inbound_ingestions provider...");
-        const backfilled = await prisma.$executeRaw`
-            UPDATE inbound_ingestions
-            SET provider = 'cloudflare'
-            WHERE (provider = 'mailgun' OR provider IS NULL)
-              AND organization_id IS NULL
-              AND quote_id IS NULL
-              AND status = 'pending'
-        `;
-        console.log(`✅ Backfilled ${backfilled} orphaned rows`);
-
-        // Step 2: Sanitize any invalid provider values (NULL, whitespace, unknown) before enum conversion
-        console.log("📝 Sanitizing invalid provider values...");
-        const sanitized = await prisma.$executeRaw`
-            UPDATE inbound_ingestions
-            SET provider = 'cloudflare'
-            WHERE provider IS NULL
-               OR TRIM(provider) NOT IN ('cloudflare', 'mailgun')
-        `;
-        if (sanitized > 0) console.log(`  ↳ Sanitized ${sanitized} rows`);
-
-        // Step 3: Create InboundProvider enum type if not exists
-        console.log("📝 Creating InboundProvider enum type...");
-        await prisma.$executeRaw`
-            DO $$ BEGIN
-                CREATE TYPE "InboundProvider" AS ENUM ('cloudflare', 'mailgun');
-            EXCEPTION
-                WHEN duplicate_object THEN null;
-            END $$;
-        `;
-
-        // Step 4: Convert provider column from text to enum
-        // Check if it's still text (not already the InboundProvider enum)
+        // Check column type FIRST — if already enum, skip text-based sanitization steps
         const colType = await prisma.$queryRaw<{ data_type: string; udt_name: string }[]>`
             SELECT data_type, udt_name FROM information_schema.columns
             WHERE table_name = 'inbound_ingestions' AND column_name = 'provider'
@@ -384,7 +351,41 @@ async function main() {
         const isAlreadyEnum = colType.length > 0
             && colType[0].data_type === 'USER-DEFINED'
             && colType[0].udt_name === 'InboundProvider';
-        if (colType.length > 0 && !isAlreadyEnum) {
+
+        if (!isAlreadyEnum) {
+            // Step 1: Backfill orphaned stub rows (Sprint 0) from "mailgun"/NULL to "cloudflare"
+            console.log("📝 Backfilling orphaned inbound_ingestions provider...");
+            const backfilled = await prisma.$executeRaw`
+                UPDATE inbound_ingestions
+                SET provider = 'cloudflare'
+                WHERE (provider = 'mailgun' OR provider IS NULL)
+                  AND organization_id IS NULL
+                  AND quote_id IS NULL
+                  AND status = 'pending'
+            `;
+            console.log(`✅ Backfilled ${backfilled} orphaned rows`);
+
+            // Step 2: Sanitize any invalid provider values (NULL, whitespace, unknown) before enum conversion
+            console.log("📝 Sanitizing invalid provider values...");
+            const sanitized = await prisma.$executeRaw`
+                UPDATE inbound_ingestions
+                SET provider = 'cloudflare'
+                WHERE provider IS NULL
+                   OR TRIM(provider) NOT IN ('cloudflare', 'mailgun')
+            `;
+            if (sanitized > 0) console.log(`  ↳ Sanitized ${sanitized} rows`);
+
+            // Step 3: Create InboundProvider enum type if not exists
+            console.log("📝 Creating InboundProvider enum type...");
+            await prisma.$executeRaw`
+                DO $$ BEGIN
+                    CREATE TYPE "InboundProvider" AS ENUM ('cloudflare', 'mailgun');
+                EXCEPTION
+                    WHEN duplicate_object THEN null;
+                END $$;
+            `;
+
+            // Step 4: Convert provider column from text to enum
             console.log("📝 Converting provider column to enum...");
             // Drop old text default BEFORE type conversion (PG can't auto-cast text default to enum)
             await prisma.$executeRaw`
@@ -402,7 +403,7 @@ async function main() {
             `;
             console.log("✅ Provider column converted to enum");
         } else {
-            console.log("✅ Provider column already enum");
+            console.log("✅ Provider column already enum — skipping text sanitization");
         }
 
         // Step 5: Drop old global unique on provider_message_id (if exists)

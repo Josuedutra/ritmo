@@ -4,8 +4,8 @@
 
 | Field | Value |
 |-------|-------|
-| **Commit SHA** | `6ce92c5` |
-| **Branch** | `main` |
+| **Commit SHA** | `4ce463a` |
+| **Branch** | `release-candidate` |
 | **Source Branch** | `main` |
 | **Date** | 2026-01-27 |
 | **Tag** | `rc-20260127` |
