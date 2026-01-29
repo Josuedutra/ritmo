@@ -86,7 +86,7 @@ function PricingSection() {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ event: "viewed" }),
-                    }).catch(() => {});
+                    }).catch(() => { });
                     observer.disconnect();
                 }
             },
@@ -117,7 +117,7 @@ function PricingSection() {
                     plan: selectedPlan,
                     interval: isAnnual ? "annual" : "monthly",
                 }),
-            }).catch(() => {});
+            }).catch(() => { });
         }, 400);
     }, [showCustomTicket, ticketBucketIdx, margin, recoveredCount, selectedPlan, isAnnual]);
 
@@ -131,7 +131,7 @@ function PricingSection() {
                 plan: selectedPlan,
                 interval: isAnnual ? "annual" : "monthly",
             }),
-        }).catch(() => {});
+        }).catch(() => { });
     }, [selectedPlan, isAnnual]);
 
     // ROI calculations
@@ -161,7 +161,7 @@ function PricingSection() {
                     interval: isAnnual ? "annual" : "monthly",
                     balanceBucket,
                 }),
-            }).catch(() => {});
+            }).catch(() => { });
         }
     }, [balance, monthlyCost, selectedPlan, isAnnual]);
 
@@ -203,7 +203,7 @@ function PricingSection() {
 
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto items-start">
                     {/* Free Plan */}
-                    <div className="relative rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-zinc-300 flex flex-col h-full">
+                    <div className="relative rounded-2xl border border-zinc-200 bg-white p-6 shadow-premium-md transition-all duration-300 hover:shadow-premium-lg hover:-translate-y-1 hover:border-zinc-300 flex flex-col h-full glass-panel">
                         <h3 className="text-lg font-bold text-zinc-900 mb-1">Free</h3>
                         <p className="text-zinc-500 text-xs mb-4">10 envios/mês · 1 utilizador</p>
                         <div className="mb-4">
@@ -239,9 +239,9 @@ function PricingSection() {
                     </div>
 
                     {/* Starter Plan - Popular */}
-                    <div className="relative rounded-2xl border-2 border-transparent bg-white p-6 shadow-xl flex flex-col h-full" style={{ borderImage: 'linear-gradient(to right, #60a5fa, #34d399) 1' }}>
+                    <div className="relative rounded-2xl border border-blue-200 bg-white p-6 shadow-premium-xl flex flex-col h-full ring-2 ring-blue-500/10">
                         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                            <span className="bg-gradient-to-r from-blue-400 to-emerald-400 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg shadow-emerald-500/20 uppercase">
+                            <span className="bg-gradient-to-r from-blue-500 to-emerald-500 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg shadow-emerald-500/20 uppercase tracking-wide">
                                 Mais Popular
                             </span>
                         </div>
@@ -260,48 +260,62 @@ function PricingSection() {
                         <p className="text-sm text-zinc-600 mb-2">
                             Para o dono + 1 apoio, com automação.
                         </p>
-                        <p className="text-xs text-emerald-700 font-medium bg-emerald-50 rounded-lg px-3 py-2 mb-4">
+                        <p className="text-xs text-emerald-700 font-medium bg-emerald-50 rounded-lg px-3 py-2 mb-4 border border-emerald-100">
                             Recupere 1 orçamento/mês e o Ritmo sai de graça.
                         </p>
                         <ul className="space-y-3 mb-6 text-sm flex-grow">
-                            <li className="flex items-start gap-2 text-zinc-600">
-                                <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                            <li className="flex items-start gap-2 text-zinc-700">
+                                <div className="rounded-full bg-emerald-100 p-0.5 mt-0.5 shrink-0">
+                                    <Check className="w-3 h-3 text-emerald-600" />
+                                </div>
                                 Recuperação D+1, D+3 (email automático)
                             </li>
-                            <li className="flex items-start gap-2 text-zinc-600">
-                                <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                            <li className="flex items-start gap-2 text-zinc-700">
+                                <div className="rounded-full bg-emerald-100 p-0.5 mt-0.5 shrink-0">
+                                    <Check className="w-3 h-3 text-emerald-600" />
+                                </div>
                                 Recuperação D+7 (chamada guiada + proposta)
                             </li>
-                            <li className="flex items-start gap-2 text-zinc-600">
-                                <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                            <li className="flex items-start gap-2 text-zinc-700">
+                                <div className="rounded-full bg-emerald-100 p-0.5 mt-0.5 shrink-0">
+                                    <Check className="w-3 h-3 text-emerald-600" />
+                                </div>
                                 Recuperação D+14 (último follow-up)
                             </li>
-                            <li className="flex items-start gap-2 text-zinc-600">
-                                <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                            <li className="flex items-start gap-2 text-zinc-700">
+                                <div className="rounded-full bg-emerald-100 p-0.5 mt-0.5 shrink-0">
+                                    <Check className="w-3 h-3 text-emerald-600" />
+                                </div>
                                 Captura de proposta por BCC (PDF/link)
                             </li>
-                            <li className="flex items-start gap-2 text-zinc-600">
-                                <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                            <li className="flex items-start gap-2 text-zinc-700">
+                                <div className="rounded-full bg-emerald-100 p-0.5 mt-0.5 shrink-0">
+                                    <Check className="w-3 h-3 text-emerald-600" />
+                                </div>
                                 Templates por etapa
                             </li>
-                            <li className="flex items-start gap-2 text-zinc-600">
-                                <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                            <li className="flex items-start gap-2 text-zinc-700">
+                                <div className="rounded-full bg-emerald-100 p-0.5 mt-0.5 shrink-0">
+                                    <Check className="w-3 h-3 text-emerald-600" />
+                                </div>
                                 Scoreboard (rotina e consistência)
                             </li>
                             <li className="flex items-start gap-2 text-blue-600 font-medium">
-                                <Check className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+                                <div className="rounded-full bg-blue-100 p-0.5 mt-0.5 shrink-0">
+                                    <Check className="w-3 h-3 text-blue-600" />
+                                </div>
                                 +1 utilizador extra por €15/mês
                             </li>
                         </ul>
                         <Link href="/signup" className="mt-auto" onClick={trackCtaClick}>
-                            <Button className="w-full rounded-full bg-gradient-to-r from-blue-400 to-emerald-400 hover:from-blue-500 hover:to-emerald-500 text-sm h-10 shadow-lg shadow-emerald-500/20 text-white border-0">
+                            <Button className="w-full rounded-full btn-cta-primary text-sm h-11 font-medium z-10">
                                 Começar trial grátis
                             </Button>
                         </Link>
                     </div>
 
                     {/* Pro Plan */}
-                    <div className="relative rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-zinc-300 flex flex-col h-full">
+                    <div className="relative rounded-2xl border border-zinc-200 bg-white p-6 shadow-premium-md transition-all duration-300 hover:shadow-premium-lg hover:-translate-y-1 hover:border-zinc-300 flex flex-col h-full glass-panel">
                         <h3 className="text-lg font-bold text-zinc-900 mb-1">Controlo e equipa</h3>
                         <p className="text-zinc-500 text-xs mb-4">250 envios/mês · 5 utilizadores</p>
                         <div className="mb-1">
@@ -347,7 +361,7 @@ function PricingSection() {
                     </div>
 
                     {/* Enterprise Plan */}
-                    <div className="relative rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-zinc-300 flex flex-col h-full">
+                    <div className="relative rounded-2xl border border-zinc-200 bg-white p-6 shadow-premium-md transition-all duration-300 hover:shadow-premium-lg hover:-translate-y-1 hover:border-zinc-300 flex flex-col h-full glass-panel">
                         <h3 className="text-lg font-bold text-zinc-900 mb-1">Enterprise</h3>
                         <p className="text-zinc-500 text-xs mb-4">Limites personalizados</p>
                         <div className="mb-4">
@@ -388,8 +402,8 @@ function PricingSection() {
 
                 {/* ROI Calculator */}
                 <div ref={roiRef} className="mt-16 max-w-2xl mx-auto">
-                    <div className="rounded-2xl border border-zinc-200 bg-[var(--color-muted)] p-8 shadow-sm">
-                        <h3 className="text-lg font-bold text-zinc-900 mb-1 text-center">Como o Ritmo se paga a si próprio</h3>
+                    <div className="rounded-2xl border border-zinc-200 bg-[var(--color-muted)] p-8 shadow-premium-sm">
+                        <h3 className="text-xl font-bold text-zinc-900 mb-2 text-center">Como o Ritmo se paga a si próprio</h3>
                         <p className="text-sm text-zinc-500 text-center mb-8">Simule o retorno com base no seu cenário.</p>
 
                         <div className="space-y-6">
@@ -421,11 +435,10 @@ function PricingSection() {
                                             <button
                                                 key={bucket.label}
                                                 onClick={() => { setTicketBucketIdx(idx); trackChange("ticket"); }}
-                                                className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                                                    idx === ticketBucketIdx
-                                                        ? "bg-zinc-900 text-white border-zinc-900"
-                                                        : "bg-white text-zinc-600 border-zinc-200 hover:border-zinc-300"
-                                                }`}
+                                                className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${idx === ticketBucketIdx
+                                                    ? "bg-zinc-900 text-white border-zinc-900"
+                                                    : "bg-white text-zinc-600 border-zinc-200 hover:border-zinc-300"
+                                                    }`}
                                             >
                                                 {bucket.label}
                                             </button>
@@ -568,7 +581,7 @@ function PricingSection() {
 export default function LandingPage() {
 
     return (
-        <div className="flex min-h-screen flex-col bg-[var(--color-muted)] bg-hero-premium text-zinc-950 font-sans selection:bg-blue-100 selection:text-blue-900">
+        <div className="flex min-h-screen flex-col bg-[var(--color-muted)] bg-hero-premium text-zinc-950 font-sans selection:bg-blue-100 selection:text-blue-900 overflow-x-hidden">
 
             {/* Handle signed_out toast with Suspense boundary */}
             <Suspense fallback={null}>
@@ -628,7 +641,7 @@ export default function LandingPage() {
                 }}
             />
 
-            <header className="fixed top-0 z-50 w-full bg-[var(--color-muted)]/80 backdrop-blur-md border-b border-transparent">
+            <header className="fixed top-0 z-50 w-full bg-[var(--background)]/80 backdrop-blur-lg border-b border-zinc-200/50">
                 <div className="container mx-auto flex h-16 items-center justify-between px-6">
                     <Logo href="/" size="md" />
 
@@ -664,8 +677,8 @@ export default function LandingPage() {
                                 variants={staggerContainer}
                                 className="text-center"
                             >
-                                <motion.h1 variants={fadeInUp} className="mb-8 text-5xl md:text-7xl font-medium tracking-tighter text-zinc-900 leading-[1]">
-                                    Não deixe orçamentos morrerem.
+                                <motion.h1 variants={fadeInUp} className="mb-8 text-6xl md:text-8xl font-semibold tracking-tighter text-zinc-900 leading-[1.05] drop-shadow-sm">
+                                    Não deixe orçamentos <span className="text-gradient">morrerem</span>.
                                 </motion.h1>
 
                                 <motion.p variants={fadeInUp} className="mb-10 max-w-2xl mx-auto text-xl leading-relaxed text-zinc-600 font-light">
@@ -674,13 +687,13 @@ export default function LandingPage() {
 
                                 <motion.div variants={fadeInUp} className="flex flex-col items-center justify-center gap-4 sm:flex-row mb-6">
                                     <Link href="/signup">
-                                        <Button size="lg" className="h-14 rounded-full px-10 text-lg bg-gradient-to-r from-blue-400 to-emerald-400 hover:from-blue-500 hover:to-emerald-500 text-white shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 hover:shadow-xl">
+                                        <Button size="lg" className="h-14 rounded-full px-10 text-lg btn-cta-primary transition-all hover:scale-105">
                                             Começar trial grátis
                                             <ArrowRight className="ml-2 h-5 w-5" />
                                         </Button>
                                     </Link>
                                     <Link href="/signup?provider=google">
-                                        <Button size="lg" variant="outline" className="h-14 rounded-full px-10 text-lg border-zinc-300 hover:bg-zinc-50 shadow-sm transition-all hover:scale-105 gap-3">
+                                        <Button size="lg" variant="outline" className="h-14 rounded-full px-10 text-lg border-zinc-300 hover:bg-zinc-50 shadow-sm transition-all hover:scale-105 gap-3 bg-white/80 backdrop-blur-sm">
                                             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none">
                                                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
                                                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
@@ -715,8 +728,8 @@ export default function LandingPage() {
 
                                     <div className="space-y-4">
                                         <h2 className="text-3xl md:text-5xl font-medium tracking-tighter text-white leading-[1.1]">
-                                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Funciona com o que</span> <br />
-                                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">você já usa.</span>
+                                            <span className="text-gradient">Funciona com o que</span> <br />
+                                            <span className="text-gradient">você já usa.</span>
                                         </h2>
                                         <p className="text-lg text-zinc-400 max-w-md leading-relaxed">
                                             Sem CRM pesado. Sem mudar processos. <br />
@@ -1001,7 +1014,7 @@ export default function LandingPage() {
                                 <div>
                                     <h2 className="text-4xl md:text-5xl font-medium tracking-tighter text-zinc-900 mb-6 text-left leading-[1.1]">
                                         Perguntas <br />
-                                        <span className="bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">frequentes</span>
+                                        <span className="text-gradient">frequentes</span>
                                     </h2>
                                     <h3 className="text-xl font-bold text-zinc-900 mb-3">Ainda tens dúvidas?</h3>
                                     <p className="text-zinc-500 leading-relaxed">
@@ -1104,12 +1117,12 @@ export default function LandingPage() {
 
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
                             <Link href="/signup">
-                                <Button size="lg" className="h-16 rounded-full px-12 text-lg bg-gradient-to-r from-blue-400 to-emerald-400 hover:from-blue-500 hover:to-emerald-500 text-white font-bold shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 hover:shadow-xl">
+                                <Button size="lg" className="h-16 rounded-full px-12 text-lg btn-cta-primary font-bold transition-all hover:scale-105 hover:shadow-xl">
                                     Começar trial grátis
                                 </Button>
                             </Link>
                             <Link href="/signup?provider=google">
-                                <Button size="lg" variant="outline" className="h-16 rounded-full px-12 text-lg border-zinc-600 text-white hover:bg-zinc-800 font-bold transition-transform hover:scale-105 gap-3">
+                                <Button size="lg" variant="outline" className="h-16 rounded-full px-12 text-lg border-zinc-600 text-white hover:bg-zinc-800 font-bold transition-transform hover:scale-105 gap-3 bg-white/5 backdrop-blur-sm">
                                     <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none">
                                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
                                         <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
