@@ -1,14 +1,21 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Roboto, Comfortaa } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import { FeedbackModal } from "@/components/feedback";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 
-const inter = Inter({
+const roboto = Roboto({
     subsets: ["latin"],
-    variable: "--font-inter",
+    weight: ["400", "500", "700"],
+    variable: "--font-roboto",
+});
+
+const comfortaa = Comfortaa({
+    subsets: ["latin"],
+    weight: ["300", "400", "500", "600", "700"],
+    variable: "--font-comfortaa",
 });
 
 export const metadata: Metadata = {
@@ -49,7 +56,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="pt-PT" suppressHydrationWarning>
-            <body className={`${inter.variable} antialiased`}>
+            <body className={`${roboto.variable} ${comfortaa.variable} antialiased`}>
                 <Providers>
                     <ThemeProvider
                         attribute="class"

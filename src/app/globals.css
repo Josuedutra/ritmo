@@ -62,6 +62,9 @@
   --radius-md: 0.5rem;
   --radius-lg: 0.625rem;
   --radius-xl: 0.75rem;
+  /* Fonts */
+  --font-sans: var(--font-comfortaa), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-display: var(--font-roboto), ui-sans-serif, system-ui, sans-serif;
 }
 
 /* ==========================================================================
@@ -75,9 +78,12 @@
   /* -------------------------------------------------------------------------
      Brand Colors - Ritmo Gradient (Vibrant Blue → Deep Emerald)
      ------------------------------------------------------------------------- */
-  --brand-from: oklch(0.55 0.22 260);   /* Deep vibrant blue */
-  --brand-to: oklch(0.65 0.18 155);     /* Lush emerald */
-  --brand: oklch(0.55 0.22 260);        /* Primary brand = from color */
+  --brand-from: oklch(0.55 0.22 260);
+  /* Deep vibrant blue */
+  --brand-to: oklch(0.65 0.18 155);
+  /* Lush emerald */
+  --brand: oklch(0.55 0.22 260);
+  /* Primary brand = from color */
 
   /* -------------------------------------------------------------------------
      Light Mode - Premium Surfaces
@@ -220,7 +226,7 @@
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-comfortaa), system-ui, -apple-system, sans-serif;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -242,8 +248,10 @@ h3,
 h4,
 h5,
 h6 {
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font-family: var(--font-roboto), system-ui, sans-serif;
+  font-weight: 700;
+  /* Roboto Bold as requested */
+  letter-spacing: -0.01em;
   color: var(--color-foreground);
 }
 
@@ -270,7 +278,7 @@ h4 {
 }
 
 p {
-    line-height: 1.6;
+  line-height: 1.6;
 }
 
 /* ==========================================================================
@@ -293,7 +301,7 @@ p {
 
 /* Inner Glow - Subtle shine */
 .inner-glow {
-    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
 }
 
 /* Text Gradient */
@@ -307,30 +315,22 @@ p {
 /* Hero Background - Premium Glow */
 .bg-hero-premium {
   background:
-    radial-gradient(
-      ellipse 80% 50% at 50% -20%,
+    radial-gradient(ellipse 80% 50% at 50% -20%,
       oklch(0.55 0.22 260 / 0.15),
-      transparent 70%
-    ),
-    radial-gradient(
-      ellipse 60% 40% at 90% 40%,
+      transparent 70%),
+    radial-gradient(ellipse 60% 40% at 90% 40%,
       oklch(0.65 0.18 155 / 0.08),
-      transparent 50%
-    );
+      transparent 50%);
 }
 
 .dark .bg-hero-premium {
-    background:
-    radial-gradient(
-      ellipse 80% 50% at 50% -20%,
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%,
       oklch(0.65 0.20 260 / 0.12),
-      transparent 70%
-    ),
-    radial-gradient(
-      ellipse 60% 40% at 90% 40%,
+      transparent 70%),
+    radial-gradient(ellipse 60% 40% at 90% 40%,
       oklch(0.75 0.16 155 / 0.06),
-      transparent 50%
-    );
+      transparent 50%);
 }
 
 
@@ -396,9 +396,9 @@ p {
 }
 
 .dark .shadow-premium-xl {
-    box-shadow:
-      0 20px 40px -10px rgba(0, 0, 0, 0.4),
-      0 0 20px -5px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 20px 40px -10px rgba(0, 0, 0, 0.4),
+    0 0 20px -5px rgba(0, 0, 0, 0.2);
 }
 
 /* ==========================================================================
@@ -422,4 +422,3 @@ p {
 [id] {
   scroll-margin-top: 5rem;
 }
-

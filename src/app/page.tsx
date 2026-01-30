@@ -173,405 +173,327 @@ function PricingSection() {
     return (
         <section id="pricing" className="py-24 px-6 bg-zinc-50 border-t border-zinc-100">
             <div className="container mx-auto max-w-7xl">
-                <div className="text-center mb-12">
-                    <h2 className="text-3xl md:text-5xl font-medium tracking-tighter text-zinc-900 mb-4 leading-[1.1]">
-                        Planos para PMEs que enviam orçamentos.
+                <div className="text-center mb-16">
+                    <h2 className="text-3xl md:text-5xl font-medium tracking-tighter mb-4 leading-[1.1]" style={{ color: '#27272a' }}>
+                        Planos que se pagam sozinhos.
                     </h2>
-                    <p className="text-lg text-zinc-500 max-w-2xl mx-auto mb-6">
-                        Comece grátis e só pague quando o Ritmo já estiver a recuperar respostas.
+                    <p className="text-lg max-w-2xl mx-auto mb-8" style={{ color: '#52525b' }}>
+                        Comece grátis. Evolua quando o retorno for óbvio.
                     </p>
 
                     {/* Billing Toggle */}
-                    <div className="inline-flex items-center gap-3 bg-white rounded-full p-1 border border-zinc-200 shadow-sm">
+                    <div className="inline-flex items-center gap-1 bg-white rounded-full p-1.5 border border-zinc-200 shadow-sm">
                         <button
                             onClick={() => setIsAnnual(false)}
-                            className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${!isAnnual ? "bg-zinc-900 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-700"}`}
+                            className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all ${!isAnnual ? "bg-zinc-900 text-white shadow-md" : "text-zinc-500 hover:text-zinc-900"}`}
                         >
                             Mensal
                         </button>
                         <button
                             onClick={() => setIsAnnual(true)}
-                            className={`px-5 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${isAnnual ? "bg-zinc-900 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-700"}`}
+                            className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${isAnnual ? "bg-zinc-900 text-white shadow-md" : "text-zinc-500 hover:text-zinc-900"}`}
                         >
                             Anual
-                            <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full">
-                                2 meses grátis
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide ${isAnnual ? "bg-emerald-500 text-white" : "bg-emerald-100 text-emerald-700"}`}>
+                                -20%
                             </span>
                         </button>
                     </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto items-start">
+                {/* PRICING CARDS - Same logic, slightly cleaner borders */}
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto items-start mb-24">
                     {/* Free Plan */}
-                    <div className="relative rounded-2xl border border-zinc-200 bg-white p-6 shadow-premium-md transition-all duration-300 hover:shadow-premium-lg hover:-translate-y-1 hover:border-zinc-300 flex flex-col h-full glass-panel">
-                        <h3 className="text-lg font-bold text-zinc-900 mb-1">Free</h3>
-                        <p className="text-zinc-500 text-xs mb-4">10 envios/mês · 1 utilizador</p>
-                        <div className="mb-4">
-                            <span className="text-3xl font-bold text-zinc-900 tracking-tight">€0</span>
-                            <span className="text-zinc-500 text-sm font-medium">/mês</span>
+                    <div className="relative rounded-3xl border border-zinc-200 bg-white p-8 flex flex-col h-full hover:border-zinc-300 transition-colors group">
+                        <h3 className="text-xl font-bold mb-2" style={{ color: '#27272a' }}>Free</h3>
+                        <div className="mb-6">
+                            <span className="text-4xl font-bold tracking-tight" style={{ color: '#27272a' }}>€0</span>
+                            <span className="text-sm font-medium ml-1" style={{ color: '#52525b' }}>/mês</span>
                         </div>
-                        <p className="text-sm text-zinc-600 mb-6">
-                            Para testar o essencial, em modo manual.
+                        <p className="text-sm leading-relaxed mb-8" style={{ color: '#52525b' }}>
+                            Para testar o essencial em modo manual. Sem risco.
                         </p>
-                        <ul className="space-y-3 mb-6 text-sm flex-grow">
-                            <li className="flex items-start gap-2 text-zinc-600">
-                                <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                                Cadência e tarefas (manual)
+                        <ul className="space-y-4 mb-8 text-sm flex-grow">
+                            <li className="flex items-start gap-3" style={{ color: '#52525b' }}>
+                                <Check className="w-5 h-5 text-zinc-900 shrink-0" />
+                                1 utilizador
                             </li>
-                            <li className="flex items-start gap-2 text-zinc-600">
-                                <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                                Templates e scripts
+                            <li className="flex items-start gap-3" style={{ color: '#52525b' }}>
+                                <Check className="w-5 h-5 text-zinc-900 shrink-0" />
+                                10 envios/mês
                             </li>
-                            <li className="flex items-start gap-2 text-zinc-400">
-                                <X className="w-4 h-4 mt-0.5 shrink-0" />
-                                Recuperação automática
-                            </li>
-                            <li className="flex items-start gap-2 text-zinc-400">
-                                <X className="w-4 h-4 mt-0.5 shrink-0" />
-                                Captura por BCC
+                            <li className="flex items-start gap-3" style={{ color: '#52525b' }}>
+                                <Check className="w-5 h-5 text-zinc-900 shrink-0" />
+                                Cadência manual
                             </li>
                         </ul>
                         <Link href="/signup" className="mt-auto">
-                            <Button variant="outline" className="w-full rounded-full text-sm h-10 border-zinc-300 hover:bg-zinc-50">
-                                Continuar grátis
+                            <Button variant="outline" className="w-full rounded-xl h-12 border-zinc-200 hover:bg-zinc-50 hover:border-zinc-300 font-medium text-zinc-900">
+                                Criar conta grátis
                             </Button>
                         </Link>
                     </div>
 
-                    {/* Starter Plan - Popular */}
-                    <div className="relative rounded-2xl border border-blue-200 bg-white p-6 shadow-premium-xl flex flex-col h-full ring-2 ring-blue-500/10">
-                        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                            <span className="bg-gradient-to-r from-blue-500 to-emerald-500 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg shadow-emerald-500/20 uppercase tracking-wide">
-                                Mais Popular
+                    {/* Starter Plan */}
+                    <div className="relative rounded-3xl border-2 border-zinc-900 bg-zinc-900 p-8 flex flex-col h-full shadow-2xl transform md:-translate-y-4">
+                        <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                            <span className="bg-gradient-to-r from-blue-500 to-emerald-500 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg uppercase tracking-wide">
+                                Recomendado
                             </span>
                         </div>
-                        <h3 className="text-lg font-bold text-zinc-900 mb-1 mt-2">Recuperação automática</h3>
-                        <p className="text-zinc-500 text-xs mb-4">80 envios/mês · 2 utilizadores</p>
+                        <h3 className="text-xl font-bold mb-2 text-white">Starter</h3>
                         <div className="mb-1">
-                            <span className="text-3xl font-bold text-zinc-900 tracking-tight">{starterPrice}</span>
-                            <span className="text-zinc-500 text-sm font-medium">{starterPeriod}</span>
-                            {isAnnual && (
-                                <span className="ml-2 text-sm text-zinc-400 line-through">€39</span>
-                            )}
+                            <span className="text-4xl font-bold tracking-tight text-white">{starterPrice}</span>
+                            <span className="text-sm font-medium ml-1 text-zinc-400">{starterPeriod}</span>
                         </div>
-                        {isAnnual && (
-                            <p className="text-xs text-emerald-600 font-medium mb-3">Faturado €390/ano</p>
-                        )}
-                        <p className="text-sm text-zinc-600 mb-2">
-                            Para o dono + 1 apoio, com automação.
+                        {isAnnual && <p className="text-xs text-emerald-400 font-medium mb-6">Poupe €84/ano</p>}
+                        {!isAnnual && <div className="mb-6 h-4"></div>}
+
+                        <p className="text-sm leading-relaxed mb-8 text-zinc-300">
+                            Automação completa para o dono e administrativo.
                         </p>
-                        <p className="text-xs text-emerald-700 font-medium bg-emerald-50 rounded-lg px-3 py-2 mb-4 border border-emerald-100">
-                            Recupere 1 orçamento/mês e o Ritmo sai de graça.
-                        </p>
-                        <ul className="space-y-3 mb-6 text-sm flex-grow">
-                            <li className="flex items-start gap-2 text-zinc-700">
-                                <div className="rounded-full bg-emerald-100 p-0.5 mt-0.5 shrink-0">
-                                    <Check className="w-3 h-3 text-emerald-600" />
-                                </div>
-                                Recuperação D+1, D+3 (email automático)
+                        <ul className="space-y-4 mb-8 text-sm flex-grow">
+                            <li className="flex items-start gap-3 text-zinc-200">
+                                <Check className="w-5 h-5 text-emerald-400 shrink-0" />
+                                2 utilizadores
                             </li>
-                            <li className="flex items-start gap-2 text-zinc-700">
-                                <div className="rounded-full bg-emerald-100 p-0.5 mt-0.5 shrink-0">
-                                    <Check className="w-3 h-3 text-emerald-600" />
-                                </div>
-                                Recuperação D+7 (chamada guiada + proposta)
+                            <li className="flex items-start gap-3 text-zinc-200">
+                                <Check className="w-5 h-5 text-emerald-400 shrink-0" />
+                                80 envios/mês
                             </li>
-                            <li className="flex items-start gap-2 text-zinc-700">
-                                <div className="rounded-full bg-emerald-100 p-0.5 mt-0.5 shrink-0">
-                                    <Check className="w-3 h-3 text-emerald-600" />
-                                </div>
-                                Recuperação D+14 (último follow-up)
+                            <li className="flex items-start gap-3 text-zinc-200">
+                                <Check className="w-5 h-5 text-emerald-400 shrink-0" />
+                                <span className="font-semibold text-white">Recuperação Automática</span>
                             </li>
-                            <li className="flex items-start gap-2 text-zinc-700">
-                                <div className="rounded-full bg-emerald-100 p-0.5 mt-0.5 shrink-0">
-                                    <Check className="w-3 h-3 text-emerald-600" />
-                                </div>
-                                Captura de proposta por BCC (PDF/link)
-                            </li>
-                            <li className="flex items-start gap-2 text-zinc-700">
-                                <div className="rounded-full bg-emerald-100 p-0.5 mt-0.5 shrink-0">
-                                    <Check className="w-3 h-3 text-emerald-600" />
-                                </div>
-                                Templates por etapa
-                            </li>
-                            <li className="flex items-start gap-2 text-zinc-700">
-                                <div className="rounded-full bg-emerald-100 p-0.5 mt-0.5 shrink-0">
-                                    <Check className="w-3 h-3 text-emerald-600" />
-                                </div>
-                                Scoreboard (rotina e consistência)
-                            </li>
-                            <li className="flex items-start gap-2 text-blue-600 font-medium">
-                                <div className="rounded-full bg-blue-100 p-0.5 mt-0.5 shrink-0">
-                                    <Check className="w-3 h-3 text-blue-600" />
-                                </div>
-                                +1 utilizador extra por €15/mês
+                            <li className="flex items-start gap-3 text-zinc-200">
+                                <Check className="w-5 h-5 text-emerald-400 shrink-0" />
+                                Captura por BCC
                             </li>
                         </ul>
-                        <Link href="/signup" className="mt-auto" onClick={trackCtaClick}>
-                            <Button className="w-full rounded-full btn-cta-primary text-sm h-11 font-medium z-10">
-                                Começar trial grátis
+                        <Link href="/signup" onClick={trackCtaClick} className="mt-auto">
+                            <Button className="w-full rounded-xl h-12 bg-white text-zinc-900 hover:bg-zinc-100 font-bold text-base border-none">
+                                Começar Trial Grátis
                             </Button>
                         </Link>
                     </div>
 
                     {/* Pro Plan */}
-                    <div className="relative rounded-2xl border border-zinc-200 bg-white p-6 shadow-premium-md transition-all duration-300 hover:shadow-premium-lg hover:-translate-y-1 hover:border-zinc-300 flex flex-col h-full glass-panel">
-                        <h3 className="text-lg font-bold text-zinc-900 mb-1">Controlo e equipa</h3>
-                        <p className="text-zinc-500 text-xs mb-4">250 envios/mês · 5 utilizadores</p>
+                    <div className="relative rounded-3xl border border-zinc-200 bg-white p-8 flex flex-col h-full hover:border-zinc-300 transition-colors">
+                        <h3 className="text-xl font-bold mb-2" style={{ color: '#27272a' }}>Pro</h3>
                         <div className="mb-1">
-                            <span className="text-3xl font-bold text-zinc-900 tracking-tight">{proPrice}</span>
-                            <span className="text-zinc-500 text-sm font-medium">{proPeriod}</span>
-                            {isAnnual && (
-                                <span className="ml-2 text-sm text-zinc-400 line-through">€99</span>
-                            )}
+                            <span className="text-4xl font-bold tracking-tight" style={{ color: '#27272a' }}>{proPrice}</span>
+                            <span className="text-sm font-medium ml-1" style={{ color: '#52525b' }}>{proPeriod}</span>
                         </div>
-                        {isAnnual && (
-                            <p className="text-xs text-emerald-600 font-medium mb-3">Faturado €990/ano</p>
-                        )}
-                        <p className="text-sm text-zinc-600 mb-6">
-                            Para equipas e maior volume, com controlo.
+                        {isAnnual && <p className="text-xs text-emerald-600 font-medium mb-6">Poupe €204/ano</p>}
+                        {!isAnnual && <div className="mb-6 h-4"></div>}
+
+                        <p className="text-sm leading-relaxed mb-8" style={{ color: '#52525b' }}>
+                            Para equipas comerciais focadas em volume.
                         </p>
-                        <ul className="space-y-3 mb-6 text-sm flex-grow">
-                            <li className="flex items-start gap-2 text-zinc-600">
-                                <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                                Tudo do Starter
+                        <ul className="space-y-4 mb-8 text-sm flex-grow">
+                            <li className="flex items-start gap-3" style={{ color: '#52525b' }}>
+                                <Check className="w-5 h-5 text-zinc-900 shrink-0" />
+                                5 utilizadores
                             </li>
-                            <li className="flex items-start gap-2 text-zinc-600">
-                                <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                                Benchmark por setor
+                            <li className="flex items-start gap-3" style={{ color: '#52525b' }}>
+                                <Check className="w-5 h-5 text-zinc-900 shrink-0" />
+                                250 envios/mês
                             </li>
-                            <li className="flex items-start gap-2 text-zinc-600">
-                                <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                                Relatórios (pipeline, aging, follow-up rate)
+                            <li className="flex items-start gap-3" style={{ color: '#52525b' }}>
+                                <Check className="w-5 h-5 text-zinc-900 shrink-0" />
+                                Relatórios Avançados
                             </li>
-                            <li className="flex items-start gap-2 text-zinc-600">
-                                <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                                Regras avançadas (prioridade/atribuição)
-                            </li>
-                            <li className="flex items-start gap-2 text-zinc-600">
-                                <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                                Suporte prioritário
+                            <li className="flex items-start gap-3" style={{ color: '#52525b' }}>
+                                <Check className="w-5 h-5 text-zinc-900 shrink-0" />
+                                Regras de atribuição
                             </li>
                         </ul>
-                        <Link href="/signup" className="mt-auto" onClick={trackCtaClick}>
-                            <Button variant="outline" className="w-full rounded-full text-sm h-10 border-zinc-300 hover:bg-zinc-50">
-                                Começar trial grátis
+                        <Link href="/signup" onClick={trackCtaClick} className="mt-auto">
+                            <Button variant="outline" className="w-full rounded-xl h-12 border-zinc-200 hover:bg-zinc-50 hover:border-zinc-300 font-medium text-zinc-900">
+                                Começar Trial Grátis
                             </Button>
                         </Link>
                     </div>
 
-                    {/* Enterprise Plan */}
-                    <div className="relative rounded-2xl border border-zinc-200 bg-white p-6 shadow-premium-md transition-all duration-300 hover:shadow-premium-lg hover:-translate-y-1 hover:border-zinc-300 flex flex-col h-full glass-panel">
-                        <h3 className="text-lg font-bold text-zinc-900 mb-1">Enterprise</h3>
-                        <p className="text-zinc-500 text-xs mb-4">Limites personalizados</p>
-                        <div className="mb-4">
-                            <span className="text-2xl font-bold text-zinc-900">Sob consulta</span>
+                    {/* Enterprise */}
+                    <div className="relative rounded-3xl border border-zinc-200 bg-white p-8 flex flex-col h-full hover:border-zinc-300 transition-colors">
+                        <h3 className="text-xl font-bold mb-2" style={{ color: '#27272a' }}>Enterprise</h3>
+                        <div className="mb-6">
+                            <span className="text-2xl font-bold" style={{ color: '#27272a' }}>Sob Consulta</span>
                         </div>
-                        <p className="text-sm text-zinc-600 mb-6">
-                            Para operações maiores e requisitos especiais.
+                        <p className="text-sm leading-relaxed mb-8" style={{ color: '#52525b' }}>
+                            Volume ilimitado e integrações à medida.
                         </p>
-                        <ul className="space-y-3 mb-6 text-sm flex-grow">
-                            <li className="flex items-start gap-2 text-zinc-600">
-                                <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                                Utilizadores ilimitados
+                        <ul className="space-y-4 mb-8 text-sm flex-grow">
+                            <li className="flex items-start gap-3" style={{ color: '#52525b' }}>
+                                <Check className="w-5 h-5 text-zinc-900 shrink-0" />
+                                Utilizadores Ilimitados
                             </li>
-                            <li className="flex items-start gap-2 text-zinc-600">
-                                <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                                Onboarding assistido + migração
+                            <li className="flex items-start gap-3" style={{ color: '#52525b' }}>
+                                <Check className="w-5 h-5 text-zinc-900 shrink-0" />
+                                Onboarding dedicado
                             </li>
-                            <li className="flex items-start gap-2 text-zinc-600">
-                                <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                                Governance avançada (perfis, auditoria)
+                            <li className="flex items-start gap-3" style={{ color: '#52525b' }}>
+                                <Check className="w-5 h-5 text-zinc-900 shrink-0" />
+                                API & Webhooks
                             </li>
-                            <li className="flex items-start gap-2 text-zinc-600">
-                                <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                                Integrações/API + export avançado
-                            </li>
-                            <li className="flex items-start gap-2 text-zinc-600">
-                                <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                                SLA e suporte dedicado
+                            <li className="flex items-start gap-3" style={{ color: '#52525b' }}>
+                                <Check className="w-5 h-5 text-zinc-900 shrink-0" />
+                                SLA Contratual
                             </li>
                         </ul>
                         <a href="mailto:ritmo@useritmo.pt" className="mt-auto">
-                            <Button variant="outline" className="w-full rounded-full text-sm h-10 border-zinc-300 hover:bg-zinc-50">
-                                Falar connosco
+                            <Button variant="outline" className="w-full rounded-xl h-12 border-zinc-200 hover:bg-zinc-50 hover:border-zinc-300 font-medium text-zinc-900">
+                                Falar com Vendas
                             </Button>
                         </a>
                     </div>
                 </div>
 
-                {/* ROI Calculator */}
-                <div ref={roiRef} className="mt-16 max-w-2xl mx-auto">
-                    <div className="rounded-2xl border border-zinc-200 bg-[var(--color-muted)] p-8 shadow-premium-sm">
-                        <h3 className="text-xl font-bold text-zinc-900 mb-2 text-center">Como o Ritmo se paga a si próprio</h3>
-                        <p className="text-sm text-zinc-500 text-center mb-8">Simule o retorno com base no seu cenário.</p>
+                {/* ROI Calculator Redesign */}
+                <div ref={roiRef} className="max-w-5xl mx-auto">
+                    <div className="bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-zinc-100">
+                        <div className="grid lg:grid-cols-12 min-h-[500px]">
 
-                        <div className="space-y-6">
-                            {/* Plan selector */}
-                            <div>
-                                <label className="block text-sm font-medium text-zinc-700 mb-2">Plano</label>
-                                <div className="inline-flex rounded-lg border border-zinc-200 overflow-hidden">
-                                    <button
-                                        onClick={() => { setSelectedPlan("starter"); trackChange("plan"); }}
-                                        className={`px-5 py-2 text-sm font-medium transition-colors ${selectedPlan === "starter" ? "bg-zinc-900 text-white" : "bg-white text-zinc-600 hover:bg-zinc-50"}`}
-                                    >
-                                        Starter ({isAnnual ? "€32/mês" : "€39/mês"})
-                                    </button>
-                                    <button
-                                        onClick={() => { setSelectedPlan("pro"); trackChange("plan"); }}
-                                        className={`px-5 py-2 text-sm font-medium transition-colors ${selectedPlan === "pro" ? "bg-zinc-900 text-white" : "bg-white text-zinc-600 hover:bg-zinc-50"}`}
-                                    >
-                                        Pro ({isAnnual ? "€82/mês" : "€99/mês"})
-                                    </button>
+                            {/* Left: Inputs */}
+                            <div className="lg:col-span-7 p-8 md:p-12 flex flex-col justify-center bg-white space-y-10">
+                                <div>
+                                    <h3 className="text-2xl font-bold mb-2" style={{ color: '#27272a' }}>Simulador de ROI</h3>
+                                    <p className="text-zinc-500">Ajuste os valores para o seu cenário real.</p>
                                 </div>
-                            </div>
 
-                            {/* Ticket médio */}
-                            <div>
-                                <label className="block text-sm font-medium text-zinc-700 mb-2">Ticket médio dos seus orçamentos</label>
-                                {!showCustomTicket ? (
-                                    <div className="flex flex-wrap gap-2">
-                                        {TICKET_BUCKETS.map((bucket, idx) => (
-                                            <button
-                                                key={bucket.label}
-                                                onClick={() => { setTicketBucketIdx(idx); trackChange("ticket"); }}
-                                                className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${idx === ticketBucketIdx
-                                                    ? "bg-zinc-900 text-white border-zinc-900"
-                                                    : "bg-white text-zinc-600 border-zinc-200 hover:border-zinc-300"
-                                                    }`}
-                                            >
-                                                {bucket.label}
-                                            </button>
-                                        ))}
-                                        <button
-                                            onClick={() => { setShowCustomTicket(true); trackChange("ticket"); }}
-                                            className="px-4 py-2 rounded-lg text-sm font-medium border border-dashed border-zinc-300 text-zinc-500 hover:border-zinc-400 hover:text-zinc-700 transition-colors"
-                                        >
-                                            Personalizar
-                                        </button>
+                                {/* Inputs Grid */}
+                                <div className="space-y-8">
+                                    {/* Ticket */}
+                                    <div className="space-y-3">
+                                        <label className="text-sm font-semibold text-zinc-900 uppercase tracking-wide">Valor Médio do Orçamento</label>
+                                        {!showCustomTicket ? (
+                                            <div className="flex flex-wrap gap-2">
+                                                {TICKET_BUCKETS.map((bucket, idx) => (
+                                                    <button
+                                                        key={bucket.label}
+                                                        onClick={() => { setTicketBucketIdx(idx); trackChange("ticket"); }}
+                                                        className={`px-4 py-2.5 rounded-lg text-sm font-medium border transition-all ${idx === ticketBucketIdx
+                                                            ? "bg-zinc-900 text-white border-zinc-900 shadow-md transform scale-105"
+                                                            : "bg-zinc-50 text-zinc-600 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-100"
+                                                            }`}
+                                                    >
+                                                        {bucket.label}
+                                                    </button>
+                                                ))}
+                                                <button
+                                                    onClick={() => setShowCustomTicket(true)}
+                                                    className="px-4 py-2.5 rounded-lg text-sm font-medium border border-dashed border-zinc-300 text-zinc-400 hover:text-zinc-600 hover:border-zinc-400"
+                                                >
+                                                    Outro
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-4 animate-in fade-in zoom-in-95 duration-200">
+                                                <div className="relative">
+                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 font-medium">€</span>
+                                                    <input
+                                                        type="number"
+                                                        value={customTicket}
+                                                        onChange={(e) => setCustomTicket(e.target.value)}
+                                                        className="pl-8 pr-4 py-3 w-48 rounded-xl border border-zinc-200 bg-zinc-50 font-bold text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900/20"
+                                                        placeholder="0"
+                                                        autoFocus
+                                                    />
+                                                </div>
+                                                <button onClick={() => setShowCustomTicket(false)} className="text-sm text-zinc-500 underline">Voltar</button>
+                                            </div>
+                                        )}
                                     </div>
-                                ) : (
-                                    <div className="flex items-center gap-3">
-                                        <div className="relative">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-sm">€</span>
-                                            <input
-                                                type="number"
-                                                inputMode="numeric"
-                                                min={100}
-                                                max={999999}
-                                                step={100}
-                                                value={customTicket}
-                                                onChange={(e) => {
-                                                    const val = e.target.value;
-                                                    if (val === "" || (Number(val) >= 0 && Number(val) <= 999999)) {
-                                                        setCustomTicket(val);
-                                                    }
-                                                }}
-                                                onBlur={() => trackChange("ticket")}
-                                                placeholder="2000"
-                                                className="pl-7 pr-4 py-2 w-36 rounded-lg border border-zinc-200 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-400"
-                                            />
+
+                                    {/* Margin */}
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-end">
+                                            <label className="text-sm font-semibold text-zinc-900 uppercase tracking-wide">Sua Margem</label>
+                                            <span className="text-2xl font-bold text-zinc-900 px-3 py-1 bg-zinc-100 rounded-lg">{margin}%</span>
                                         </div>
-                                        <button
-                                            onClick={() => { setShowCustomTicket(false); setCustomTicket(""); }}
-                                            className="text-sm text-zinc-500 hover:text-zinc-700 underline"
-                                        >
-                                            Usar faixas
-                                        </button>
+                                        <input
+                                            type="range"
+                                            min={5}
+                                            max={60}
+                                            step={1}
+                                            value={margin}
+                                            onChange={(e) => setMargin(Number(e.target.value))}
+                                            className="w-full h-3 bg-zinc-100 rounded-full appearance-none cursor-pointer accent-zinc-900"
+                                        />
                                     </div>
-                                )}
+
+                                    {/* Recovered Count */}
+                                    <div className="space-y-3">
+                                        <label className="text-sm font-semibold text-zinc-900 uppercase tracking-wide">Se recuperar apenas...</label>
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex items-center gap-1 bg-zinc-50 p-1.5 rounded-xl border border-zinc-200">
+                                                <button
+                                                    onClick={() => setRecoveredCount(Math.max(1, recoveredCount - 1))}
+                                                    disabled={recoveredCount <= 1}
+                                                    className="w-10 h-10 flex items-center justify-center bg-white shadow-sm rounded-lg border border-zinc-100 text-zinc-600 hover:text-zinc-900 disabled:opacity-50"
+                                                >
+                                                    <Minus className="w-4 h-4" />
+                                                </button>
+                                                <span className="w-12 text-center text-xl font-bold text-zinc-900">{recoveredCount}</span>
+                                                <button
+                                                    onClick={() => setRecoveredCount(Math.min(10, recoveredCount + 1))}
+                                                    className="w-10 h-10 flex items-center justify-center bg-white shadow-sm rounded-lg border border-zinc-100 text-zinc-600 hover:text-zinc-900"
+                                                >
+                                                    <Plus className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                            <span className="text-lg text-zinc-500">orçamento(s) extra / mês</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
-                            {/* Margem */}
-                            <div>
-                                <div className="flex items-center justify-between mb-2">
-                                    <label className="text-sm font-medium text-zinc-700">Margem bruta</label>
-                                    <span className="text-sm font-bold text-zinc-900">{margin}%</span>
-                                </div>
-                                <input
-                                    type="range"
-                                    min={10}
-                                    max={40}
-                                    step={5}
-                                    value={margin}
-                                    onChange={(e) => setMargin(Number(e.target.value))}
-                                    onMouseUp={() => trackChange("margin")}
-                                    onTouchEnd={() => trackChange("margin")}
-                                    className="w-full h-2 bg-zinc-200 rounded-full appearance-none cursor-pointer accent-zinc-900"
-                                />
-                                <div className="flex justify-between text-xs text-zinc-400 mt-1">
-                                    <span>10%</span>
-                                    <span>40%</span>
-                                </div>
-                            </div>
+                            {/* Right: Results Visual */}
+                            <div className="lg:col-span-5 bg-zinc-900 p-8 md:p-12 flex flex-col justify-between text-white relative overflow-hidden">
+                                {/* Abstract Background */}
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 blur-[80px] rounded-full pointer-events-none" />
+                                <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/20 blur-[80px] rounded-full pointer-events-none" />
 
-                            {/* Orçamentos recuperados */}
-                            <div>
-                                <label className="block text-sm font-medium text-zinc-700 mb-2">Orçamentos recuperados por mês</label>
-                                <div className="flex items-center gap-3">
-                                    <button
-                                        onClick={() => { setRecoveredCount(Math.max(1, recoveredCount - 1)); trackChange("recovered"); }}
-                                        disabled={recoveredCount <= 1}
-                                        className="w-9 h-9 rounded-lg border border-zinc-200 flex items-center justify-center text-zinc-600 hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                                    >
-                                        <Minus className="w-4 h-4" />
-                                    </button>
-                                    <span className="text-2xl font-bold text-zinc-900 w-8 text-center">{recoveredCount}</span>
-                                    <button
-                                        onClick={() => { setRecoveredCount(Math.min(3, recoveredCount + 1)); trackChange("recovered"); }}
-                                        disabled={recoveredCount >= 3}
-                                        className="w-9 h-9 rounded-lg border border-zinc-200 flex items-center justify-center text-zinc-600 hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                                    >
-                                        <Plus className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                                <div className="relative z-10 space-y-8">
+                                    <div className="space-y-2">
+                                        <p className="text-zinc-400 font-medium">Lucro Líquido Estimado</p>
+                                        <div className="flex items-baseline gap-2">
+                                            <span className="text-5xl md:text-6xl font-bold tracking-tighter text-emerald-400">
+                                                +€{Math.round(balance).toLocaleString("pt-PT")}
+                                            </span>
+                                            <span className="text-zinc-500 text-lg">/mês</span>
+                                        </div>
+                                        <div className="inline-flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full text-sm backdrop-blur-sm border border-white/5 text-zinc-200">
+                                            <Zap className="w-3.5 h-3.5 text-yellow-400" />
+                                            <span>Retorno de <strong>{Math.round(monthlyProfit / monthlyCost)}x</strong> o investimento</span>
+                                        </div>
+                                    </div>
 
-                        {/* Results */}
-                        <div className="mt-8 pt-6 border-t border-zinc-200">
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-                                <div>
-                                    <p className="text-xs text-zinc-500 mb-1">Margem estimada</p>
-                                    <p className="text-2xl font-bold text-zinc-900">
-                                        €{Math.round(monthlyProfit).toLocaleString("pt-PT")}
-                                    </p>
-                                    <p className="text-xs text-zinc-400">/mês</p>
+                                    <div className="space-y-4 pt-8 border-t border-white/10">
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-zinc-400">Margem recuperada</span>
+                                            <span className="font-mono text-white">€{Math.round(monthlyProfit).toLocaleString("pt-PT")}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-zinc-400">Custo do Ritmo ({selectedPlan})</span>
+                                            <span className="font-mono text-red-300">-€{Math.round(monthlyCost)}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="text-xs text-zinc-500 mb-1">Custo Ritmo</p>
-                                    <p className="text-2xl font-bold text-zinc-900">
-                                        €{Math.round(monthlyCost)}
-                                    </p>
-                                    {isAnnual ? (
-                                        <p className="text-xs text-zinc-400">Equivalente a €{Math.round(monthlyCost)}/mês · Faturado €{Math.round(monthlyCost * 12)}/ano</p>
-                                    ) : (
-                                        <p className="text-xs text-zinc-400">/mês</p>
-                                    )}
-                                </div>
-                                <div>
-                                    <p className="text-xs text-zinc-500 mb-1">Ganho estimado</p>
-                                    <p className={`text-2xl font-bold ${balance >= 0 ? "text-emerald-600" : "text-amber-600"}`}>
-                                        {balance >= 0 ? "+" : ""}€{Math.round(balance).toLocaleString("pt-PT")}
-                                    </p>
-                                    {balance < 0 ? (
-                                        <p className="text-xs text-amber-600/80">Ajuste o ticket ou margem para ver o retorno.</p>
-                                    ) : (
-                                        <p className="text-xs text-zinc-400">/mês</p>
-                                    )}
+
+                                <div className="relative z-10 pt-12">
+                                    <Link href="/signup">
+                                        <Button className="w-full bg-white text-black hover:bg-zinc-100 font-bold h-14 rounded-xl text-lg shadow-xl shadow-white/5 transition-transform hover:scale-105">
+                                            Experimentar agora
+                                            <ArrowRight className="ml-2 w-5 h-5" />
+                                        </Button>
+                                    </Link>
+                                    <p className="text-center text-zinc-500 text-xs mt-4">14 dias trial · Sem cartão de crédito</p>
                                 </div>
                             </div>
-                            <p className="text-xs text-zinc-400 text-center mt-4">
-                                Estimativa. Resultados variam conforme o negócio.
-                            </p>
                         </div>
                     </div>
-                </div>
-
-                <div className="mt-12 text-center">
-                    <p className="text-sm text-zinc-400">
-                        Aos preços indicados acresce IVA à taxa legal em vigor. As atualizações são gratuitas e automáticas.
-                    </p>
                 </div>
             </div>
         </section>
@@ -581,7 +503,7 @@ function PricingSection() {
 export default function LandingPage() {
 
     return (
-        <div className="flex min-h-screen flex-col bg-[var(--color-muted)] bg-hero-premium text-zinc-950 font-sans selection:bg-blue-100 selection:text-blue-900 overflow-x-hidden">
+        <div data-theme="light" className="light flex min-h-screen flex-col bg-white text-zinc-950 font-sans selection:bg-blue-100 selection:text-blue-900 overflow-x-hidden">
 
             {/* Handle signed_out toast with Suspense boundary */}
             <Suspense fallback={null}>
@@ -641,7 +563,7 @@ export default function LandingPage() {
                 }}
             />
 
-            <header className="fixed top-0 z-50 w-full bg-[var(--background)]/80 backdrop-blur-lg border-b border-zinc-200/50">
+            <header className="fixed top-0 z-50 w-full bg-white/80 backdrop-blur-lg border-b border-zinc-200/50">
                 <div className="container mx-auto flex h-16 items-center justify-between px-6">
                     <Logo href="/" size="md" />
 
@@ -677,12 +599,20 @@ export default function LandingPage() {
                                 variants={staggerContainer}
                                 className="text-center"
                             >
-                                <motion.h1 variants={fadeInUp} className="mb-8 text-6xl md:text-8xl font-semibold tracking-tighter text-zinc-900 leading-[1.05] drop-shadow-sm">
-                                    Não deixe orçamentos <span className="text-gradient">morrerem</span>.
+                                <motion.h1
+                                    variants={fadeInUp}
+                                    className="mb-8 text-5xl md:text-7xl font-semibold tracking-tighter leading-[1.05] drop-shadow-sm"
+                                    style={{ color: '#09090b' }}
+                                >
+                                    Pare de perder dinheiro em <span className="text-gradient">orçamentos sem resposta</span>.
                                 </motion.h1>
 
-                                <motion.p variants={fadeInUp} className="mb-10 max-w-2xl mx-auto text-xl leading-relaxed text-zinc-600 font-light">
-                                    O Ritmo recupera follow-ups automaticamente. Basta recuperar 1 orçamento por mês para o Ritmo pagar-se a si próprio.
+                                <motion.p
+                                    variants={fadeInUp}
+                                    className="mb-10 max-w-2xl mx-auto text-xl leading-relaxed font-light"
+                                    style={{ color: '#52525b' }}
+                                >
+                                    60% dos clientes compram após o 4º contacto. O Ritmo garante que você chega lá, automaticamente, sem parecer um robô.
                                 </motion.p>
 
                                 <motion.div variants={fadeInUp} className="flex flex-col items-center justify-center gap-4 sm:flex-row mb-6">
@@ -716,7 +646,7 @@ export default function LandingPage() {
                 {/* WORKS WITH WHAT YOU USE */}
                 <section className="py-24 px-6 bg-zinc-50 border-y border-zinc-100 mb-[-1px]">
                     <div className="container mx-auto max-w-6xl">
-                        <div className="relative rounded-3xl bg-zinc-900 overflow-hidden shadow-2xl ring-1 ring-white/10 group">
+                        <div className="relative rounded-3xl bg-white border border-zinc-200 overflow-hidden shadow-premium-xl group">
 
                             {/* Animated Background Gradients */}
                             <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/4 pointer-events-none" />
@@ -727,18 +657,18 @@ export default function LandingPage() {
                                 <div className="text-left space-y-8">
 
                                     <div className="space-y-4">
-                                        <h2 className="text-3xl md:text-5xl font-medium tracking-tighter text-white leading-[1.1]">
+                                        <h2 className="text-3xl md:text-5xl font-medium tracking-tighter leading-[1.1]" style={{ color: '#27272a' }}>
                                             <span className="text-gradient">Funciona com o que</span> <br />
                                             <span className="text-gradient">você já usa.</span>
                                         </h2>
-                                        <p className="text-lg text-zinc-400 max-w-md leading-relaxed">
+                                        <p className="text-lg max-w-md leading-relaxed" style={{ color: '#52525b' }}>
                                             Sem CRM pesado. Sem mudar processos. <br />
                                             Simplesmente conecte o Ritmo ao seu fluxo de trabalho habitual e deixe o follow-up connosco.
                                         </p>
                                     </div>
 
                                     <Link href="/signup">
-                                        <Button className="mt-4 rounded-full bg-white text-zinc-900 hover:bg-zinc-100 font-medium px-8 h-12">
+                                        <Button className="mt-4 rounded-full btn-cta-primary text-white font-medium px-8 h-12">
                                             Começar agora
                                             <ArrowRight className="ml-2 w-4 h-4" />
                                         </Button>
@@ -750,9 +680,9 @@ export default function LandingPage() {
 
                                     {/* Orbits */}
                                     <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="absolute w-[220px] h-[220px] rounded-full border border-white/5 animate-[spin_40s_linear_infinite]" />
-                                        <div className="absolute w-[340px] h-[340px] rounded-full border border-white/5 animate-[spin_60s_linear_infinite_reverse]" />
-                                        <div className="absolute w-[460px] h-[460px] rounded-full border border-white/5 opacity-40 animate-[spin_80s_linear_infinite]" />
+                                        <div className="absolute w-[220px] h-[220px] rounded-full border border-zinc-200 animate-[spin_40s_linear_infinite]" />
+                                        <div className="absolute w-[340px] h-[340px] rounded-full border border-zinc-200 animate-[spin_60s_linear_infinite_reverse]" />
+                                        <div className="absolute w-[460px] h-[460px] rounded-full border border-zinc-100 animate-[spin_80s_linear_infinite]" />
                                     </div>
 
                                     {/* Center Hub - 3D R Logo */}
@@ -835,10 +765,7 @@ export default function LandingPage() {
                                         <Image src="/icons/pdf.png" alt="PDF" width={40} height={40} className="w-10 h-10 drop-shadow-lg" />
                                     </motion.div>
 
-                                    {/* Decorative Particles */}
-                                    <div className="absolute top-1/4 right-1/4 w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse opacity-50" />
-                                    <div className="absolute bottom-1/3 right-1/3 w-1 h-1 bg-emerald-400 rounded-full animate-pulse delay-700 opacity-50" />
-                                    <div className="absolute top-1/3 left-1/4 w-1.5 h-1.5 bg-purple-400 rounded-full animate-pulse delay-1000 opacity-50" />
+                                    {/* Decorative Particles - REMOVED for cleaner look */}
 
                                 </div>
                             </div>
@@ -850,10 +777,10 @@ export default function LandingPage() {
                 <section id="how-it-works" className="py-24 px-6 bg-zinc-50 border-y border-zinc-100">
                     <div className="container mx-auto max-w-7xl">
                         <div className="text-center mb-16">
-                            <h2 className="text-3xl md:text-5xl font-medium tracking-tighter text-zinc-900 mb-4 leading-[1.1]">
+                            <h2 className="text-3xl md:text-5xl font-medium tracking-tighter mb-4 leading-[1.1]" style={{ color: '#27272a' }}>
                                 Entra no seu processo atual em 3 passos.
                             </h2>
-                            <p className="text-xl text-zinc-500 max-w-3xl mx-auto">
+                            <p className="text-xl max-w-3xl mx-auto" style={{ color: '#52525b' }}>
                                 Sem configurações complexas. Continua a usar Excel/Word/Sistemas e Outlook/Gmail – o Ritmo só organiza o follow-up.
                             </p>
                         </div>
@@ -862,12 +789,12 @@ export default function LandingPage() {
                             {/* Step 1: Text Left (30%), Image Right (70%) */}
                             <div className="flex flex-col md:flex-row items-center gap-8 lg:gap-16">
                                 <div className="w-full md:w-[30%] space-y-6 text-left">
-                                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-zinc-100 text-zinc-900 font-bold text-lg mb-2">1</div>
-                                    <h3 className="text-3xl md:text-4xl font-medium text-zinc-900 tracking-tighter leading-[1.1]">
+                                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-zinc-100 font-bold text-lg mb-2" style={{ color: '#27272a' }}>1</div>
+                                    <h3 className="text-3xl md:text-4xl font-medium tracking-tighter leading-[1.1]" style={{ color: '#27272a' }}>
                                         Registe o orçamento
                                     </h3>
-                                    <p className="text-lg text-zinc-600 leading-relaxed">
-                                        <strong className="text-zinc-900 font-semibold block mb-2">Cliente, valor e referência.</strong>
+                                    <p className="text-lg leading-relaxed" style={{ color: '#52525b' }}>
+                                        <strong className="font-semibold block mb-2" style={{ color: '#27272a' }}>Cliente, valor e referência.</strong>
                                         Basta colar o link da proposta ou anexar o PDF mais tarde. Simples e rápido.
                                     </p>
                                 </div>
@@ -887,12 +814,12 @@ export default function LandingPage() {
                             {/* Step 2: Image Left (70%), Text Right (30%) */}
                             <div className="flex flex-col md:flex-row-reverse items-center gap-8 lg:gap-16">
                                 <div className="w-full md:w-[30%] space-y-6 text-left">
-                                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-zinc-100 text-zinc-900 font-bold text-lg mb-2">2</div>
-                                    <h3 className="text-3xl md:text-4xl font-medium text-zinc-900 tracking-tighter leading-[1.1]">
+                                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-zinc-100 font-bold text-lg mb-2" style={{ color: '#27272a' }}>2</div>
+                                    <h3 className="text-3xl md:text-4xl font-medium tracking-tighter leading-[1.1]" style={{ color: '#27272a' }}>
                                         Envie como sempre
                                     </h3>
-                                    <p className="text-lg text-zinc-600 leading-relaxed">
-                                        <strong className="text-zinc-900 font-semibold block mb-2">Continue com as suas ferramentas.</strong>
+                                    <p className="text-lg leading-relaxed" style={{ color: '#52525b' }}>
+                                        <strong className="font-semibold block mb-2" style={{ color: '#27272a' }}>Continue com as suas ferramentas.</strong>
                                         Quando enviar, marque como &quot;Enviado&quot; no Ritmo com apenas 1 clique.
                                     </p>
                                 </div>
@@ -912,12 +839,12 @@ export default function LandingPage() {
                             {/* Step 3: Text Left (30%), Image Right (70%) */}
                             <div className="flex flex-col md:flex-row items-center gap-8 lg:gap-16">
                                 <div className="w-full md:w-[30%] space-y-6 text-left">
-                                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-zinc-100 text-zinc-900 font-bold text-lg mb-2">3</div>
-                                    <h3 className="text-3xl md:text-4xl font-medium text-zinc-900 tracking-tighter leading-[1.1]">
+                                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-zinc-100 font-bold text-lg mb-2" style={{ color: '#27272a' }}>3</div>
+                                    <h3 className="text-3xl md:text-4xl font-medium tracking-tighter leading-[1.1]" style={{ color: '#27272a' }}>
                                         Faça o que aparece hoje
                                     </h3>
-                                    <p className="text-lg text-zinc-600 leading-relaxed">
-                                        <strong className="text-zinc-900 font-semibold block mb-2">Foco total na ação.</strong>
+                                    <p className="text-lg leading-relaxed" style={{ color: '#52525b' }}>
+                                        <strong className="font-semibold block mb-2" style={{ color: '#27272a' }}>Foco total na ação.</strong>
                                         Emails prontos a enviar e chamadas com o contexto certo. Nada de procurar ficheiros perdidos.
                                     </p>
                                 </div>
@@ -949,17 +876,17 @@ export default function LandingPage() {
                     <div className="container mx-auto max-w-7xl">
                         <div className="grid lg:grid-cols-2 gap-16 items-center">
                             <div>
-                                <h2 className="text-4xl md:text-6xl font-medium tracking-tighter text-zinc-900 mb-8 leading-[1]">
+                                <h2 className="text-4xl md:text-6xl font-medium tracking-tighter mb-8 leading-[1]" style={{ color: '#27272a' }}>
                                     O cockpit de follow-up que faltava.
                                 </h2>
                                 <div className="space-y-8">
                                     <div className="flex gap-6">
                                         <div className="w-12 h-12 flex items-center justify-center shrink-0">
-                                            <ListChecks className="w-8 h-8 text-zinc-900" />
+                                            <ListChecks className="w-8 h-8" style={{ color: '#27272a' }} />
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-zinc-900 mb-1">Ações de hoje</h3>
-                                            <p className="text-zinc-600 leading-relaxed">Lista curta. Prioridade por valor. Um clique para concluir.</p>
+                                            <h3 className="text-xl font-bold mb-1" style={{ color: '#27272a' }}>Ações de hoje</h3>
+                                            <p className="leading-relaxed" style={{ color: '#52525b' }}>Lista curta. Prioridade por valor. Um clique para concluir.</p>
                                         </div>
                                     </div>
                                     <div className="flex gap-6">
@@ -1104,14 +1031,14 @@ export default function LandingPage() {
                 </section>
 
                 {/* BOTTOM CTA */}
-                <section className="relative py-32 px-6 bg-black text-white overflow-hidden">
+                <section className="relative py-32 px-6 bg-white overflow-hidden border-t border-zinc-100">
                     {/* Subtle gradient glow */}
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-blue-500/10 via-emerald-500/5 to-transparent blur-3xl pointer-events-none" />
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-blue-50/50 via-emerald-50/30 to-transparent blur-3xl pointer-events-none" />
                     <div className="relative z-10 container mx-auto text-center max-w-4xl">
-                        <h2 className="mb-8 text-5xl md:text-7xl font-medium tracking-tighter">
+                        <h2 className="mb-8 text-5xl md:text-7xl font-medium tracking-tighter" style={{ color: '#27272a' }}>
                             Comece hoje.
                         </h2>
-                        <p className="mb-12 text-xl text-zinc-400 max-w-2xl mx-auto">
+                        <p className="mb-12 text-xl max-w-2xl mx-auto" style={{ color: '#52525b' }}>
                             Em 10 minutos está a enviar e acompanhar follow-ups.
                         </p>
 
