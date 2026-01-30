@@ -241,7 +241,7 @@ function PricingSection() {
                                 Recomendado
                             </span>
                         </div>
-                        <h3 className="text-xl font-bold mb-2 text-white">Starter</h3>
+                        <h3 className="text-xl font-bold mb-2" style={{ color: '#ffffff' }}>Starter</h3>
                         <div className="mb-1">
                             <span className="text-4xl font-bold tracking-tight text-white">{starterPrice}</span>
                             <span className="text-sm font-medium ml-1 text-zinc-400">{starterPeriod}</span>
