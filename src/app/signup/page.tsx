@@ -390,7 +390,7 @@ function SignupForm() {
 
 export default function SignupPage() {
     return (
-        <div className="flex min-h-screen flex-col">
+        <div data-theme="light" className="light flex min-h-screen flex-col bg-white text-zinc-950">
             {/* Header */}
             <header className="border-b border-[var(--color-border)]">
                 <div className="container-app flex h-14 items-center justify-between">
