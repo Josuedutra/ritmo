@@ -457,7 +457,7 @@ function PricingSection() {
 
                                 <div className="relative z-10 space-y-8">
                                     <div className="space-y-2">
-                                        <p className="text-zinc-400 font-medium">Lucro Líquido Estimado</p>
+                                        <p className="text-zinc-400 font-medium">Retorno Líquido Estimado</p>
                                         <div className="flex items-baseline gap-2">
                                             <span className="text-5xl md:text-6xl font-bold tracking-tighter text-emerald-400">
                                                 +€{Math.round(balance).toLocaleString("pt-PT")}
