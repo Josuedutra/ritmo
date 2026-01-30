@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Clock, AlertTriangle, Info, X, Loader2, Shield } from "lucide-react";
+import { Check, Clock, AlertTriangle, Info, X, Loader2, Shield, type LucideIcon } from "lucide-react";
 
 export type StatusBadgeStatus =
     | "active"
@@ -21,7 +21,7 @@ const STATUS_CONFIG: Record<
     StatusBadgeStatus,
     {
         label: string;
-        icon: React.ElementType;
+        icon: LucideIcon;
         className: string;
         iconClassName: string;
         animate?: boolean;
