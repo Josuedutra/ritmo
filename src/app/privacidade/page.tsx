@@ -20,7 +20,7 @@ export default function PrivacidadePage() {
 
                 <h1 className="mb-2 text-3xl font-bold">Política de Privacidade</h1>
                 <p className="mb-8 text-[var(--color-muted-foreground)]">
-                    <strong className="text-[var(--color-foreground)]">Última atualização:</strong> Janeiro 2026
+                    <strong className="text-[var(--color-foreground)]">Última atualização:</strong> Fevereiro 2026
                 </p>
 
                 <div className="prose prose-invert max-w-none space-y-8 text-[var(--color-muted-foreground)]">
@@ -165,25 +165,62 @@ export default function PrivacidadePage() {
                     {/* 5. Partilha de Dados */}
                     <section>
                         <h2 className="mb-4 text-xl font-semibold text-[var(--color-foreground)]">
-                            5. Partilha de Dados
+                            5. Subprocessadores e Partilha de Dados
                         </h2>
                         <p className="mb-3">
                             <strong className="text-[var(--color-foreground)]">Não vendemos</strong> os seus dados pessoais
-                            nem os partilhamos com terceiros para fins de marketing.
+                            nem os partilhamos com terceiros para fins de marketing ou publicidade.
                         </p>
                         <p className="mb-3">
-                            Podemos partilhar dados com os seguintes tipos de prestadores de serviços,
-                            sempre sob acordos de confidencialidade e proteção de dados:
+                            Partilhamos dados com os seguintes subprocessadores, sempre ao abrigo de Acordos
+                            de Processamento de Dados (DPA) adequados:
                         </p>
-                        <ul className="list-disc space-y-1 pl-6">
-                            <li>Fornecedores de infraestrutura cloud (hosting, base de dados)</li>
-                            <li>Serviços de envio de email (para follow-ups)</li>
-                            <li>Processadores de pagamentos (Stripe)</li>
-                            <li>Ferramentas de monitorização de erros (Sentry)</li>
-                        </ul>
-                        <p className="mt-3">
-                            Todos os subcontratantes estão localizados no Espaço Económico Europeu (EEE)
-                            ou em países com decisão de adequação da Comissão Europeia.
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm border-collapse">
+                                <thead>
+                                    <tr className="border-b border-[var(--color-border)]">
+                                        <th className="py-2 pr-4 text-left font-medium text-[var(--color-foreground)]">Subprocessador</th>
+                                        <th className="py-2 pr-4 text-left font-medium text-[var(--color-foreground)]">Finalidade</th>
+                                        <th className="py-2 text-left font-medium text-[var(--color-foreground)]">Localização</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-[var(--color-border)]">
+                                    <tr>
+                                        <td className="py-2 pr-4 font-medium text-[var(--color-foreground)]">Hetzner Online GmbH</td>
+                                        <td className="py-2 pr-4">Infraestrutura de hosting (VPS)</td>
+                                        <td className="py-2">Alemanha (UE)</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="py-2 pr-4 font-medium text-[var(--color-foreground)]">Stripe, Inc.</td>
+                                        <td className="py-2 pr-4">Processamento de pagamentos</td>
+                                        <td className="py-2">EUA (SCC)</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="py-2 pr-4 font-medium text-[var(--color-foreground)]">Anthropic, PBC</td>
+                                        <td className="py-2 pr-4">Funcionalidades de IA</td>
+                                        <td className="py-2">EUA (SCC)</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="py-2 pr-4 font-medium text-[var(--color-foreground)]">Resend, Inc.</td>
+                                        <td className="py-2 pr-4">Envio de emails transacionais</td>
+                                        <td className="py-2">EUA (SCC)</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="py-2 pr-4 font-medium text-[var(--color-foreground)]">Sentry, Inc.</td>
+                                        <td className="py-2 pr-4">Monitorização de erros</td>
+                                        <td className="py-2">EUA (SCC)</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="py-2 pr-4 font-medium text-[var(--color-foreground)]">Vercel, Inc.</td>
+                                        <td className="py-2 pr-4">Hosting da interface web</td>
+                                        <td className="py-2">EUA (SCC)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p className="mt-3 text-xs">
+                            SCC = Standard Contractual Clauses aprovadas pela Comissão Europeia (Art. 46.º RGPD).
+                            Hetzner está localizado na UE e não requer SCC.
                         </p>
                     </section>
 
@@ -197,13 +234,15 @@ export default function PrivacidadePage() {
                             para as quais foram recolhidos:
                         </p>
                         <ul className="list-disc space-y-1 pl-6">
-                            <li><strong className="text-[var(--color-foreground)]">Dados da conta:</strong> Enquanto a conta estiver ativa</li>
-                            <li><strong className="text-[var(--color-foreground)]">Dados de faturação:</strong> 10 anos (obrigação fiscal)</li>
+                            <li><strong className="text-[var(--color-foreground)]">Dados da conta e utilização:</strong> Enquanto a conta estiver ativa + 1 ano após encerramento</li>
+                            <li><strong className="text-[var(--color-foreground)]">Dados de faturação:</strong> 10 anos (obrigação fiscal — art. 52.º CIRS)</li>
                             <li><strong className="text-[var(--color-foreground)]">Logs de segurança:</strong> 12 meses</li>
+                            <li><strong className="text-[var(--color-foreground)]">Emails de comunicação:</strong> 2 anos</li>
                         </ul>
                         <p className="mt-3">
-                            Após o encerramento da conta, os dados são eliminados ou anonimizados no prazo
-                            de 30 dias, exceto quando a lei exigir conservação mais prolongada.
+                            Após o período de retenção, os dados são eliminados de forma segura ou
+                            anonimizados irreversivelmente. Pode solicitar exportação dos seus dados
+                            antes do encerramento da conta.
                         </p>
                     </section>
 
