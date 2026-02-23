@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import Script from "next/script";
 import { Toaster } from "@/components/ui/toaster";
 import { FeedbackModal } from "@/components/feedback";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -50,6 +51,15 @@ export default function RootLayout({
     return (
         <html lang="pt-PT" suppressHydrationWarning>
             <body className={`${inter.variable} antialiased`}>
+                {process.env.NEXT_PUBLIC_TERMLY_WEBSITE_UUID && (
+                    <Script
+                        id="termly-jssdk"
+                        src="https://app.termly.io/embed.min.js"
+                        data-auto-block="on"
+                        data-website-uuid={process.env.NEXT_PUBLIC_TERMLY_WEBSITE_UUID}
+                        strategy="afterInteractive"
+                    />
+                )}
                 <Providers>
                     <ThemeProvider
                         attribute="class"
