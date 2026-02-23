@@ -186,41 +186,61 @@ export default function PrivacidadePage() {
                                 </thead>
                                 <tbody className="divide-y divide-[var(--color-border)]">
                                     <tr>
-                                        <td className="py-2 pr-4 font-medium text-[var(--color-foreground)]">Hetzner Online GmbH</td>
-                                        <td className="py-2 pr-4">Infraestrutura de hosting (VPS)</td>
-                                        <td className="py-2">Alemanha (UE)</td>
-                                    </tr>
-                                    <tr>
-                                        <td className="py-2 pr-4 font-medium text-[var(--color-foreground)]">Stripe, Inc.</td>
-                                        <td className="py-2 pr-4">Processamento de pagamentos</td>
+                                        <td className="py-2 pr-4 font-medium text-[var(--color-foreground)]">Neon Inc.</td>
+                                        <td className="py-2 pr-4">Base de dados PostgreSQL principal (guarda todos os dados de utilizadores)</td>
                                         <td className="py-2">EUA (SCC)</td>
                                     </tr>
                                     <tr>
-                                        <td className="py-2 pr-4 font-medium text-[var(--color-foreground)]">Anthropic, PBC</td>
-                                        <td className="py-2 pr-4">Funcionalidades de IA</td>
+                                        <td className="py-2 pr-4 font-medium text-[var(--color-foreground)]">Google LLC</td>
+                                        <td className="py-2 pr-4">Autenticação OAuth (recebe email, nome e foto do utilizador)</td>
+                                        <td className="py-2">EUA (SCC)</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="py-2 pr-4 font-medium text-[var(--color-foreground)]">Vercel Inc.</td>
+                                        <td className="py-2 pr-4">Hosting da interface web e serverless functions</td>
+                                        <td className="py-2">EUA (SCC)</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="py-2 pr-4 font-medium text-[var(--color-foreground)]">Stripe, Inc.</td>
+                                        <td className="py-2 pr-4">Processamento de pagamentos e gestão de subscrições</td>
+                                        <td className="py-2">EUA (SCC)</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="py-2 pr-4 font-medium text-[var(--color-foreground)]">Supabase, Inc.</td>
+                                        <td className="py-2 pr-4">Armazenamento de ficheiros (propostas PDF)</td>
                                         <td className="py-2">EUA (SCC)</td>
                                     </tr>
                                     <tr>
                                         <td className="py-2 pr-4 font-medium text-[var(--color-foreground)]">Resend, Inc.</td>
-                                        <td className="py-2 pr-4">Envio de emails transacionais</td>
+                                        <td className="py-2 pr-4">Envio de emails transacionais (follow-ups, notificações)</td>
+                                        <td className="py-2">EUA (SCC)</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="py-2 pr-4 font-medium text-[var(--color-foreground)]">Upstash Inc.</td>
+                                        <td className="py-2 pr-4">Rate limiting (processa endereços IP)</td>
+                                        <td className="py-2">EUA (SCC)</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="py-2 pr-4 font-medium text-[var(--color-foreground)]">Mailgun (Sinch)</td>
+                                        <td className="py-2 pr-4">Processamento de email inbound (captura BCC de propostas)</td>
+                                        <td className="py-2">EUA (SCC)</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="py-2 pr-4 font-medium text-[var(--color-foreground)]">Cloudflare Inc.</td>
+                                        <td className="py-2 pr-4">Email routing inbound via Workers</td>
                                         <td className="py-2">EUA (SCC)</td>
                                     </tr>
                                     <tr>
                                         <td className="py-2 pr-4 font-medium text-[var(--color-foreground)]">Sentry, Inc.</td>
-                                        <td className="py-2 pr-4">Monitorização de erros</td>
-                                        <td className="py-2">EUA (SCC)</td>
-                                    </tr>
-                                    <tr>
-                                        <td className="py-2 pr-4 font-medium text-[var(--color-foreground)]">Vercel, Inc.</td>
-                                        <td className="py-2 pr-4">Hosting da interface web</td>
+                                        <td className="py-2 pr-4">Monitorização de erros e performance</td>
                                         <td className="py-2">EUA (SCC)</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
                         <p className="mt-3 text-xs">
-                            SCC = Standard Contractual Clauses aprovadas pela Comissão Europeia (Art. 46.º RGPD).
-                            Hetzner está localizado na UE e não requer SCC.
+                            SCC = Standard Contractual Clauses (Cláusulas Contratuais-Tipo) aprovadas pela Comissão Europeia (Art. 46.º RGPD).
+                            Todos os subprocessadores estão localizados nos EUA — as transferências são efetuadas ao abrigo de SCC.
                         </p>
                     </section>
 
