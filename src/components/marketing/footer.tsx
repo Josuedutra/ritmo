@@ -19,6 +19,9 @@ export function Footer() {
                     <Link href="/cookies" className="hover:text-black transition-colors">
                         Cookies
                     </Link>
+                    <a href="#" className="termly-display-preferences hover:text-black transition-colors">
+                        Preferências de Consentimento
+                    </a>
                     <a
                         href="https://linkedin.com/company/ritmo"
                         target="_blank"
