@@ -20,7 +20,7 @@ export default function TermosPage() {
 
                 <h1 className="mb-2 text-3xl font-bold">Termos e Condições do Serviço</h1>
                 <p className="mb-8 text-[var(--color-muted-foreground)]">
-                    <strong className="text-[var(--color-foreground)]">Última atualização:</strong> Janeiro 2026
+                    <strong className="text-[var(--color-foreground)]">Última atualização:</strong> Fevereiro 2026
                 </p>
 
                 <div className="prose prose-invert max-w-none space-y-8 text-[var(--color-muted-foreground)]">
