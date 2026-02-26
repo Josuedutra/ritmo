@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Script from "next/script";
 import { Toaster } from "@/components/ui/toaster";
 import { FeedbackModal } from "@/components/feedback";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -13,7 +12,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-    metadataBase: new URL('https://ritmo.pt'),
+    metadataBase: new URL('https://useritmo.pt'),
     title: {
         default: "Ritmo - Follow-up Inteligente para Orçamentos",
         template: "%s | Ritmo"
@@ -23,7 +22,7 @@ export const metadata: Metadata = {
     openGraph: {
         type: 'website',
         locale: 'pt_PT',
-        url: 'https://ritmo.pt',
+        url: 'https://useritmo.pt',
         siteName: 'Ritmo',
         images: [
             {
@@ -51,15 +50,6 @@ export default function RootLayout({
     return (
         <html lang="pt-PT" suppressHydrationWarning>
             <body className={`${inter.variable} antialiased`}>
-                {process.env.NEXT_PUBLIC_TERMLY_WEBSITE_UUID && (
-                    <Script
-                        id="termly-jssdk"
-                        src="https://app.termly.io/embed.min.js"
-                        data-auto-block="on"
-                        data-website-uuid={process.env.NEXT_PUBLIC_TERMLY_WEBSITE_UUID}
-                        strategy="afterInteractive"
-                    />
-                )}
                 <Providers>
                     <ThemeProvider
                         attribute="class"
