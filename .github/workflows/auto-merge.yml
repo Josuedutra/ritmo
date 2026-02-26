@@ -1,0 +1,68 @@
+name: Auto-merge agent PRs
+
+on:
+  pull_request_review:
+    types: [submitted]
+  check_suite:
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    name: Auto-merge when CI passes
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'check_suite' && github.event.check_suite.conclusion == 'success' ||
+      github.event_name == 'pull_request_review' && github.event.review.state == 'approved'
+    steps:
+      - name: Enable auto-merge for agent PRs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Get open PRs for the ref that triggered this event
+            const ref = context.payload.check_suite?.head_branch
+              || context.payload.pull_request?.head?.ref;
+            if (!ref) return;
+
+            const { data: pulls } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              head: `${context.repo.owner}:${ref}`,
+            });
+
+            for (const pr of pulls) {
+              // Only auto-merge PRs from known agent branches
+              const isAgentPR = /^(friday|flux|compass|sentinel|inspector)\//.test(pr.head.ref)
+                || pr.labels.some(l => l.name === 'agent-pr');
+
+              if (!isAgentPR) {
+                console.log(`Skipping PR #${pr.number} — not an agent PR`);
+                continue;
+              }
+
+              // Check all CI checks passed
+              const { data: checks } = await github.rest.checks.listForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: pr.head.sha,
+              });
+              const allPassed = checks.check_runs.length > 0
+                && checks.check_runs.every(c => c.conclusion === 'success' || c.conclusion === 'skipped');
+
+              if (!allPassed) {
+                console.log(`Skipping PR #${pr.number} — CI not green`);
+                continue;
+              }
+
+              console.log(`Merging PR #${pr.number}: ${pr.title}`);
+              await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+                merge_method: 'squash',
+              });
+            }
