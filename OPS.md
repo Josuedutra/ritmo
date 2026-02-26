@@ -39,7 +39,7 @@ For GitHub Actions (repository secrets):
 OPS_TOKEN          - Same as above
 RESEND_API_KEY     - Resend API key for email alerts
 ALERT_EMAIL        - Email to receive alerts
-PRODUCTION_URL     - Base URL (e.g., https://app.ritmo.pt)
+PRODUCTION_URL     - Base URL (e.g., https://app.useritmo.pt)
 ```
 
 ---
@@ -115,7 +115,7 @@ Verify Sentry is working with the smoke test endpoint (requires ADMIN_EMAILS ses
 
 ```bash
 # Access via browser while logged in as admin, or use session cookie
-curl https://app.ritmo.pt/api/admin/sentry-test
+curl https://app.useritmo.pt/api/admin/sentry-test
 ```
 
 Response:
@@ -168,7 +168,7 @@ Protected endpoints for health monitoring. Require `x-ops-token` header.
 Aggregated health metrics with alert status.
 
 ```bash
-curl -H "x-ops-token: $OPS_TOKEN" https://app.ritmo.pt/api/ops/metrics
+curl -H "x-ops-token: $OPS_TOKEN" https://app.useritmo.pt/api/ops/metrics
 ```
 
 Response:
@@ -191,7 +191,7 @@ Response:
 Cron job health status.
 
 ```bash
-curl -H "x-ops-token: $OPS_TOKEN" https://app.ritmo.pt/api/ops/cron
+curl -H "x-ops-token: $OPS_TOKEN" https://app.useritmo.pt/api/ops/cron
 ```
 
 ### GET /api/ops/inbound
@@ -199,7 +199,7 @@ curl -H "x-ops-token: $OPS_TOKEN" https://app.ritmo.pt/api/ops/cron
 Inbound email processing health.
 
 ```bash
-curl -H "x-ops-token: $OPS_TOKEN" https://app.ritmo.pt/api/ops/inbound
+curl -H "x-ops-token: $OPS_TOKEN" https://app.useritmo.pt/api/ops/inbound
 ```
 
 ### GET /api/ops/stripe
@@ -207,7 +207,7 @@ curl -H "x-ops-token: $OPS_TOKEN" https://app.ritmo.pt/api/ops/inbound
 Stripe webhook processing health.
 
 ```bash
-curl -H "x-ops-token: $OPS_TOKEN" https://app.ritmo.pt/api/ops/stripe
+curl -H "x-ops-token: $OPS_TOKEN" https://app.useritmo.pt/api/ops/stripe
 ```
 
 ---
@@ -297,7 +297,7 @@ Access at `/admin/ops` (requires ADMIN_EMAILS).
 2. Run manual purge:
    ```bash
    curl -X POST -H "Authorization: Bearer $CRON_SECRET" \
-     https://app.ritmo.pt/api/cron/purge-proposals
+     https://app.useritmo.pt/api/cron/purge-proposals
    ```
 3. Check logs for errors
 

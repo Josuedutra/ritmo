@@ -4,4 +4,4 @@ Disallow: /admin/
 Disallow: /dashboard/
 Disallow: /api/
 
-Sitemap: https://ritmo.pt/sitemap.xml
+Sitemap: https://useritmo.pt/sitemap.xml
