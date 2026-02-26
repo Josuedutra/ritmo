@@ -15,7 +15,7 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Footer, CookieBanner } from "@/components/marketing";
+import { Footer } from "@/components/marketing";
 
 // Animation variants
 const fadeInUp = {
@@ -789,7 +789,6 @@ export default function LandingPage() {
             </main>
 
             <Footer />
-            <CookieBanner />
         </div>
     );
 }
