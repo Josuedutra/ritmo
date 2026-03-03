@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { TRIAL_LIMIT, TRIAL_DURATION_DAYS, PLAN_LIMITS } from "@/lib/entitlements";
 import { trackEvent, ProductEventNames } from "@/lib/product-events";
+import { sendWelcomeEmail } from "@/lib/onboarding-drip";
 import {
     REFERRAL_COOKIE_NAME,
     REFERRAL_COOKIE_DAYS,
@@ -147,6 +148,16 @@ export async function POST(request: NextRequest) {
                 trialDays: TRIAL_DURATION_DAYS,
                 hasReferral: !!referralPayload,
             },
+        });
+
+        // Send onboarding welcome email (non-blocking)
+        sendWelcomeEmail(
+            result.organization.id,
+            result.user.id,
+            result.user.email,
+            result.user.name
+        ).catch((error) => {
+            console.error("[Signup] Welcome email error:", error);
         });
 
         // Handle referral attribution (non-blocking)
