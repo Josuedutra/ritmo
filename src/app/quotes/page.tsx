@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { AppHeader, PageHeader } from "@/components/layout";
 import { Button, Card, Badge } from "@/components/ui";
 import { GenerateActionButton } from "@/components/quotes";
-import { Plus, FileText, Clock, Euro, Building2, AlertCircle, Zap } from "lucide-react";
+import { Plus, FileText, Clock, Euro, Building2, AlertCircle, Zap, Mail } from "lucide-react";
 import { formatDistanceToNow, isToday, isTomorrow } from "date-fns";
 import { pt } from "date-fns/locale";
 import { QuotesEmptyState } from "./quotes-empty-state";
@@ -276,6 +276,13 @@ export default async function QuotesPage({ searchParams }: PageProps) {
                         {quote.tags.length > 2 && (
                           <span className="text-xs text-[var(--color-muted-foreground)]">
                             +{quote.tags.length - 2}
+                          </span>
+                        )}
+                        {/* BCC auto-created badge */}
+                        {(quote as any).source === "bcc" && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-purple-300 bg-purple-500/10 px-2 py-0.5 text-xs font-medium text-purple-600">
+                            <Mail className="h-3 w-3" />
+                            BCC
                           </span>
                         )}
                         {/* P1: Next action badge */}

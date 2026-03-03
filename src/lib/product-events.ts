@@ -52,6 +52,8 @@ export const ProductEventNames = {
   // BCC Inbound "aha moment" tracking
   AHA_BCC_INBOUND_FIRST_SUCCESS: "aha_bcc_inbound_first_success",
   BCC_INBOUND_PROCESSED: "bcc_inbound_processed",
+  // BCC auto-quote creation
+  QUOTE_AUTO_CREATED_FROM_BCC: "quote_auto_created_from_bcc",
   // Paywall events
   PAYWALL_SHOWN: "paywall_shown",
   // Scoreboard tracking

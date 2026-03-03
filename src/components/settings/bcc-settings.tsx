@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Organization } from "@prisma/client";
-import { Copy, Lock } from "lucide-react";
+import { Copy, Lock, Zap } from "lucide-react";
+import { useState } from "react";
 
 interface BccSettingsProps {
   organization: Organization;
@@ -16,11 +17,16 @@ interface BccSettingsProps {
 export function BccSettings({ organization, isFree = false }: BccSettingsProps) {
   const { toast } = useToast();
 
-  const bccAddress = organization.bccAddress || `all+${organization.id}@inbound.useritmo.pt`; // fallback
+  // Generic BCC address (auto-creates quote) — primary option
+  const genericBccAddress = `all+${(organization as any).shortId || organization.id}@inbound.useritmo.pt`;
+  // Legacy per-quote BCC address (still supported)
+  const legacyBccAddress = organization.bccAddress || genericBccAddress;
   const isEnabled = !isFree && organization.bccInboundEnabled;
 
-  function onCopy() {
-    navigator.clipboard.writeText(bccAddress);
+  const [showLegacy, setShowLegacy] = useState(false);
+
+  function onCopy(address: string) {
+    navigator.clipboard.writeText(address);
     toast({
       description: "Endereço copiado para a área de transferência.",
     });
@@ -30,13 +36,13 @@ export function BccSettings({ organization, isFree = false }: BccSettingsProps) 
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>BCC (Captura de proposta)</CardTitle>
+          <CardTitle>BCC (Captura automática)</CardTitle>
           {isEnabled ? (
             <div className="flex items-center gap-2">
               <Badge variant="default" className="bg-green-600">
                 Ativo
               </Badge>
-              <Button variant="outline" size="sm" onClick={onCopy}>
+              <Button variant="outline" size="sm" onClick={() => onCopy(genericBccAddress)}>
                 <Copy className="mr-2 h-4 w-4" />
                 Copiar
               </Button>
@@ -54,16 +60,44 @@ export function BccSettings({ organization, isFree = false }: BccSettingsProps) 
             </div>
           )}
         </div>
-        <CardDescription>Receba propostas automaticamente enviando com BCC.</CardDescription>
+        <CardDescription>Crie orçamentos automaticamente enviando com BCC.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className={`space-y-4 ${!isEnabled ? "pointer-events-none opacity-50" : ""}`}>
-          <p className="text-sm">
-            Adicione este email em BCC ao enviar a proposta. O Ritmo associa automaticamente o
-            PDF/link ao orçamento.
-          </p>
-          <div className="flex items-center gap-2">
-            <Input value={bccAddress} readOnly className="bg-muted font-mono" />
+          {/* Primary: Generic BCC address (auto-create) */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-green-600" />
+              <span className="text-sm font-medium">Endereço BCC automático</span>
+            </div>
+            <p className="text-muted-foreground text-sm">
+              Adicione este endereço no BCC dos seus emails de orçamento. O Ritmo cria
+              automaticamente o orçamento e activa o follow-up — zero acção manual.
+            </p>
+            <div className="flex items-center gap-2">
+              <Input value={genericBccAddress} readOnly className="bg-muted font-mono text-sm" />
+            </div>
+          </div>
+
+          {/* Legacy: Per-quote BCC address (collapsible) */}
+          <div className="border-t pt-2">
+            <button
+              onClick={() => setShowLegacy(!showLegacy)}
+              className="text-muted-foreground hover:text-foreground text-xs transition-colors"
+            >
+              {showLegacy ? "▾ Esconder" : "▸ Endereço por orçamento"} (modo avançado)
+            </button>
+            {showLegacy && (
+              <div className="mt-2 space-y-1">
+                <p className="text-muted-foreground text-xs">
+                  Se preferir, pode usar o endereço específico de cada orçamento para associar o
+                  PDF/link a um orçamento existente.
+                </p>
+                <p className="text-muted-foreground font-mono text-xs">
+                  Formato: all+[orgId]+[quoteId]@inbound.useritmo.pt
+                </p>
+              </div>
+            )}
           </div>
         </div>
 

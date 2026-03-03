@@ -6,7 +6,9 @@
  * Receives emails forwarded from Cloudflare Email Routing via Worker.
  * The Worker parses the email and sends a JSON payload to this endpoint.
  *
- * BCC Format: all+{orgShortId}+{quotePublicId}@inbound.useritmo.pt
+ * BCC Formats:
+ * - all+{orgShortId}+{quotePublicId}@inbound.useritmo.pt (attach to existing quote)
+ * - all+{orgShortId}@inbound.useritmo.pt (auto-create quote)
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -14,6 +16,8 @@ import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import {
   findBccInRecipients,
+  parseEmailAddress,
+  autoCreateQuoteFromInbound,
   extractLinkFromText,
   extractLinkFromHtml,
   validateAttachment,
@@ -126,6 +130,8 @@ interface CloudflareEmailPayload {
   messageId?: string;
   from: string;
   to: string;
+  /** Original To: header from the email (the client, not the BCC address) */
+  originalTo?: string;
   subject?: string;
   bodyText?: string;
   bodyHtml?: string;
@@ -181,6 +187,7 @@ export async function POST(request: NextRequest) {
       messageId,
       from,
       to,
+      originalTo,
       subject,
       bodyText: emailBodyText,
       bodyHtml,
@@ -300,6 +307,176 @@ export async function POST(request: NextRequest) {
         message: "BCC auto-attachment is only available on paid plans.",
       });
     }
+
+    // =====================================================================
+    // BRANCH: Auto-create quote (generic BCC, no quotePublicId)
+    // =====================================================================
+    if (!quotePublicId) {
+      log.info({ orgShortId, originalTo, subject }, "Generic BCC — auto-create quote flow");
+
+      // Parse email timestamp for sentAt
+      const emailSentAt = payload.timestamp
+        ? new Date(parseInt(payload.timestamp, 10) * 1000)
+        : new Date();
+
+      // Get org timezone
+      const orgData = await prisma.organization.findUnique({
+        where: { id: org.id },
+        select: { timezone: true },
+      });
+
+      // Auto-create quote + contact + cadence
+      const autoResult = await autoCreateQuoteFromInbound({
+        organizationId: org.id,
+        orgTimezone: orgData?.timezone || "Europe/Lisbon",
+        originalTo: originalTo || null,
+        subject: subject || null,
+        emailSentAt,
+      });
+
+      // Create ingestion record linked to the new quote
+      const ingestion = await prisma.inboundIngestion.create({
+        data: {
+          organizationId: org.id,
+          quoteId: autoResult.quote.id,
+          provider: "cloudflare",
+          providerMessageId: idempotencyKey,
+          bodyChecksum: generateBodyChecksum(emailBodyText || null, bodyHtml || null),
+          rawFrom: from,
+          rawTo: to,
+          rawSubject: subject,
+          rawBodyText: emailBodyText?.substring(0, 10000),
+          rawBodyHtml: bodyHtml?.substring(0, 50000),
+          status: "pending",
+        },
+      });
+
+      // Process attachments against the new quote
+      let attachmentProcessed = false;
+
+      if (attachments && attachments.length > 0) {
+        for (const attachment of attachments) {
+          const validation = validateAttachment({
+            filename: attachment.filename,
+            contentType: attachment.contentType,
+            size: attachment.size,
+          });
+
+          if (!validation.valid) continue;
+
+          const storageCheck = await checkStorageGates(
+            org.id,
+            attachment.size,
+            attachment.contentType
+          );
+          if (!storageCheck.allowed) continue;
+
+          const quotaReservation = await checkAndReserveStorageQuota(
+            org.id,
+            attachment.size,
+            attachment.contentType
+          );
+          if (!quotaReservation.allowed) continue;
+
+          try {
+            const buffer = Buffer.from(attachment.content, "base64");
+            const storage = getStorageClient();
+
+            if (!storage) {
+              await quotaReservation.rollback();
+              continue;
+            }
+
+            const storagePath = `proposals/${org.id}/${autoResult.quote.id}/${Date.now()}-${attachment.filename}`;
+            const { error: uploadError } = await storage.storage
+              .from("attachments")
+              .upload(storagePath, buffer, { contentType: "application/pdf", upsert: false });
+
+            if (uploadError) {
+              await quotaReservation.rollback();
+              continue;
+            }
+
+            const retentionPolicy = await getRetentionPolicy(org.id);
+            const attachmentRecord = await prisma.attachment.create({
+              data: {
+                organizationId: org.id,
+                filename: attachment.filename,
+                contentType: "application/pdf",
+                sizeBytes: BigInt(attachment.size),
+                storagePath,
+                expiresAt: retentionPolicy.expiresAt,
+              },
+            });
+
+            await prisma.quote.update({
+              where: { id: autoResult.quote.id },
+              data: { proposalFileId: attachmentRecord.id, lastActivityAt: new Date() },
+            });
+
+            await prisma.inboundIngestion.update({
+              where: { id: ingestion.id },
+              data: {
+                attachmentId: attachmentRecord.id,
+                status: "processed",
+                processedAt: new Date(),
+              },
+            });
+
+            attachmentProcessed = true;
+            break; // First valid PDF only
+          } catch (err) {
+            log.error({ id: ingestion.id, error: err }, "Auto-create: attachment processing error");
+            await quotaReservation.rollback();
+          }
+        }
+      }
+
+      // Extract link if no attachment
+      if (!attachmentProcessed) {
+        const link =
+          extractLinkFromHtml(bodyHtml || "") || extractLinkFromText(emailBodyText || "");
+        if (link) {
+          await prisma.quote.update({
+            where: { id: autoResult.quote.id },
+            data: { proposalLink: link, lastActivityAt: new Date() },
+          });
+          await prisma.inboundIngestion.update({
+            where: { id: ingestion.id },
+            data: { parsedLink: link, status: "processed", processedAt: new Date() },
+          });
+        } else {
+          await prisma.inboundIngestion.update({
+            where: { id: ingestion.id },
+            data: { status: "processed", processedAt: new Date() },
+          });
+        }
+      }
+
+      const durationMs = Date.now() - startTime;
+      log.info(
+        {
+          id: ingestion.id,
+          quoteId: autoResult.quote.id,
+          contactId: autoResult.contact?.id,
+          durationMs,
+        },
+        "Auto-create quote from BCC complete"
+      );
+
+      return NextResponse.json({
+        status: "auto_created",
+        id: ingestion.id,
+        quoteId: autoResult.quote.id,
+        contactId: autoResult.contact?.id,
+        cadence: autoResult.cadenceResult,
+        attachmentProcessed,
+      });
+    }
+
+    // =====================================================================
+    // EXISTING FLOW: Attach to existing quote (quotePublicId present)
+    // =====================================================================
 
     // Find quote by publicId within organization
     const quote = await prisma.quote.findFirst({
