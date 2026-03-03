@@ -31,10 +31,10 @@ export function CrispWidget() {
         // Identify the user once Crisp is ready
         script.onload = () => {
             if (session.user.email) {
-                window.$crisp.push(["set", "user:email", [session.user.email]]);
+                window.$crisp?.push(["set", "user:email", [session.user.email]]);
             }
             if (session.user.name) {
-                window.$crisp.push(["set", "user:nickname", [session.user.name]]);
+                window.$crisp?.push(["set", "user:nickname", [session.user.name]]);
             }
         };
 
