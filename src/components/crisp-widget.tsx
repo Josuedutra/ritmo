@@ -56,7 +56,7 @@ export function CrispWidget() {
 // Type augmentation for Crisp globals
 declare global {
     interface Window {
-        $crisp: unknown[];
-        CRISP_WEBSITE_ID: string;
+        $crisp?: unknown[];
+        CRISP_WEBSITE_ID?: string;
     }
 }
