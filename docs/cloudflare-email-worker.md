@@ -79,6 +79,28 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return btoa(binary);
 }
 
+// Format postal-mime Address array into RFC 5322 string
+// e.g. [{name:"John",address:"j@x.com"},{name:"",address:"b@x.com"}] → "John <j@x.com>, b@x.com"
+function formatAddresses(
+  addrs: Array<{
+    name?: string;
+    address?: string;
+    group?: Array<{ name?: string; address?: string }>;
+  }>
+): string {
+  const parts: string[] = [];
+  for (const a of addrs) {
+    if ("group" in a && a.group) {
+      for (const m of a.group) {
+        if (m.address) parts.push(m.name ? `${m.name} <${m.address}>` : m.address);
+      }
+    } else if (a.address) {
+      parts.push(a.name ? `${a.name} <${a.address}>` : a.address);
+    }
+  }
+  return parts.join(", ");
+}
+
 export default {
   async email(message: ForwardableEmailMessage, env: Env): Promise<void> {
     try {
@@ -90,10 +112,15 @@ export default {
       // Build payload
       const timestamp = Math.floor(Date.now() / 1000).toString();
 
+      // message.to = envelope recipient (BCC address)
+      // email.to  = parsed To: header (the original client recipient)
+      const originalTo = email.to?.length ? formatAddresses(email.to) : null;
+
       const payload = {
         messageId: email.messageId || null,
         from: message.from,
         to: message.to,
+        originalTo,
         subject: email.subject || "",
         bodyText: email.text || "",
         bodyHtml: email.html || "",
