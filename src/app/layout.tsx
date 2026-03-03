@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     template: "%s | Ritmo",
   },
   description:
-    "Cadência automática + painel + envio para follow-up de orçamentos B2B. Recupere propostas sem resposta.",
+    "Acompanhe todos os seus orçamentos sem resposta. O Ritmo envia follow-ups automáticos e diz-lhe quando ligar — sem CRM, sem mudar o seu processo.",
   keywords: ["follow-up", "orçamentos", "CRM", "vendas", "B2B", "automação de vendas"],
   openGraph: {
     type: "website",

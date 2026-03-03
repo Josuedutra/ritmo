@@ -100,7 +100,7 @@ export default function LandingPage() {
                 name: "Posso usar sem automação?",
                 acceptedAnswer: {
                   "@type": "Answer",
-                  text: "Sim. O plano Free funciona em modo manual: o Ritmo cria a cadência e as tarefas, mas você decide quando enviar.",
+                  text: "Sim. O plano Free funciona em modo manual: o Ritmo cria a cadência e as tarefas, mas é quem decide quando enviar.",
                 },
               },
               {
@@ -261,7 +261,7 @@ export default function LandingPage() {
                       </span>{" "}
                       <br />
                       <span className="bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
-                        você já usa.
+                        já utiliza.
                       </span>
                     </h2>
                     <p className="max-w-md text-lg leading-relaxed text-zinc-400">
@@ -793,10 +793,10 @@ export default function LandingPage() {
                       frequentes
                     </span>
                   </h2>
-                  <h3 className="mb-3 text-xl font-bold text-zinc-900">Ainda tens dúvidas?</h3>
+                  <h3 className="mb-3 text-xl font-bold text-zinc-900">Ainda tem dúvidas?</h3>
                   <p className="leading-relaxed text-zinc-500">
                     Preparamos um conjunto de perguntas e respostas rápidas para esclarecer todas as
-                    tuas questões.
+                    suas questões.
                   </p>
                 </div>
               </div>
@@ -876,7 +876,7 @@ export default function LandingPage() {
                     </AccordionTrigger>
                     <AccordionContent className="bg-white px-6 pb-6 leading-relaxed text-zinc-600">
                       Sim. O plano Free funciona em modo manual: o Ritmo cria a cadência e as
-                      tarefas, mas você decide quando enviar.
+                      tarefas, mas é quem decide quando enviar.
                     </AccordionContent>
                   </AccordionItem>
 
