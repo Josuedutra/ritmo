@@ -8,7 +8,7 @@
     "build:ci": "prisma generate && next build",
     "postinstall": "prisma generate",
     "start": "next start",
-    "lint": "ESLINT_USE_FLAT_CONFIG=false next lint",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint src/",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:generate": "prisma generate",
