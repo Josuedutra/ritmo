@@ -96,10 +96,10 @@ async function main() {
     "✅ Plans seeded/updated (Free=5, Starter=€39/80, Pro=€99/250, Pro+=€149/500 hidden)"
   );
 
-  // Create demo organization
+  // Create demo organization (onboardingCompleted=true so E2E tests can reach dashboard)
   const org = await prisma.organization.upsert({
     where: { slug: "demo" },
-    update: {},
+    update: { onboardingCompleted: true },
     create: {
       name: "Demo Company",
       slug: "demo",
@@ -109,6 +109,7 @@ async function main() {
       sendWindowEnd: "18:00",
       emailCooldownHours: 48,
       bccAddress: "bcc+demo@inbound.ritmo.app",
+      onboardingCompleted: true,
     },
   });
 
