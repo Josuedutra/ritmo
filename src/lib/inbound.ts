@@ -1,20 +1,27 @@
 /**
- * Inbound Email Processing - Cloudflare Email Workers
+ * Inbound Email Processing - Cloudflare Email Workers & Mailgun
  *
- * Handles incoming emails via BCC capture for proposal attachment.
+ * Handles incoming emails via BCC capture for proposal attachment and auto-quote creation.
  *
- * BCC Format: all+{orgShortId}+{quotePublicId}@inbound.useritmo.pt
+ * BCC Formats:
+ * - all+{orgShortId}+{quotePublicId}@inbound.useritmo.pt (attach to existing quote)
+ * - all+{orgShortId}@inbound.useritmo.pt (auto-create quote)
  *
  * Features:
  * - Cloudflare signature verification (HMAC-SHA256)
  * - PDF attachment extraction and storage
  * - Link extraction from email body
+ * - Auto-create quote from generic BCC (zero-click UX)
  * - Idempotency via providerMessageId
  */
 
 import { createHmac, createHash, timingSafeEqual } from "crypto";
 import { logger } from "./logger";
 import { INBOUND_DOMAIN as CONFIG_INBOUND_DOMAIN } from "./config";
+import { prisma } from "./prisma";
+import { generateCadenceEvents } from "./cadence";
+import { trackEvent, ProductEventNames } from "./product-events";
+import { nanoid } from "nanoid";
 
 const log = logger.child({ service: "inbound" });
 
@@ -41,16 +48,18 @@ export function generateBccAddress(orgShortId: string, quotePublicId: string): s
 }
 
 /**
- * Parse BCC address to extract orgShortId and quotePublicId
+ * Parse BCC address to extract orgShortId and optionally quotePublicId
  *
  * Supports formats:
- * - all+orgShortId+quotePublicId@inbound.useritmo.pt (Cloudflare)
+ * - all+orgShortId+quotePublicId@inbound.useritmo.pt (existing: attach to quote)
  * - bcc+orgShortId+quotePublicId@inbound.useritmo.pt (legacy/Mailgun)
+ * - all+orgShortId@inbound.useritmo.pt (generic: auto-create quote)
+ * - bcc+orgShortId@inbound.useritmo.pt (generic legacy)
  * - Case insensitive local part
  */
 export function parseBccAddress(
   address: string
-): { orgShortId: string; quotePublicId: string } | null {
+): { orgShortId: string; quotePublicId: string | null } | null {
   if (!address) return null;
 
   // Normalize: lowercase and trim
@@ -65,15 +74,24 @@ export function parseBccAddress(
   // Must start with "all+" (Cloudflare) or "bcc+" (legacy)
   if (!localPart.startsWith("all+") && !localPart.startsWith("bcc+")) return null;
 
-  // Split by "+" to get parts: ["all"/"bcc", "orgShortId", "quotePublicId"]
+  // Split by "+" to get parts
   const parts = localPart.split("+");
-  if (parts.length !== 3) return null;
 
-  const [, orgShortId, quotePublicId] = parts;
+  // 3 parts: ["all"/"bcc", "orgShortId", "quotePublicId"] — attach to existing quote
+  if (parts.length === 3) {
+    const [, orgShortId, quotePublicId] = parts;
+    if (!orgShortId || !quotePublicId) return null;
+    return { orgShortId, quotePublicId };
+  }
 
-  if (!orgShortId || !quotePublicId) return null;
+  // 2 parts: ["all"/"bcc", "orgShortId"] — generic BCC, auto-create quote
+  if (parts.length === 2) {
+    const [, orgShortId] = parts;
+    if (!orgShortId) return null;
+    return { orgShortId, quotePublicId: null };
+  }
 
-  return { orgShortId, quotePublicId };
+  return null;
 }
 
 /**
@@ -83,7 +101,7 @@ export function parseBccAddress(
  */
 export function findBccInRecipients(
   recipients: string
-): { orgShortId: string; quotePublicId: string } | null {
+): { orgShortId: string; quotePublicId: string | null } | null {
   if (!recipients) return null;
 
   // Split by comma and check each
@@ -101,6 +119,179 @@ export function findBccInRecipients(
   }
 
   return null;
+}
+
+/**
+ * Generate generic BCC address for an organization (no quotePublicId)
+ *
+ * Used for auto-create flow: user sends BCC without pre-creating a quote
+ */
+export function generateGenericBccAddress(orgShortId: string): string {
+  return `all+${orgShortId}@${INBOUND_DOMAIN}`;
+}
+
+/**
+ * Parse email address from "Name <email>" format or plain email
+ *
+ * Returns { name, email } or null if unparseable
+ */
+export function parseEmailAddress(raw: string): { name: string | null; email: string } | null {
+  if (!raw) return null;
+
+  const trimmed = raw.trim();
+
+  // Format: "Name <email@example.com>"
+  const bracketMatch = trimmed.match(/^(.+?)\s*<([^>]+)>$/);
+  if (bracketMatch) {
+    const name = bracketMatch[1].replace(/^["']|["']$/g, "").trim() || null;
+    const email = bracketMatch[2].trim().toLowerCase();
+    return { name, email };
+  }
+
+  // Plain email
+  if (trimmed.includes("@")) {
+    return { name: null, email: trimmed.toLowerCase() };
+  }
+
+  return null;
+}
+
+// =============================================================================
+// AUTO-CREATE QUOTE FROM BCC
+// =============================================================================
+
+export interface AutoCreateQuoteOptions {
+  organizationId: string;
+  orgTimezone?: string;
+  /** Original To: header — the client who received the quote */
+  originalTo: string | null;
+  /** Email subject — becomes quote title */
+  subject: string | null;
+  /** Timestamp of when the email was sent */
+  emailSentAt: Date;
+}
+
+export interface AutoCreateQuoteResult {
+  quote: { id: string; publicId: string; title: string };
+  contact: { id: string; email: string | null; name: string | null } | null;
+  cadenceResult: { runId: number; eventsCreated: number };
+}
+
+/**
+ * Auto-create a quote from a generic BCC email (no quotePublicId).
+ *
+ * 1. Parse originalTo → find or create Contact
+ * 2. Create Quote with source="bcc", businessStatus="sent"
+ * 3. Generate cadence events (D+1, D+3, D+7, D+14)
+ * 4. Track product event
+ *
+ * Returns the created quote, contact, and cadence result.
+ */
+export async function autoCreateQuoteFromInbound(
+  options: AutoCreateQuoteOptions
+): Promise<AutoCreateQuoteResult> {
+  const {
+    organizationId,
+    orgTimezone = "Europe/Lisbon",
+    originalTo,
+    subject,
+    emailSentAt,
+  } = options;
+
+  // 1. Find or create contact from originalTo
+  let contact: { id: string; email: string | null; name: string | null } | null = null;
+
+  if (originalTo) {
+    // Parse first address from To: header (may have multiple recipients)
+    const firstRecipient = originalTo.split(",")[0]?.trim();
+    if (firstRecipient) {
+      const parsed = parseEmailAddress(firstRecipient);
+      if (parsed) {
+        // Try to find existing contact by email in this org
+        const existing = await prisma.contact.findFirst({
+          where: {
+            organizationId,
+            email: parsed.email,
+          },
+          select: { id: true, email: true, name: true },
+        });
+
+        if (existing) {
+          contact = existing;
+        } else {
+          // Create new contact
+          const newContact = await prisma.contact.create({
+            data: {
+              organizationId,
+              email: parsed.email,
+              name: parsed.name,
+            },
+            select: { id: true, email: true, name: true },
+          });
+          contact = newContact;
+        }
+      }
+    }
+  }
+
+  // 2. Create quote
+  const title = subject ? subject.substring(0, 100) : "Orçamento via BCC";
+  const publicId = nanoid();
+
+  // Find org owner for ownerUserId
+  const orgOwner = await prisma.user.findFirst({
+    where: { organizationId },
+    orderBy: { createdAt: "asc" },
+    select: { id: true },
+  });
+
+  const quote = await prisma.quote.create({
+    data: {
+      publicId,
+      organizationId,
+      contactId: contact?.id ?? null,
+      title,
+      businessStatus: "sent",
+      sentAt: emailSentAt,
+      firstSentAt: emailSentAt,
+      source: "bcc",
+      ownerUserId: orgOwner?.id ?? null,
+      lastActivityAt: new Date(),
+    },
+    select: { id: true, publicId: true, title: true },
+  });
+
+  // 3. Generate cadence events using sentAt from the email
+  const cadenceResult = await generateCadenceEvents({
+    quoteId: quote.id,
+    organizationId,
+    sentAt: emailSentAt,
+    quoteValue: null, // No value available from email
+    timezone: orgTimezone,
+  });
+
+  // 4. Track product event
+  await trackEvent(ProductEventNames.QUOTE_AUTO_CREATED_FROM_BCC, {
+    organizationId,
+    props: {
+      quoteId: quote.id,
+      hasContact: !!contact,
+      hasSubject: !!subject,
+      cadenceEventsCreated: cadenceResult.eventsCreated,
+    },
+  });
+
+  log.info(
+    {
+      quoteId: quote.id,
+      publicId: quote.publicId,
+      contactId: contact?.id,
+      title: quote.title,
+    },
+    "Auto-created quote from BCC"
+  );
+
+  return { quote, contact, cadenceResult };
 }
 
 // =============================================================================

@@ -9,7 +9,9 @@
  * 3. Extracts PDF attachment or link from body
  * 4. Updates quote with proposal
  *
- * BCC Format: bcc+{orgShortId}+{quotePublicId}@inbound.ritmo.app
+ * BCC Formats:
+ * - bcc+{orgShortId}+{quotePublicId}@inbound.useritmo.pt (attach to existing quote)
+ * - bcc+{orgShortId}@inbound.useritmo.pt (auto-create quote)
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -18,6 +20,7 @@ import { logger } from "@/lib/logger";
 import {
   verifyMailgunSignature,
   findBccInRecipients,
+  autoCreateQuoteFromInbound,
   extractLinkFromText,
   extractLinkFromHtml,
   validateAttachment,
@@ -250,6 +253,190 @@ export async function POST(request: NextRequest) {
         id: ingestion.id,
       });
     }
+
+    // =====================================================================
+    // BRANCH: Auto-create quote (generic BCC, no quotePublicId)
+    // =====================================================================
+    if (!quotePublicId) {
+      log.info({ orgShortId, to, subject }, "Generic BCC — auto-create quote flow (Mailgun)");
+
+      // Parse Mailgun timestamp for sentAt
+      const emailSentAt = timestamp ? new Date(parseInt(timestamp, 10) * 1000) : new Date();
+
+      // Get org timezone
+      const orgData = await prisma.organization.findUnique({
+        where: { id: org.id },
+        select: { timezone: true },
+      });
+
+      // In Mailgun, `to` = original To: header (the client), `recipient` = envelope BCC
+      const autoResult = await autoCreateQuoteFromInbound({
+        organizationId: org.id,
+        orgTimezone: orgData?.timezone || "Europe/Lisbon",
+        originalTo: to || null,
+        subject: subject || null,
+        emailSentAt,
+      });
+
+      // Create ingestion record linked to the new quote
+      const ingestion = await prisma.inboundIngestion.create({
+        data: {
+          organizationId: org.id,
+          quoteId: autoResult.quote.id,
+          provider: "mailgun",
+          providerMessageId: idempotencyKey,
+          bodyChecksum: generateBodyChecksum(bodyPlain, bodyHtml),
+          rawFrom: from,
+          rawTo: to || recipient,
+          rawSubject: subject,
+          rawBodyText: bodyPlain?.substring(0, 10000),
+          rawBodyHtml: bodyHtml?.substring(0, 50000),
+          status: "pending",
+        },
+      });
+
+      // Process attachments against the new quote
+      let attachmentProcessed = false;
+      const attachmentCount = parseInt(formData.get("attachment-count") as string) || 0;
+
+      if (attachmentCount > 0) {
+        for (let i = 1; i <= attachmentCount; i++) {
+          const attachment = formData.get(`attachment-${i}`) as File | null;
+          if (!attachment) continue;
+
+          const validation = validateAttachment({
+            filename: attachment.name,
+            contentType: attachment.type,
+            size: attachment.size,
+          });
+          if (!validation.valid) continue;
+
+          const storageCheck = await checkStorageGates(org.id, attachment.size, attachment.type);
+          if (!storageCheck.allowed) continue;
+
+          const quotaReservation = await checkAndReserveStorageQuota(
+            org.id,
+            attachment.size,
+            attachment.type
+          );
+          if (!quotaReservation.allowed) continue;
+
+          try {
+            const buffer = Buffer.from(await attachment.arrayBuffer());
+            const storage = getStorageClient();
+
+            if (!storage) {
+              await quotaReservation.rollback();
+              continue;
+            }
+
+            const storagePath = `proposals/${org.id}/${autoResult.quote.id}/${Date.now()}-${attachment.name}`;
+            const { error: uploadError } = await storage.storage
+              .from("attachments")
+              .upload(storagePath, buffer, { contentType: "application/pdf", upsert: false });
+
+            if (uploadError) {
+              await quotaReservation.rollback();
+              continue;
+            }
+
+            const retentionPolicy = await getRetentionPolicy(org.id);
+            const attachmentRecord = await prisma.attachment.create({
+              data: {
+                organizationId: org.id,
+                filename: attachment.name,
+                contentType: "application/pdf",
+                sizeBytes: BigInt(attachment.size),
+                storagePath,
+                expiresAt: retentionPolicy.expiresAt,
+              },
+            });
+
+            await prisma.quote.update({
+              where: { id: autoResult.quote.id },
+              data: { proposalFileId: attachmentRecord.id, lastActivityAt: new Date() },
+            });
+
+            await prisma.inboundIngestion.update({
+              where: { id: ingestion.id },
+              data: {
+                attachmentId: attachmentRecord.id,
+                status: "processed",
+                processedAt: new Date(),
+              },
+            });
+
+            attachmentProcessed = true;
+            break; // First valid PDF only
+          } catch (err) {
+            log.error(
+              { id: ingestion.id, error: err },
+              "Auto-create: attachment processing error (Mailgun)"
+            );
+            await quotaReservation.rollback();
+          }
+        }
+      }
+
+      // Extract link if no attachment
+      if (!attachmentProcessed) {
+        const link = extractLinkFromHtml(bodyHtml || "") || extractLinkFromText(bodyPlain || "");
+        if (link) {
+          await prisma.quote.update({
+            where: { id: autoResult.quote.id },
+            data: { proposalLink: link, lastActivityAt: new Date() },
+          });
+          await prisma.inboundIngestion.update({
+            where: { id: ingestion.id },
+            data: { parsedLink: link, status: "processed", processedAt: new Date() },
+          });
+        } else {
+          await prisma.inboundIngestion.update({
+            where: { id: ingestion.id },
+            data: { status: "processed", processedAt: new Date() },
+          });
+        }
+      }
+
+      // Track BCC capture for trial counter
+      if (entitlements.tier === "trial") {
+        const captureResult = await checkAndIncrementTrialBccCapture(org.id);
+        if (captureResult.allowed && captureResult.isFirstCapture) {
+          await trackEvent(ProductEventNames.AHA_BCC_INBOUND_FIRST_SUCCESS, {
+            organizationId: org.id,
+            props: {
+              quoteId: autoResult.quote.id,
+              ingestionId: ingestion.id,
+              autoCreated: true,
+            },
+          });
+        }
+      }
+
+      const durationMs = Date.now() - startTime;
+      log.info(
+        {
+          id: ingestion.id,
+          quoteId: autoResult.quote.id,
+          contactId: autoResult.contact?.id,
+          durationMs,
+        },
+        "Auto-create quote from BCC complete (Mailgun)"
+      );
+
+      return NextResponse.json({
+        status: "auto_created",
+        id: ingestion.id,
+        quoteId: autoResult.quote.id,
+        contactId: autoResult.contact?.id,
+        cadence: autoResult.cadenceResult,
+        attachmentProcessed,
+      });
+    }
+
+    // =====================================================================
+    // EXISTING FLOW: Attach to existing quote (quotePublicId present)
+    // =====================================================================
 
     // Find quote by publicId within organization
     const quote = await prisma.quote.findFirst({
