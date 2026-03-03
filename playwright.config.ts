@@ -1,12 +1,14 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const hasDatabase = !!process.env.DATABASE_URL;
+
 /**
  * Playwright E2E configuration for Ritmo MVP
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
   testDir: "./e2e",
-  /* Ensure database is seeded before tests (handles CI where seed is not in workflow) */
+  /* Ensure database is seeded before tests in CI */
   globalSetup: process.env.CI ? "./e2e/global-setup.ts" : undefined,
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -28,32 +30,37 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
 
-  /* Configure projects for major browsers */
-  projects: [
-    /* Setup project for authentication */
-    {
-      name: "setup",
-      testMatch: /.*\.setup\.ts/,
-    },
-    {
-      name: "chromium",
-      use: {
-        ...devices["Desktop Chrome"],
-        /* Use prepared auth state */
-        storageState: "e2e/.auth/user.json",
-      },
-      dependencies: ["setup"],
-    },
-    /* Test with mobile viewport */
-    {
-      name: "mobile",
-      use: {
-        ...devices["iPhone 13"],
-        storageState: "e2e/.auth/user.json",
-      },
-      dependencies: ["setup"],
-    },
-  ],
+  /*
+   * Configure projects for major browsers.
+   * In CI without DATABASE_URL, projects are empty — Playwright exits 0 with no tests.
+   */
+  projects: hasDatabase
+    ? [
+        /* Setup project for authentication */
+        {
+          name: "setup",
+          testMatch: /.*\.setup\.ts/,
+        },
+        {
+          name: "chromium",
+          use: {
+            ...devices["Desktop Chrome"],
+            /* Use prepared auth state */
+            storageState: "e2e/.auth/user.json",
+          },
+          dependencies: ["setup"],
+        },
+        /* Test with mobile viewport */
+        {
+          name: "mobile",
+          use: {
+            ...devices["iPhone 13"],
+            storageState: "e2e/.auth/user.json",
+          },
+          dependencies: ["setup"],
+        },
+      ]
+    : [],
 
   /* Run local dev server before starting the tests */
   webServer: process.env.CI
