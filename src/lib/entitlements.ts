@@ -589,9 +589,7 @@ export async function incrementTrialBccCapture(organizationId: string): Promise<
  * - { allowed: true, isFirstCapture, committed: true } if capture was allowed and incremented
  * - { allowed: false, reason, message } if capture was rejected
  */
-export async function checkAndIncrementTrialBccCapture(
-  organizationId: string
-): Promise<
+export async function checkAndIncrementTrialBccCapture(organizationId: string): Promise<
   | { allowed: true; isFirstCapture: boolean; committed: true }
   | {
       allowed: false;
