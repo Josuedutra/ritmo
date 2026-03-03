@@ -21,7 +21,7 @@ import { INBOUND_DOMAIN as CONFIG_INBOUND_DOMAIN } from "./config";
 import { prisma } from "./prisma";
 import { generateCadenceEvents } from "./cadence";
 import { trackEvent, ProductEventNames } from "./product-events";
-import { createId } from "@paralleldrive/cuid2";
+import { nanoid } from "nanoid";
 
 const log = logger.child({ service: "inbound" });
 
@@ -236,7 +236,7 @@ export async function autoCreateQuoteFromInbound(
 
   // 2. Create quote
   const title = subject ? subject.substring(0, 100) : "Orçamento via BCC";
-  const publicId = createId();
+  const publicId = nanoid();
 
   // Find org owner for ownerUserId
   const orgOwner = await prisma.user.findFirst({
