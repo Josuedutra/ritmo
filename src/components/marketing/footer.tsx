@@ -16,11 +16,11 @@ export function Footer() {
           <Link href="/termos" className="transition-colors hover:text-black">
             Termos
           </Link>
+          <Link href="/partners" className="transition-colors hover:text-black">
+            Parceiros
+          </Link>
           <Link href="/cookies" className="transition-colors hover:text-black">
             Cookies
-          </Link>
-          <Link href="/suporte" className="transition-colors hover:text-black">
-            Suporte
           </Link>
           <a href="#" className="termly-display-preferences transition-colors hover:text-black">
             Preferências de Consentimento
