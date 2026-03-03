@@ -126,6 +126,8 @@ interface CloudflareEmailPayload {
   messageId?: string;
   from: string;
   to: string;
+  /** Original To: header from the email (the client, not the BCC address) */
+  originalTo?: string;
   subject?: string;
   bodyText?: string;
   bodyHtml?: string;
