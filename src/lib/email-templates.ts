@@ -63,6 +63,10 @@ function baseLayout(content: string): string {
                             </p>
                             <p style="margin: 8px 0 0 0; font-size: 12px; color: ${BRAND.textLight}; text-align: center;">
                                 <a href="${PUBLIC_APP_URL}" style="color: ${BRAND.primary}; text-decoration: none;">useritmo.pt</a>
+                                &nbsp;·&nbsp;
+                                <a href="${PUBLIC_APP_URL}/suporte" style="color: ${BRAND.primary}; text-decoration: none;">Suporte</a>
+                                &nbsp;·&nbsp;
+                                <a href="mailto:suporte@useritmo.pt" style="color: ${BRAND.primary}; text-decoration: none;">suporte@useritmo.pt</a>
                             </p>
                         </td>
                     </tr>

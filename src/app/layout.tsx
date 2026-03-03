@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { FeedbackModal } from "@/components/feedback";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Providers } from "@/components/providers";
+import { CrispWidget } from "@/components/crisp-widget";
 import "./globals.css";
 
 const inter = Inter({
@@ -59,6 +60,7 @@ export default function RootLayout({
                         {children}
                         <Toaster />
                         <FeedbackModal />
+                        <CrispWidget />
                     </ThemeProvider>
                 </Providers>
             </body>
