@@ -155,6 +155,6 @@ RESEND_API_KEY=re_...
 
 ---
 
-**Data do último review:** _______________
+**Data do último review:** ******\_\_\_******
 
-**Aprovado por:** _______________
+**Aprovado por:** ******\_\_\_******

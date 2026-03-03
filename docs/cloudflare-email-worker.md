@@ -42,7 +42,7 @@ WEBHOOK_URL = "https://app.useritmo.pt/api/inbound/cloudflare"
 ### 2.3 Create src/index.ts
 
 ```typescript
-import PostalMime from 'postal-mime';
+import PostalMime from "postal-mime";
 
 interface Env {
   WEBHOOK_URL: string;
@@ -56,23 +56,23 @@ async function sign(message: string, secret: string): Promise<string> {
   const messageData = encoder.encode(message);
 
   const key = await crypto.subtle.importKey(
-    'raw',
+    "raw",
     keyData,
-    { name: 'HMAC', hash: 'SHA-256' },
+    { name: "HMAC", hash: "SHA-256" },
     false,
-    ['sign']
+    ["sign"]
   );
 
-  const signature = await crypto.subtle.sign('HMAC', key, messageData);
+  const signature = await crypto.subtle.sign("HMAC", key, messageData);
   return Array.from(new Uint8Array(signature))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 // Convert ArrayBuffer to Base64
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
-  let binary = '';
+  let binary = "";
   for (let i = 0; i < bytes.byteLength; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
@@ -94,16 +94,17 @@ export default {
         messageId: email.messageId || null,
         from: message.from,
         to: message.to,
-        subject: email.subject || '',
-        bodyText: email.text || '',
-        bodyHtml: email.html || '',
+        subject: email.subject || "",
+        bodyText: email.text || "",
+        bodyHtml: email.html || "",
         timestamp,
-        attachments: email.attachments?.map(att => ({
-          filename: att.filename || 'attachment',
-          contentType: att.mimeType,
-          size: att.content.byteLength,
-          content: arrayBufferToBase64(att.content),
-        })) || [],
+        attachments:
+          email.attachments?.map((att) => ({
+            filename: att.filename || "attachment",
+            contentType: att.mimeType,
+            size: att.content.byteLength,
+            content: arrayBufferToBase64(att.content),
+          })) || [],
       };
 
       const body = JSON.stringify(payload);
@@ -113,11 +114,11 @@ export default {
 
       // Forward to webhook
       const response = await fetch(env.WEBHOOK_URL, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'X-Cloudflare-Signature': signature,
-          'X-Cloudflare-Timestamp': timestamp,
+          "Content-Type": "application/json",
+          "X-Cloudflare-Signature": signature,
+          "X-Cloudflare-Timestamp": timestamp,
         },
         body,
       });
@@ -128,7 +129,7 @@ export default {
         console.log(`Email processed: ${message.from} -> ${message.to}`);
       }
     } catch (error) {
-      console.error('Email processing error:', error);
+      console.error("Email processing error:", error);
       // Don't throw - we don't want Cloudflare to retry
     }
   },
@@ -203,6 +204,7 @@ npx wrangler deploy
 4. Save
 
 For BCC capture, you need a catch-all on the `inbound` subdomain:
+
 - Go to Email Routing → Routing Rules
 - Create rule for `*@inbound.useritmo.pt` → Send to Worker
 
@@ -225,16 +227,19 @@ Send a test email:
 ## Troubleshooting
 
 ### Email not received by Worker
+
 - Check Email Routing is enabled
 - Verify routing rule matches the address
 - Check Worker is deployed and selected as destination
 
 ### Worker errors
+
 - Check Workers logs in Cloudflare Dashboard
 - Verify INBOUND_SECRET is set correctly
 - Test webhook URL is accessible
 
 ### Webhook signature invalid
+
 - Ensure CLOUDFLARE_INBOUND_SECRET in Vercel matches INBOUND_SECRET in Worker
 - Check timestamp is not too old (>5 minutes)
 

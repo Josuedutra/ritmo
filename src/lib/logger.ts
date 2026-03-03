@@ -6,9 +6,9 @@ export type AppLogger = Logger;
 // pino's transport system at build time. Logs will be JSON in all environments.
 // For local dev, you can pipe output through pino-pretty: `pnpm dev | pnpm pino-pretty`
 export const logger = pino({
-    level: process.env.LOG_LEVEL || (process.env.NODE_ENV === "development" ? "debug" : "info"),
-    base: {
-        service: "ritmo",
-        env: process.env.NODE_ENV,
-    },
+  level: process.env.LOG_LEVEL || (process.env.NODE_ENV === "development" ? "debug" : "info"),
+  base: {
+    service: "ritmo",
+    env: process.env.NODE_ENV,
+  },
 });

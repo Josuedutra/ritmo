@@ -5,39 +5,39 @@ import Link from "next/link";
  * Links: Privacidade | Termos | Cookies | LinkedIn | Contacto
  */
 export function Footer() {
-    return (
-        <footer className="py-12 bg-white border-t border-zinc-100 text-center text-sm text-zinc-500">
-            <div className="container mx-auto">
-                <p>© 2026 Ritmo. Todos os direitos reservados.</p>
-                <div className="mt-6 flex flex-wrap justify-center gap-6 sm:gap-8">
-                    <Link href="/privacidade" className="hover:text-black transition-colors">
-                        Privacidade
-                    </Link>
-                    <Link href="/termos" className="hover:text-black transition-colors">
-                        Termos
-                    </Link>
-                    <Link href="/cookies" className="hover:text-black transition-colors">
-                        Cookies
-                    </Link>
-                    <Link href="/suporte" className="hover:text-black transition-colors">
-                        Suporte
-                    </Link>
-                    <a href="#" className="termly-display-preferences hover:text-black transition-colors">
-                        Preferências de Consentimento
-                    </a>
-                    <a
-                        href="https://linkedin.com/company/ritmo"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:text-black transition-colors"
-                    >
-                        LinkedIn
-                    </a>
-                    <a href="mailto:ritmo@useritmo.pt" className="hover:text-black transition-colors">
-                        Contacto
-                    </a>
-                </div>
-            </div>
-        </footer>
-    );
+  return (
+    <footer className="border-t border-zinc-100 bg-white py-12 text-center text-sm text-zinc-500">
+      <div className="container mx-auto">
+        <p>© 2026 Ritmo. Todos os direitos reservados.</p>
+        <div className="mt-6 flex flex-wrap justify-center gap-6 sm:gap-8">
+          <Link href="/privacidade" className="transition-colors hover:text-black">
+            Privacidade
+          </Link>
+          <Link href="/termos" className="transition-colors hover:text-black">
+            Termos
+          </Link>
+          <Link href="/cookies" className="transition-colors hover:text-black">
+            Cookies
+          </Link>
+          <Link href="/suporte" className="transition-colors hover:text-black">
+            Suporte
+          </Link>
+          <a href="#" className="termly-display-preferences transition-colors hover:text-black">
+            Preferências de Consentimento
+          </a>
+          <a
+            href="https://linkedin.com/company/ritmo"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="transition-colors hover:text-black"
+          >
+            LinkedIn
+          </a>
+          <a href="mailto:ritmo@useritmo.pt" className="transition-colors hover:text-black">
+            Contacto
+          </a>
+        </div>
+      </div>
+    </footer>
+  );
 }

@@ -19,138 +19,136 @@ import { logger } from "@/lib/logger";
 const log = logger.child({ route: "api/admin/seed" });
 
 export async function POST(request: NextRequest) {
-    // P0 Security: In production, this endpoint does not exist
-    if (process.env.NODE_ENV === "production") {
-        log.warn("Seed endpoint accessed in production - returning 404");
-        return new NextResponse(null, { status: 404 });
-    }
+  // P0 Security: In production, this endpoint does not exist
+  if (process.env.NODE_ENV === "production") {
+    log.warn("Seed endpoint accessed in production - returning 404");
+    return new NextResponse(null, { status: 404 });
+  }
 
-    // Development: Verify secret
-    const authHeader = request.headers.get("authorization");
-    const secret = process.env.ADMIN_SEED_SECRET;
+  // Development: Verify secret
+  const authHeader = request.headers.get("authorization");
+  const secret = process.env.ADMIN_SEED_SECRET;
 
-    if (!secret) {
-        log.error("ADMIN_SEED_SECRET not configured");
-        return NextResponse.json(
-            { error: "ADMIN_SEED_SECRET not configured" },
-            { status: 500 }
-        );
-    }
+  if (!secret) {
+    log.error("ADMIN_SEED_SECRET not configured");
+    return NextResponse.json({ error: "ADMIN_SEED_SECRET not configured" }, { status: 500 });
+  }
 
-    if (authHeader !== `Bearer ${secret}`) {
-        log.warn("Unauthorized seed attempt");
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  if (authHeader !== `Bearer ${secret}`) {
+    log.warn("Unauthorized seed attempt");
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-    log.info("Seed endpoint called (authorized - dev mode)");
+  log.info("Seed endpoint called (authorized - dev mode)");
 
-    try {
-        console.log("🌱 Seeding database...");
+  try {
+    console.log("🌱 Seeding database...");
 
-        // First, update any existing organizations missing shortId
-        await prisma.$executeRaw`
+    // First, update any existing organizations missing shortId
+    await prisma.$executeRaw`
             UPDATE organizations
             SET short_id = CONCAT('org_', gen_random_uuid()::text)
             WHERE short_id IS NULL
         `;
 
-        // Create demo organization with trial
-        const trialEndsAt = new Date();
-        trialEndsAt.setDate(trialEndsAt.getDate() + 14);
+    // Create demo organization with trial
+    const trialEndsAt = new Date();
+    trialEndsAt.setDate(trialEndsAt.getDate() + 14);
 
-        const org = await prisma.organization.upsert({
-            where: { slug: "demo" },
-            update: {},
-            create: {
-                name: "Demo Company",
-                slug: "demo",
-                timezone: "Europe/Lisbon",
-                valueThreshold: 1000,
-                sendWindowStart: "09:00",
-                sendWindowEnd: "18:00",
-                emailCooldownHours: 48,
-                bccAddress: "bcc+demo@inbound.ritmo.app",
-                trialEndsAt,
-                trialSentLimit: 20,
-                trialSentUsed: 0,
-                autoEmailEnabled: true,
-                bccInboundEnabled: true,
-            },
-        });
+    const org = await prisma.organization.upsert({
+      where: { slug: "demo" },
+      update: {},
+      create: {
+        name: "Demo Company",
+        slug: "demo",
+        timezone: "Europe/Lisbon",
+        valueThreshold: 1000,
+        sendWindowStart: "09:00",
+        sendWindowEnd: "18:00",
+        emailCooldownHours: 48,
+        bccAddress: "bcc+demo@inbound.ritmo.app",
+        trialEndsAt,
+        trialSentLimit: 20,
+        trialSentUsed: 0,
+        autoEmailEnabled: true,
+        bccInboundEnabled: true,
+      },
+    });
 
-        console.log(`✅ Organization: ${org.name} (${org.id})`);
+    console.log(`✅ Organization: ${org.name} (${org.id})`);
 
-        // Create admin user
-        const admin = await prisma.user.upsert({
-            where: {
-                organizationId_email: {
-                    organizationId: org.id,
-                    email: "admin@demo.ritmo.app",
-                },
-            },
-            update: {
-                passwordHash: "demo123",
-            },
-            create: {
+    // Create admin user
+    const admin = await prisma.user.upsert({
+      where: {
+        organizationId_email: {
+          organizationId: org.id,
+          email: "admin@demo.ritmo.app",
+        },
+      },
+      update: {
+        passwordHash: "demo123",
+      },
+      create: {
+        organizationId: org.id,
+        email: "admin@demo.ritmo.app",
+        name: "Admin Demo",
+        passwordHash: "demo123",
+        role: "admin",
+        emailVerified: new Date(),
+      },
+    });
+
+    console.log(`✅ Admin user: ${admin.email}`);
+
+    // Create subscription
+    await prisma.subscription.upsert({
+      where: { organizationId: org.id },
+      update: {},
+      create: {
+        organizationId: org.id,
+        planId: "free",
+        status: "active",
+        quotesLimit: 5,
+        currentPeriodStart: new Date(),
+        currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    console.log(`✅ Subscription created`);
+
+    // Create sample contact
+    const contact = await prisma.contact.upsert({
+      where: {
+        id:
+          (
+            await prisma.contact.findFirst({
+              where: {
                 organizationId: org.id,
-                email: "admin@demo.ritmo.app",
-                name: "Admin Demo",
-                passwordHash: "demo123",
-                role: "admin",
-                emailVerified: new Date(),
-            },
-        });
-
-        console.log(`✅ Admin user: ${admin.email}`);
-
-        // Create subscription
-        await prisma.subscription.upsert({
-            where: { organizationId: org.id },
-            update: {},
-            create: {
-                organizationId: org.id,
-                planId: "free",
-                status: "active",
-                quotesLimit: 5,
-                currentPeriodStart: new Date(),
-                currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-            },
-        });
-
-        console.log(`✅ Subscription created`);
-
-        // Create sample contact
-        const contact = await prisma.contact.upsert({
-            where: {
-                id: (
-                    await prisma.contact.findFirst({
-                        where: {
-                            organizationId: org.id,
-                            email: "joao.silva@techcorp.pt",
-                        },
-                        select: { id: true },
-                    })
-                )?.id ?? "00000000-0000-0000-0000-000000000000",
-            },
-            update: {},
-            create: {
-                organizationId: org.id,
-                name: "João Silva",
-                company: "TechCorp Lda",
                 email: "joao.silva@techcorp.pt",
-                phone: "+351 912 345 678",
-            },
-        });
+              },
+              select: { id: true },
+            })
+          )?.id ?? "00000000-0000-0000-0000-000000000000",
+      },
+      update: {},
+      create: {
+        organizationId: org.id,
+        name: "João Silva",
+        company: "TechCorp Lda",
+        email: "joao.silva@techcorp.pt",
+        phone: "+351 912 345 678",
+      },
+    });
 
-        console.log(`✅ Contact: ${contact.name}`);
+    console.log(`✅ Contact: ${contact.name}`);
 
-        // Create templates
-        const templates = [
-            {
-                code: "T2",
-                name: "Follow-up D+1",
-                subject: "Confirmação de receção - {{quote_title}}",
-                body: `Olá {{contact_name}},
+    // Create templates
+    const templates = [
+      {
+        code: "T2",
+        name: "Follow-up D+1",
+        subject: "Confirmação de receção - {{quote_title}}",
+        body: `Olá {{contact_name}},
 
 Espero que esteja bem.
 
@@ -161,12 +159,12 @@ Fico ao dispor para esclarecer qualquer questão.
 
 Com os melhores cumprimentos,
 {{user_name}}`,
-            },
-            {
-                code: "T3",
-                name: "Follow-up D+3",
-                subject: "Acompanhamento - {{quote_title}}",
-                body: `Olá {{contact_name}},
+      },
+      {
+        code: "T3",
+        name: "Follow-up D+3",
+        subject: "Acompanhamento - {{quote_title}}",
+        body: `Olá {{contact_name}},
 
 Volto a contactá-lo relativamente ao orçamento "{{quote_title}}" enviado há alguns dias.
 
@@ -176,12 +174,12 @@ Aguardo o seu feedback.
 
 Com os melhores cumprimentos,
 {{user_name}}`,
-            },
-            {
-                code: "T5",
-                name: "Fecho Suave D+14",
-                subject: "Última verificação - {{quote_title}}",
-                body: `Olá {{contact_name}},
+      },
+      {
+        code: "T5",
+        name: "Fecho Suave D+14",
+        subject: "Última verificação - {{quote_title}}",
+        body: `Olá {{contact_name}},
 
 Espero que esteja bem.
 
@@ -193,12 +191,12 @@ Caso ainda estejam a considerar, fico totalmente disponível para agendar uma co
 
 Com os melhores cumprimentos,
 {{user_name}}`,
-            },
-            {
-                code: "CALL_SCRIPT",
-                name: "Script Chamada D+7",
-                subject: null,
-                body: `📞 SCRIPT DE CHAMADA D+7
+      },
+      {
+        code: "CALL_SCRIPT",
+        name: "Script Chamada D+7",
+        subject: null,
+        body: `📞 SCRIPT DE CHAMADA D+7
 
 Cliente: {{contact_name}}
 Empresa: {{contact_company}}
@@ -220,61 +218,61 @@ Teve oportunidade de analisar? Há alguma questão que possa esclarecer?"
 - Se pedir mais tempo: agendar callback para data específica
 - Se mostrar interesse: avançar para negociação
 - Se recusar: agradecer e perguntar motivo (para melhoria)`,
-            },
-        ];
+      },
+    ];
 
-        for (const t of templates) {
-            await prisma.template.upsert({
-                where: {
-                    organizationId_code: {
-                        organizationId: org.id,
-                        code: t.code,
-                    },
-                },
-                update: {},
-                create: {
-                    organizationId: org.id,
-                    code: t.code,
-                    name: t.name,
-                    subject: t.subject,
-                    body: t.body,
-                    isActive: true,
-                },
-            });
-            console.log(`✅ Template: ${t.code}`);
-        }
-
-        console.log("🎉 Seed completed!");
-
-        return NextResponse.json({
-            success: true,
-            message: "Database seeded successfully",
-            data: {
-                organization: org.name,
-                user: admin.email,
-                templates: templates.length,
-            },
-            credentials: {
-                email: "admin@demo.ritmo.app",
-                password: "demo123",
-            },
-        });
-    } catch (error) {
-        console.error("❌ Seed failed:", error);
-        return NextResponse.json(
-            {
-                error: "Seed failed",
-                details: error instanceof Error ? error.message : "Unknown error",
-            },
-            { status: 500 }
-        );
+    for (const t of templates) {
+      await prisma.template.upsert({
+        where: {
+          organizationId_code: {
+            organizationId: org.id,
+            code: t.code,
+          },
+        },
+        update: {},
+        create: {
+          organizationId: org.id,
+          code: t.code,
+          name: t.name,
+          subject: t.subject,
+          body: t.body,
+          isActive: true,
+        },
+      });
+      console.log(`✅ Template: ${t.code}`);
     }
+
+    console.log("🎉 Seed completed!");
+
+    return NextResponse.json({
+      success: true,
+      message: "Database seeded successfully",
+      data: {
+        organization: org.name,
+        user: admin.email,
+        templates: templates.length,
+      },
+      credentials: {
+        email: "admin@demo.ritmo.app",
+        password: "demo123",
+      },
+    });
+  } catch (error) {
+    console.error("❌ Seed failed:", error);
+    return NextResponse.json(
+      {
+        error: "Seed failed",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
+  }
 }
 
 // Also block GET requests
 export async function GET() {
-    if (process.env.NODE_ENV === "production") {
-        return new NextResponse(null, { status: 404 });
-    }
-    return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
+  if (process.env.NODE_ENV === "production") {
+    return new NextResponse(null, { status: 404 });
+  }
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }

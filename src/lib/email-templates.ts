@@ -12,21 +12,21 @@ const EMAIL_ASSETS_URL = "https://useritmo.pt";
 
 // Brand colors
 const BRAND = {
-    primary: "#4F46E5", // Indigo
-    primaryLight: "#60A5FA", // Blue
-    accent: "#34D399", // Emerald
-    text: "#1F2937", // Gray 800
-    textLight: "#6B7280", // Gray 500
-    background: "#FFFFFF",
-    backgroundAlt: "#F9FAFB", // Gray 50
-    border: "#E5E7EB", // Gray 200
+  primary: "#4F46E5", // Indigo
+  primaryLight: "#60A5FA", // Blue
+  accent: "#34D399", // Emerald
+  text: "#1F2937", // Gray 800
+  textLight: "#6B7280", // Gray 500
+  background: "#FFFFFF",
+  backgroundAlt: "#F9FAFB", // Gray 50
+  border: "#E5E7EB", // Gray 200
 };
 
 /**
  * Base email layout wrapper
  */
 function baseLayout(content: string): string {
-    return `
+  return `
 <!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -83,7 +83,7 @@ function baseLayout(content: string): string {
  * Primary CTA button style
  */
 function ctaButton(href: string, text: string): string {
-    return `
+  return `
         <table role="presentation" cellspacing="0" cellpadding="0" style="margin: 24px 0;">
             <tr>
                 <td style="border-radius: 8px; background: linear-gradient(135deg, ${BRAND.primaryLight}, ${BRAND.accent});">
@@ -100,14 +100,14 @@ function ctaButton(href: string, text: string): string {
  * Password Reset Email Template
  */
 export function passwordResetEmail(params: {
-    userName?: string;
-    resetUrl: string;
-    expiryMinutes: number;
+  userName?: string;
+  resetUrl: string;
+  expiryMinutes: number;
 }): { html: string; text: string } {
-    const { userName, resetUrl, expiryMinutes } = params;
-    const greeting = userName ? `Olá ${userName},` : "Olá,";
+  const { userName, resetUrl, expiryMinutes } = params;
+  const greeting = userName ? `Olá ${userName},` : "Olá,";
 
-    const html = baseLayout(`
+  const html = baseLayout(`
         <h1 style="margin: 0 0 16px 0; font-size: 22px; font-weight: 600; color: ${BRAND.text};">
             Repor password
         </h1>
@@ -142,7 +142,7 @@ export function passwordResetEmail(params: {
         </p>
     `);
 
-    const text = `
+  const text = `
 ${greeting}
 
 Recebemos um pedido para repor a sua password no Ritmo.
@@ -156,20 +156,20 @@ Se não pediu para repor a password, ignore este email.
 — Equipa Ritmo
     `.trim();
 
-    return { html, text };
+  return { html, text };
 }
 
 /**
  * Welcome Email Template (for new signups)
  */
-export function welcomeEmail(params: {
-    userName?: string;
-    loginUrl?: string;
-}): { html: string; text: string } {
-    const { userName, loginUrl = `${PUBLIC_APP_URL}/login` } = params;
-    const greeting = userName ? `Olá ${userName},` : "Olá,";
+export function welcomeEmail(params: { userName?: string; loginUrl?: string }): {
+  html: string;
+  text: string;
+} {
+  const { userName, loginUrl = `${PUBLIC_APP_URL}/login` } = params;
+  const greeting = userName ? `Olá ${userName},` : "Olá,";
 
-    const html = baseLayout(`
+  const html = baseLayout(`
         <h1 style="margin: 0 0 16px 0; font-size: 22px; font-weight: 600; color: ${BRAND.text};">
             Bem-vindo ao Ritmo! 🎉
         </h1>
@@ -194,7 +194,7 @@ export function welcomeEmail(params: {
         </p>
     `);
 
-    const text = `
+  const text = `
 ${greeting}
 
 A sua conta foi criada com sucesso. Estamos entusiasmados por tê-lo connosco!
@@ -208,26 +208,26 @@ Se tiver alguma dúvida, responda a este email - estamos aqui para ajudar.
 — Equipa Ritmo
     `.trim();
 
-    return { html, text };
+  return { html, text };
 }
 
 /**
  * Generic Notification Email Template
  */
 export function notificationEmail(params: {
-    userName?: string;
-    title: string;
-    message: string;
-    ctaUrl?: string;
-    ctaText?: string;
+  userName?: string;
+  title: string;
+  message: string;
+  ctaUrl?: string;
+  ctaText?: string;
 }): { html: string; text: string } {
-    const { userName, title, message, ctaUrl, ctaText } = params;
-    const greeting = userName ? `Olá ${userName},` : "Olá,";
+  const { userName, title, message, ctaUrl, ctaText } = params;
+  const greeting = userName ? `Olá ${userName},` : "Olá,";
 
-    const ctaHtml = ctaUrl && ctaText ? ctaButton(ctaUrl, ctaText) : "";
-    const ctaTextContent = ctaUrl ? `\n\nAceda aqui: ${ctaUrl}` : "";
+  const ctaHtml = ctaUrl && ctaText ? ctaButton(ctaUrl, ctaText) : "";
+  const ctaTextContent = ctaUrl ? `\n\nAceda aqui: ${ctaUrl}` : "";
 
-    const html = baseLayout(`
+  const html = baseLayout(`
         <h1 style="margin: 0 0 16px 0; font-size: 22px; font-weight: 600; color: ${BRAND.text};">
             ${title}
         </h1>
@@ -245,7 +245,7 @@ export function notificationEmail(params: {
         </p>
     `);
 
-    const text = `
+  const text = `
 ${greeting}
 
 ${message}${ctaTextContent}
@@ -253,5 +253,5 @@ ${message}${ctaTextContent}
 — Equipa Ritmo
     `.trim();
 
-    return { html, text };
+  return { html, text };
 }

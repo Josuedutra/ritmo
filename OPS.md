@@ -65,6 +65,7 @@ Sentry is configured with PII scrubbing to protect user data:
 ### Usage
 
 Sentry automatically captures:
+
 - Unhandled exceptions
 - Unhandled promise rejections
 - Console errors (in production)
@@ -75,12 +76,12 @@ To manually capture errors:
 import * as Sentry from "@sentry/nextjs";
 
 try {
-    // risky operation
+  // risky operation
 } catch (error) {
-    Sentry.captureException(error, {
-        tags: { feature: "billing" },
-        extra: { userId: "..." },
-    });
+  Sentry.captureException(error, {
+    tags: { feature: "billing" },
+    extra: { userId: "..." },
+  });
 }
 ```
 
@@ -92,20 +93,20 @@ Use the helper functions to set Sentry context with request ID correlation:
 import { setSentryRequestContext, captureError } from "@/lib/observability/sentry-context";
 
 export async function POST(request: NextRequest) {
-    // Set request context at the start of the handler
-    setSentryRequestContext(request);
+  // Set request context at the start of the handler
+  setSentryRequestContext(request);
 
-    try {
-        // ... handler logic
-    } catch (error) {
-        // Capture with context
-        captureError(error, {
-            requestId: await getRequestId(),
-            organizationId: session.user.organizationId,
-            extra: { quoteId: "..." },
-        });
-        throw error;
-    }
+  try {
+    // ... handler logic
+  } catch (error) {
+    // Capture with context
+    captureError(error, {
+      requestId: await getRequestId(),
+      organizationId: session.user.organizationId,
+      extra: { quoteId: "..." },
+    });
+    throw error;
+  }
 }
 ```
 
@@ -119,12 +120,13 @@ curl https://app.useritmo.pt/api/admin/sentry-test
 ```
 
 Response:
+
 ```json
 {
-    "ok": true,
-    "requestId": "rid_xxx",
-    "sentryEventId": "abc123...",
-    "message": "Test event sent to Sentry. Check your Sentry dashboard."
+  "ok": true,
+  "requestId": "rid_xxx",
+  "sentryEventId": "abc123...",
+  "message": "Test event sent to Sentry. Check your Sentry dashboard."
 }
 ```
 
@@ -133,6 +135,7 @@ Response:
 ## Request ID Correlation
 
 Every request gets a unique `x-request-id` header for correlation across:
+
 - Application logs (pino)
 - Sentry events
 - Response headers
@@ -149,11 +152,11 @@ Every request gets a unique `x-request-id` header for correlation across:
 import { getRequestId, setRequestIdOnSentry } from "@/lib/observability/request-id";
 
 export async function GET(request: NextRequest) {
-    const requestId = await getRequestId();
-    setRequestIdOnSentry(requestId);
+  const requestId = await getRequestId();
+  setRequestIdOnSentry(requestId);
 
-    // Use in logs
-    log.info({ requestId }, "Processing request");
+  // Use in logs
+  log.info({ requestId }, "Processing request");
 }
 ```
 
@@ -172,17 +175,18 @@ curl -H "x-ops-token: $OPS_TOKEN" https://app.useritmo.pt/api/ops/metrics
 ```
 
 Response:
+
 ```json
 {
-    "healthy": true,
-    "requestId": "rid_xxx",
-    "timestamp": "2024-01-15T10:00:00Z",
-    "alerts": [],
-    "metrics": {
-        "inbound": { "total24h": 100, "rejectionRate": 5 },
-        "stripe": { "total24h": 50, "failed24h": 0 },
-        "cron": { "pendingPurge": 10, "isStale": false }
-    }
+  "healthy": true,
+  "requestId": "rid_xxx",
+  "timestamp": "2024-01-15T10:00:00Z",
+  "alerts": [],
+  "metrics": {
+    "inbound": { "total24h": 100, "rejectionRate": 5 },
+    "stripe": { "total24h": 50, "failed24h": 0 },
+    "cron": { "pendingPurge": 10, "isStale": false }
+  }
 }
 ```
 
@@ -233,6 +237,7 @@ Go to Actions > Uptime Monitor > Run workflow
 Subject: `⚠️ Ritmo: Health check failed`
 
 Body includes:
+
 - Active alerts with codes and messages
 - Full metrics response
 - Timestamp and workflow ID
@@ -262,12 +267,12 @@ Access at `/admin/ops` (requires ADMIN_EMAILS).
 
 ## Alert Thresholds
 
-| Alert Code | Condition | Action |
-|------------|-----------|--------|
-| `INBOUND_REJECTION_HIGH` | Rejection rate > 25% (min 5 events) | Check Mailgun signature, quota |
-| `STRIPE_FAILURES` | Any failed webhook | Check Stripe logs, webhook secret |
-| `CRON_BACKLOG` | Pending purge > 1000 | Check cron job, run manually |
-| `CRON_STALE` | No purge in 48h + pending > 0 | Check Vercel cron, CRON_SECRET |
+| Alert Code               | Condition                           | Action                            |
+| ------------------------ | ----------------------------------- | --------------------------------- |
+| `INBOUND_REJECTION_HIGH` | Rejection rate > 25% (min 5 events) | Check Mailgun signature, quota    |
+| `STRIPE_FAILURES`        | Any failed webhook                  | Check Stripe logs, webhook secret |
+| `CRON_BACKLOG`           | Pending purge > 1000                | Check cron job, run manually      |
+| `CRON_STALE`             | No purge in 48h + pending > 0       | Check Vercel cron, CRON_SECRET    |
 
 ---
 

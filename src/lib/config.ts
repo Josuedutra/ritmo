@@ -31,5 +31,5 @@ export const INBOUND_DOMAIN = process.env.INBOUND_DOMAIN || "inbound.useritmo.pt
 /**
  * Default email sender
  */
-export const DEFAULT_EMAIL_FROM = process.env.RESEND_FROM || process.env.EMAIL_FROM || "Ritmo <noreply@useritmo.pt>";
-
+export const DEFAULT_EMAIL_FROM =
+  process.env.RESEND_FROM || process.env.EMAIL_FROM || "Ritmo <noreply@useritmo.pt>";

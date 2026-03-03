@@ -10,61 +10,58 @@ import { logger } from "@/lib/logger";
  * Requires admin role.
  */
 export async function PUT(request: NextRequest) {
-    const log = logger.child({ endpoint: "settings/organization" });
+  const log = logger.child({ endpoint: "settings/organization" });
 
-    try {
-        const session = await getApiSession();
-        if (!session) {
-            return unauthorized();
-        }
-
-        // Check admin role
-        if (session.user.role !== "admin") {
-            return NextResponse.json(
-                { error: "Apenas administradores podem alterar configurações" },
-                { status: 403 }
-            );
-        }
-
-        const body = await request.json();
-        const { timezone, sendWindowStart, sendWindowEnd, sector } = body;
-
-        // Basic validation
-        if (!timezone) {
-            return NextResponse.json(
-                { error: "Fuso horário obrigatório" },
-                { status: 400 }
-            );
-        }
-
-        if (sendWindowStart < 0 || sendWindowStart > 23 || sendWindowEnd < 0 || sendWindowEnd > 23) {
-            return NextResponse.json(
-                { error: "Janela de envio inválida (0-23)" },
-                { status: 400 }
-            );
-        }
-
-        const startHour = parseInt(sendWindowStart);
-        const endHour = parseInt(sendWindowEnd);
-
-        // Validate sector if provided
-        const validSectors = ["AVAC", "MAINTENANCE", "IT", "FACILITIES", "OTHER"];
-        const sectorValue = sector && validSectors.includes(sector) ? sector : undefined;
-
-        await prisma.organization.update({
-            where: { id: session.user.organizationId },
-            data: {
-                timezone,
-                sendWindowStart: `${String(startHour).padStart(2, '0')}:00`,
-                sendWindowEnd: `${String(endHour).padStart(2, '0')}:00`,
-                ...(sectorValue && { sector: sectorValue }),
-            },
-        });
-
-        log.info({ organizationId: session.user.organizationId, timezone }, "Organization settings updated");
-
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        return serverError(error, "PUT /api/settings/organization");
+  try {
+    const session = await getApiSession();
+    if (!session) {
+      return unauthorized();
     }
+
+    // Check admin role
+    if (session.user.role !== "admin") {
+      return NextResponse.json(
+        { error: "Apenas administradores podem alterar configurações" },
+        { status: 403 }
+      );
+    }
+
+    const body = await request.json();
+    const { timezone, sendWindowStart, sendWindowEnd, sector } = body;
+
+    // Basic validation
+    if (!timezone) {
+      return NextResponse.json({ error: "Fuso horário obrigatório" }, { status: 400 });
+    }
+
+    if (sendWindowStart < 0 || sendWindowStart > 23 || sendWindowEnd < 0 || sendWindowEnd > 23) {
+      return NextResponse.json({ error: "Janela de envio inválida (0-23)" }, { status: 400 });
+    }
+
+    const startHour = parseInt(sendWindowStart);
+    const endHour = parseInt(sendWindowEnd);
+
+    // Validate sector if provided
+    const validSectors = ["AVAC", "MAINTENANCE", "IT", "FACILITIES", "OTHER"];
+    const sectorValue = sector && validSectors.includes(sector) ? sector : undefined;
+
+    await prisma.organization.update({
+      where: { id: session.user.organizationId },
+      data: {
+        timezone,
+        sendWindowStart: `${String(startHour).padStart(2, "0")}:00`,
+        sendWindowEnd: `${String(endHour).padStart(2, "0")}:00`,
+        ...(sectorValue && { sector: sectorValue }),
+      },
+    });
+
+    log.info(
+      { organizationId: session.user.organizationId, timezone },
+      "Organization settings updated"
+    );
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return serverError(error, "PUT /api/settings/organization");
+  }
 }

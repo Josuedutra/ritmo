@@ -8,14 +8,15 @@
 import { createHmac, timingSafeEqual, randomBytes, createCipheriv, createDecipheriv } from "crypto";
 
 // Secret key for signing tokens - MUST be set in production
-const TOKEN_SECRET = process.env.TOKEN_SECRET || process.env.NEXTAUTH_SECRET || "dev-secret-change-in-production";
+const TOKEN_SECRET =
+  process.env.TOKEN_SECRET || process.env.NEXTAUTH_SECRET || "dev-secret-change-in-production";
 
 // Token expiration (7 days for unsubscribe links)
 const DEFAULT_EXPIRY_DAYS = 7;
 
 interface TokenPayload {
-    data: string;
-    exp: number; // Unix timestamp
+  data: string;
+  exp: number; // Unix timestamp
 }
 
 /**
@@ -23,19 +24,14 @@ interface TokenPayload {
  *
  * Format: base64url(payload).base64url(signature)
  */
-export function createSignedToken(
-    data: string,
-    expiryDays: number = DEFAULT_EXPIRY_DAYS
-): string {
-    const exp = Math.floor(Date.now() / 1000) + expiryDays * 24 * 60 * 60;
-    const payload: TokenPayload = { data, exp };
+export function createSignedToken(data: string, expiryDays: number = DEFAULT_EXPIRY_DAYS): string {
+  const exp = Math.floor(Date.now() / 1000) + expiryDays * 24 * 60 * 60;
+  const payload: TokenPayload = { data, exp };
 
-    const payloadStr = Buffer.from(JSON.stringify(payload)).toString("base64url");
-    const signature = createHmac("sha256", TOKEN_SECRET)
-        .update(payloadStr)
-        .digest("base64url");
+  const payloadStr = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const signature = createHmac("sha256", TOKEN_SECRET).update(payloadStr).digest("base64url");
 
-    return `${payloadStr}.${signature}`;
+  return `${payloadStr}.${signature}`;
 }
 
 /**
@@ -44,71 +40,73 @@ export function createSignedToken(
  * Returns the data if valid, null if invalid or expired
  */
 export function verifySignedToken(token: string): string | null {
-    try {
-        const parts = token.split(".");
-        if (parts.length !== 2) {
-            return null;
-        }
-
-        const [payloadStr, providedSignature] = parts;
-
-        // Verify signature
-        const expectedSignature = createHmac("sha256", TOKEN_SECRET)
-            .update(payloadStr)
-            .digest("base64url");
-
-        // Use timing-safe comparison to prevent timing attacks
-        const sigBuffer = Buffer.from(providedSignature, "base64url");
-        const expectedBuffer = Buffer.from(expectedSignature, "base64url");
-
-        if (sigBuffer.length !== expectedBuffer.length) {
-            return null;
-        }
-
-        if (!timingSafeEqual(sigBuffer, expectedBuffer)) {
-            return null;
-        }
-
-        // Decode payload
-        const payload: TokenPayload = JSON.parse(
-            Buffer.from(payloadStr, "base64url").toString("utf-8")
-        );
-
-        // Check expiration
-        const now = Math.floor(Date.now() / 1000);
-        if (payload.exp < now) {
-            return null; // Token expired
-        }
-
-        return payload.data;
-    } catch {
-        return null;
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 2) {
+      return null;
     }
+
+    const [payloadStr, providedSignature] = parts;
+
+    // Verify signature
+    const expectedSignature = createHmac("sha256", TOKEN_SECRET)
+      .update(payloadStr)
+      .digest("base64url");
+
+    // Use timing-safe comparison to prevent timing attacks
+    const sigBuffer = Buffer.from(providedSignature, "base64url");
+    const expectedBuffer = Buffer.from(expectedSignature, "base64url");
+
+    if (sigBuffer.length !== expectedBuffer.length) {
+      return null;
+    }
+
+    if (!timingSafeEqual(sigBuffer, expectedBuffer)) {
+      return null;
+    }
+
+    // Decode payload
+    const payload: TokenPayload = JSON.parse(
+      Buffer.from(payloadStr, "base64url").toString("utf-8")
+    );
+
+    // Check expiration
+    const now = Math.floor(Date.now() / 1000);
+    if (payload.exp < now) {
+      return null; // Token expired
+    }
+
+    return payload.data;
+  } catch {
+    return null;
+  }
 }
 
 /**
  * Create an unsubscribe token
  */
 export function createUnsubscribeToken(organizationId: string, email: string): string {
-    const data = `${organizationId}:${email.toLowerCase()}`;
-    return createSignedToken(data, 30); // 30 days for unsubscribe
+  const data = `${organizationId}:${email.toLowerCase()}`;
+  return createSignedToken(data, 30); // 30 days for unsubscribe
 }
 
 /**
  * Verify and parse an unsubscribe token
  */
-export function verifyUnsubscribeToken(token: string): { organizationId: string; email: string } | null {
-    const data = verifySignedToken(token);
-    if (!data) {
-        return null;
-    }
+export function verifyUnsubscribeToken(
+  token: string
+): { organizationId: string; email: string } | null {
+  const data = verifySignedToken(token);
+  if (!data) {
+    return null;
+  }
 
-    const [organizationId, email] = data.split(":");
-    if (!organizationId || !email) {
-        return null;
-    }
+  const [organizationId, email] = data.split(":");
+  if (!organizationId || !email) {
+    return null;
+  }
 
-    return { organizationId, email };
+  return { organizationId, email };
 }
 
 // =============================================================================
@@ -116,13 +114,15 @@ export function verifyUnsubscribeToken(token: string): { organizationId: string;
 // =============================================================================
 
 // Separate secret for credential encryption
-const ENCRYPTION_SECRET = process.env.ENCRYPTION_SECRET || process.env.TOKEN_SECRET || process.env.NEXTAUTH_SECRET || "dev-secret-change-in-production";
+const ENCRYPTION_SECRET =
+  process.env.ENCRYPTION_SECRET ||
+  process.env.TOKEN_SECRET ||
+  process.env.NEXTAUTH_SECRET ||
+  "dev-secret-change-in-production";
 
 // Derive a 32-byte key from the secret
 function getEncryptionKey(): Buffer {
-    return createHmac("sha256", "ritmo-credential-key")
-        .update(ENCRYPTION_SECRET)
-        .digest();
+  return createHmac("sha256", "ritmo-credential-key").update(ENCRYPTION_SECRET).digest();
 }
 
 /**
@@ -134,19 +134,16 @@ function getEncryptionKey(): Buffer {
  * - Ciphertext: variable length
  */
 export function encryptCredential(plaintext: string): string {
-    const key = getEncryptionKey();
-    const iv = randomBytes(12); // GCM standard IV size
+  const key = getEncryptionKey();
+  const iv = randomBytes(12); // GCM standard IV size
 
-    const cipher = createCipheriv("aes-256-gcm", key, iv);
-    const encrypted = Buffer.concat([
-        cipher.update(plaintext, "utf8"),
-        cipher.final()
-    ]);
-    const authTag = cipher.getAuthTag();
+  const cipher = createCipheriv("aes-256-gcm", key, iv);
+  const encrypted = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
+  const authTag = cipher.getAuthTag();
 
-    // Combine: iv (12) + authTag (16) + ciphertext
-    const combined = Buffer.concat([iv, authTag, encrypted]);
-    return combined.toString("base64");
+  // Combine: iv (12) + authTag (16) + ciphertext
+  const combined = Buffer.concat([iv, authTag, encrypted]);
+  return combined.toString("base64");
 }
 
 /**
@@ -155,27 +152,24 @@ export function encryptCredential(plaintext: string): string {
  * Returns null if decryption fails (invalid key, tampered data, etc.)
  */
 export function decryptCredential(encrypted: string): string | null {
-    try {
-        const key = getEncryptionKey();
-        const combined = Buffer.from(encrypted, "base64");
+  try {
+    const key = getEncryptionKey();
+    const combined = Buffer.from(encrypted, "base64");
 
-        // Extract parts
-        const iv = combined.subarray(0, 12);
-        const authTag = combined.subarray(12, 28);
-        const ciphertext = combined.subarray(28);
+    // Extract parts
+    const iv = combined.subarray(0, 12);
+    const authTag = combined.subarray(12, 28);
+    const ciphertext = combined.subarray(28);
 
-        const decipher = createDecipheriv("aes-256-gcm", key, iv);
-        decipher.setAuthTag(authTag);
+    const decipher = createDecipheriv("aes-256-gcm", key, iv);
+    decipher.setAuthTag(authTag);
 
-        const decrypted = Buffer.concat([
-            decipher.update(ciphertext),
-            decipher.final()
-        ]);
+    const decrypted = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
 
-        return decrypted.toString("utf8");
-    } catch {
-        return null;
-    }
+    return decrypted.toString("utf8");
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -185,14 +179,14 @@ export function decryptCredential(encrypted: string): string | null {
  * Minimum length: 12 (iv) + 16 (tag) + 1 (data) = 29 bytes = ~40 base64 chars
  */
 export function isEncrypted(value: string): boolean {
-    try {
-        const decoded = Buffer.from(value, "base64");
-        // Must be at least 29 bytes (iv + authTag + 1 byte data)
-        // And likely contains binary data (not valid UTF-8 for first 28 bytes)
-        return decoded.length >= 29;
-    } catch {
-        return false;
-    }
+  try {
+    const decoded = Buffer.from(value, "base64");
+    // Must be at least 29 bytes (iv + authTag + 1 byte data)
+    // And likely contains binary data (not valid UTF-8 for first 28 bytes)
+    return decoded.length >= 29;
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -201,12 +195,12 @@ export function isEncrypted(value: string): boolean {
  * This allows gradual migration from base64 to encrypted credentials
  */
 export function decryptCredentialWithFallback(value: string): string {
-    // Try AES decryption first
-    const decrypted = decryptCredential(value);
-    if (decrypted !== null) {
-        return decrypted;
-    }
+  // Try AES decryption first
+  const decrypted = decryptCredential(value);
+  if (decrypted !== null) {
+    return decrypted;
+  }
 
-    // Fallback to legacy base64 (for migration)
-    return Buffer.from(value, "base64").toString("utf-8");
+  // Fallback to legacy base64 (for migration)
+  return Buffer.from(value, "base64").toString("utf-8");
 }

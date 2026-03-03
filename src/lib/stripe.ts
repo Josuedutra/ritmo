@@ -5,16 +5,16 @@ import { prisma } from "@/lib/prisma";
 let _stripe: Stripe | null = null;
 
 function getStripe(): Stripe | null {
-    if (!process.env.STRIPE_SECRET_KEY) {
-        return null;
-    }
-    if (!_stripe) {
-        _stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-            apiVersion: "2025-02-24.acacia",
-            typescript: true,
-        });
-    }
-    return _stripe;
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return null;
+  }
+  if (!_stripe) {
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2025-02-24.acacia",
+      typescript: true,
+    });
+  }
+  return _stripe;
 }
 
 /**
@@ -24,35 +24,35 @@ function getStripe(): Stripe | null {
  * This prevents "phantom plans" appearing when DB is down.
  */
 export const PLANS_FALLBACK = {
-    free: {
-        id: "free",
-        name: "Gratuito",
-        quotesLimit: 5,
-        maxUsers: 1,
-        priceMonthly: 0,
-        stripePriceId: null,
-        isPublic: true,
-    },
-    starter: {
-        id: "starter",
-        name: "Starter",
-        quotesLimit: 80,
-        maxUsers: 2,
-        priceMonthly: 3900,
-        stripePriceId: process.env.STRIPE_PRICE_STARTER,
-        isPublic: true,
-    },
-    pro: {
-        id: "pro",
-        name: "Pro",
-        quotesLimit: 250,
-        maxUsers: 5,
-        priceMonthly: 9900,
-        stripePriceId: process.env.STRIPE_PRICE_PRO,
-        isPublic: true,
-    },
-    // NOTE: pro_plus and enterprise are intentionally NOT included here.
-    // They must only exist in the database to prevent phantom plan issues.
+  free: {
+    id: "free",
+    name: "Gratuito",
+    quotesLimit: 5,
+    maxUsers: 1,
+    priceMonthly: 0,
+    stripePriceId: null,
+    isPublic: true,
+  },
+  starter: {
+    id: "starter",
+    name: "Starter",
+    quotesLimit: 80,
+    maxUsers: 2,
+    priceMonthly: 3900,
+    stripePriceId: process.env.STRIPE_PRICE_STARTER,
+    isPublic: true,
+  },
+  pro: {
+    id: "pro",
+    name: "Pro",
+    quotesLimit: 250,
+    maxUsers: 5,
+    priceMonthly: 9900,
+    stripePriceId: process.env.STRIPE_PRICE_PRO,
+    isPublic: true,
+  },
+  // NOTE: pro_plus and enterprise are intentionally NOT included here.
+  // They must only exist in the database to prevent phantom plan issues.
 } as const;
 
 // Legacy alias for backwards compatibility
@@ -66,36 +66,36 @@ export type PlanId = keyof typeof PLANS_FALLBACK;
  * Hidden plans (pro_plus, enterprise) can ONLY come from DB.
  */
 export async function getPlanById(planId: string) {
-    try {
-        const plan = await prisma.plan.findUnique({
-            where: { id: planId },
-        });
-        if (plan) {
-            return {
-                id: plan.id,
-                name: plan.name,
-                quotesLimit: plan.monthlyQuoteLimit,
-                priceMonthly: plan.priceMonthly,
-                stripePriceId: plan.stripePriceId,
-                isPublic: plan.isPublic,
-                maxUsers: plan.maxUsers,
-            };
-        }
-        // Plan not found in DB - only allow fallback for public plans
-        const fallback = PLANS_FALLBACK[planId as PlanId];
-        if (fallback && fallback.isPublic) {
-            return fallback;
-        }
-        // Hidden plan not in DB = doesn't exist
-        return null;
-    } catch {
-        // DB not available, use fallback ONLY for public plans
-        const fallback = PLANS_FALLBACK[planId as PlanId];
-        if (fallback && fallback.isPublic) {
-            return fallback;
-        }
-        return null;
+  try {
+    const plan = await prisma.plan.findUnique({
+      where: { id: planId },
+    });
+    if (plan) {
+      return {
+        id: plan.id,
+        name: plan.name,
+        quotesLimit: plan.monthlyQuoteLimit,
+        priceMonthly: plan.priceMonthly,
+        stripePriceId: plan.stripePriceId,
+        isPublic: plan.isPublic,
+        maxUsers: plan.maxUsers,
+      };
     }
+    // Plan not found in DB - only allow fallback for public plans
+    const fallback = PLANS_FALLBACK[planId as PlanId];
+    if (fallback && fallback.isPublic) {
+      return fallback;
+    }
+    // Hidden plan not in DB = doesn't exist
+    return null;
+  } catch {
+    // DB not available, use fallback ONLY for public plans
+    const fallback = PLANS_FALLBACK[planId as PlanId];
+    if (fallback && fallback.isPublic) {
+      return fallback;
+    }
+    return null;
+  }
 }
 
 /**
@@ -104,32 +104,32 @@ export async function getPlanById(planId: string) {
  * DB is the primary source; fallback only used if DB unavailable.
  */
 export async function getActivePlans() {
-    try {
-        const plans = await prisma.plan.findMany({
-            where: {
-                isActive: true,
-                isPublic: true, // Only public plans
-            },
-            orderBy: { priceMonthly: "asc" },
-        });
-        // If DB has plans, always use them
-        if (plans.length > 0) {
-            return plans.map((plan) => ({
-                id: plan.id,
-                name: plan.name,
-                quotesLimit: plan.monthlyQuoteLimit,
-                priceMonthly: plan.priceMonthly,
-                stripePriceId: plan.stripePriceId,
-                isPublic: plan.isPublic,
-                maxUsers: plan.maxUsers,
-            }));
-        }
-        // DB empty (unlikely in production) - use fallback public plans
-        return Object.values(PLANS_FALLBACK);
-    } catch {
-        // DB not available, use fallback (only public plans, already filtered)
-        return Object.values(PLANS_FALLBACK);
+  try {
+    const plans = await prisma.plan.findMany({
+      where: {
+        isActive: true,
+        isPublic: true, // Only public plans
+      },
+      orderBy: { priceMonthly: "asc" },
+    });
+    // If DB has plans, always use them
+    if (plans.length > 0) {
+      return plans.map((plan) => ({
+        id: plan.id,
+        name: plan.name,
+        quotesLimit: plan.monthlyQuoteLimit,
+        priceMonthly: plan.priceMonthly,
+        stripePriceId: plan.stripePriceId,
+        isPublic: plan.isPublic,
+        maxUsers: plan.maxUsers,
+      }));
     }
+    // DB empty (unlikely in production) - use fallback public plans
+    return Object.values(PLANS_FALLBACK);
+  } catch {
+    // DB not available, use fallback (only public plans, already filtered)
+    return Object.values(PLANS_FALLBACK);
+  }
 }
 
 /**
@@ -139,46 +139,47 @@ export async function getActivePlans() {
  * This ensures hidden plans can only exist if properly seeded in DB.
  */
 export async function getAllPlansForAdmin(): Promise<{
-    plans: Array<{
-        id: string;
-        name: string;
-        quotesLimit: number;
-        priceMonthly: number;
-        maxUsers: number;
-        stripePriceId: string | null;
-        isPublic: boolean;
-    }>;
-    dbAvailable: boolean;
+  plans: Array<{
+    id: string;
+    name: string;
+    quotesLimit: number;
+    priceMonthly: number;
+    maxUsers: number;
+    stripePriceId: string | null;
+    isPublic: boolean;
+  }>;
+  dbAvailable: boolean;
 }> {
-    try {
-        const plans = await prisma.plan.findMany({
-            where: { isActive: true },
-            orderBy: { priceMonthly: "asc" },
-        });
-        return {
-            plans: plans.map((plan) => ({
-                id: plan.id,
-                name: plan.name,
-                quotesLimit: plan.monthlyQuoteLimit,
-                priceMonthly: plan.priceMonthly,
-                maxUsers: plan.maxUsers,
-                stripePriceId: plan.stripePriceId,
-                isPublic: plan.isPublic,
-            })),
-            dbAvailable: true,
-        };
-    } catch (error) {
-        // DB not available - return empty array, no fallback for admin view
-        // This prevents phantom hidden plans from appearing
-        // Log for visibility (no PII)
-        console.error("[DB_UNAVAILABLE_ADMIN_PLANS] Failed to fetch plans from database:",
-            error instanceof Error ? error.message : "Unknown error"
-        );
-        return {
-            plans: [],
-            dbAvailable: false,
-        };
-    }
+  try {
+    const plans = await prisma.plan.findMany({
+      where: { isActive: true },
+      orderBy: { priceMonthly: "asc" },
+    });
+    return {
+      plans: plans.map((plan) => ({
+        id: plan.id,
+        name: plan.name,
+        quotesLimit: plan.monthlyQuoteLimit,
+        priceMonthly: plan.priceMonthly,
+        maxUsers: plan.maxUsers,
+        stripePriceId: plan.stripePriceId,
+        isPublic: plan.isPublic,
+      })),
+      dbAvailable: true,
+    };
+  } catch (error) {
+    // DB not available - return empty array, no fallback for admin view
+    // This prevents phantom hidden plans from appearing
+    // Log for visibility (no PII)
+    console.error(
+      "[DB_UNAVAILABLE_ADMIN_PLANS] Failed to fetch plans from database:",
+      error instanceof Error ? error.message : "Unknown error"
+    );
+    return {
+      plans: [],
+      dbAvailable: false,
+    };
+  }
 }
 
 /**
@@ -186,18 +187,18 @@ export async function getAllPlansForAdmin(): Promise<{
  * Only checks DB - hidden plans must exist in DB to be recognized.
  */
 export async function isPlanPublic(planId: string): Promise<boolean> {
-    try {
-        const plan = await prisma.plan.findUnique({
-            where: { id: planId },
-            select: { isPublic: true },
-        });
-        return plan?.isPublic ?? false;
-    } catch {
-        // Fallback - only public plans in fallback, so check there
-        const fallback = PLANS_FALLBACK[planId as PlanId];
-        // Only return true if it's a known public fallback plan
-        return fallback?.isPublic ?? false;
-    }
+  try {
+    const plan = await prisma.plan.findUnique({
+      where: { id: planId },
+      select: { isPublic: true },
+    });
+    return plan?.isPublic ?? false;
+  } catch {
+    // Fallback - only public plans in fallback, so check there
+    const fallback = PLANS_FALLBACK[planId as PlanId];
+    // Only return true if it's a known public fallback plan
+    return fallback?.isPublic ?? false;
+  }
 }
 
 /**
@@ -205,87 +206,87 @@ export async function isPlanPublic(planId: string): Promise<boolean> {
  * Used for validation before admin operations.
  */
 export async function planExistsInDb(planId: string): Promise<boolean> {
-    try {
-        const plan = await prisma.plan.findUnique({
-            where: { id: planId },
-            select: { id: true },
-        });
-        return plan !== null;
-    } catch {
-        return false;
-    }
+  try {
+    const plan = await prisma.plan.findUnique({
+      where: { id: planId },
+      select: { id: true },
+    });
+    return plan !== null;
+  } catch {
+    return false;
+  }
 }
 
 /**
  * Create Stripe Checkout session for subscription
  */
 export async function createCheckoutSession(
-    organizationId: string,
-    planId: string,
-    successUrl: string,
-    cancelUrl: string
+  organizationId: string,
+  planId: string,
+  successUrl: string,
+  cancelUrl: string
 ): Promise<{ url: string | null; error?: string }> {
-    const plan = await getPlanById(planId);
+  const plan = await getPlanById(planId);
 
-    if (!plan) {
-        return { url: null, error: "Plan not found" };
-    }
+  if (!plan) {
+    return { url: null, error: "Plan not found" };
+  }
 
-    if (!plan.stripePriceId) {
-        return { url: null, error: "Plan has no Stripe price" };
-    }
+  if (!plan.stripePriceId) {
+    return { url: null, error: "Plan has no Stripe price" };
+  }
 
-    const stripe = getStripe();
-    if (!stripe) {
-        return { url: null, error: "Stripe not configured" };
-    }
+  const stripe = getStripe();
+  if (!stripe) {
+    return { url: null, error: "Stripe not configured" };
+  }
 
-    try {
-        const session = await stripe.checkout.sessions.create({
-            mode: "subscription",
-            payment_method_types: ["card"],
-            line_items: [
-                {
-                    price: plan.stripePriceId,
-                    quantity: 1,
-                },
-            ],
-            success_url: successUrl,
-            cancel_url: cancelUrl,
-            metadata: {
-                organizationId,
-                planId,
-            },
-        });
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price: plan.stripePriceId,
+          quantity: 1,
+        },
+      ],
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      metadata: {
+        organizationId,
+        planId,
+      },
+    });
 
-        return { url: session.url };
-    } catch (error) {
-        const message = error instanceof Error ? error.message : "Unknown error";
-        return { url: null, error: message };
-    }
+    return { url: session.url };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return { url: null, error: message };
+  }
 }
 
 /**
  * Create Stripe Customer Portal session for managing subscription
  */
 export async function createCustomerPortalSession(
-    stripeCustomerId: string,
-    returnUrl: string
+  stripeCustomerId: string,
+  returnUrl: string
 ): Promise<{ url: string | null; error?: string }> {
-    const stripe = getStripe();
-    if (!stripe) {
-        return { url: null, error: "Stripe not configured" };
-    }
+  const stripe = getStripe();
+  if (!stripe) {
+    return { url: null, error: "Stripe not configured" };
+  }
 
-    try {
-        const session = await stripe.billingPortal.sessions.create({
-            customer: stripeCustomerId,
-            return_url: returnUrl,
-        });
+  try {
+    const session = await stripe.billingPortal.sessions.create({
+      customer: stripeCustomerId,
+      return_url: returnUrl,
+    });
 
-        return { url: session.url };
-    } catch (error) {
-        const message = error instanceof Error ? error.message : "Unknown error";
-        return { url: null, error: message };
-    }
+    return { url: session.url };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return { url: null, error: message };
+  }
 }

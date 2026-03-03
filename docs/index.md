@@ -3,7 +3,7 @@
 Bem-vindo à documentação oficial do **RITMO MVP**.
 
 **Versão:** 1.1  
-**Data da última atualização:** 2026-01-18  
+**Data da última atualização:** 2026-01-18
 
 ## Visão Geral
 

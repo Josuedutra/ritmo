@@ -6,32 +6,32 @@ import { ArrowLeft } from "lucide-react";
 import { QuoteForm } from "./quote-form";
 
 export default async function NewQuotePage() {
-    const session = await auth();
+  const session = await auth();
 
-    if (!session?.user) {
-        redirect("/login");
-    }
+  if (!session?.user) {
+    redirect("/login");
+  }
 
-    return (
-        <div className="min-h-screen bg-[var(--color-background)]">
-            <AppHeader user={session.user} />
+  return (
+    <div className="min-h-screen bg-[var(--color-background)]">
+      <AppHeader user={session.user} />
 
-            <main className="container-app py-6">
-                <Link
-                    href="/quotes"
-                    className="mb-4 inline-flex items-center gap-1 text-sm text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
-                >
-                    <ArrowLeft className="h-4 w-4" />
-                    Voltar aos orçamentos
-                </Link>
+      <main className="container-app py-6">
+        <Link
+          href="/quotes"
+          className="mb-4 inline-flex items-center gap-1 text-sm text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Voltar aos orçamentos
+        </Link>
 
-                <PageHeader
-                    title="Novo orçamento"
-                    description="Preencha os dados mínimos e inicie o follow-up"
-                />
+        <PageHeader
+          title="Novo orçamento"
+          description="Preencha os dados mínimos e inicie o follow-up"
+        />
 
-                <QuoteForm />
-            </main>
-        </div>
-    );
+        <QuoteForm />
+      </main>
+    </div>
+  );
 }

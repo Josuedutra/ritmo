@@ -2,67 +2,59 @@ import { cn } from "@/lib/utils";
 import { type HTMLAttributes, forwardRef } from "react";
 
 const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
-    ({ className, ...props }, ref) => (
-        <div
-            ref={ref}
-            className={cn(
-                "rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-card-foreground)] shadow-sm",
-                className
-            )}
-            {...props}
-        />
-    )
+  ({ className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn(
+        "rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-card-foreground)] shadow-sm",
+        className
+      )}
+      {...props}
+    />
+  )
 );
 Card.displayName = "Card";
 
 const CardHeader = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
-    ({ className, ...props }, ref) => (
-        <div
-            ref={ref}
-            className={cn("flex flex-col space-y-1.5 p-5", className)}
-            {...props}
-        />
-    )
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn("flex flex-col space-y-1.5 p-5", className)} {...props} />
+  )
 );
 CardHeader.displayName = "CardHeader";
 
 const CardTitle = forwardRef<HTMLHeadingElement, HTMLAttributes<HTMLHeadingElement>>(
-    ({ className, ...props }, ref) => (
-        <h3
-            ref={ref}
-            className={cn("text-base font-semibold leading-none tracking-tight", className)}
-            {...props}
-        />
-    )
+  ({ className, ...props }, ref) => (
+    <h3
+      ref={ref}
+      className={cn("text-base leading-none font-semibold tracking-tight", className)}
+      {...props}
+    />
+  )
 );
 CardTitle.displayName = "CardTitle";
 
 const CardDescription = forwardRef<HTMLParagraphElement, HTMLAttributes<HTMLParagraphElement>>(
-    ({ className, ...props }, ref) => (
-        <p
-            ref={ref}
-            className={cn("text-sm text-[var(--color-muted-foreground)]", className)}
-            {...props}
-        />
-    )
+  ({ className, ...props }, ref) => (
+    <p
+      ref={ref}
+      className={cn("text-sm text-[var(--color-muted-foreground)]", className)}
+      {...props}
+    />
+  )
 );
 CardDescription.displayName = "CardDescription";
 
 const CardContent = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
-    ({ className, ...props }, ref) => (
-        <div ref={ref} className={cn("p-5 pt-0", className)} {...props} />
-    )
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn("p-5 pt-0", className)} {...props} />
+  )
 );
 CardContent.displayName = "CardContent";
 
 const CardFooter = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
-    ({ className, ...props }, ref) => (
-        <div
-            ref={ref}
-            className={cn("flex items-center p-5 pt-0", className)}
-            {...props}
-        />
-    )
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn("flex items-center p-5 pt-0", className)} {...props} />
+  )
 );
 CardFooter.displayName = "CardFooter";
 

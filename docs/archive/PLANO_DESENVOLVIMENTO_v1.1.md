@@ -6,14 +6,14 @@
 
 ## Changelog v1.1
 
-| # | Alteração | Impacto |
-|---|-----------|---------|
-| 1 | `contacts.email` agora NULLABLE | Schema, validações |
-| 2 | Separação `business_status` vs `ritmo_stage` | Schema, API, UI |
-| 3 | Cron com claim transacional (`UPDATE...RETURNING`) | Cron flow, concorrência |
-| 4 | Enum `cadence_event.status` inclui `skipped` | Schema, lógica |
-| 5 | Regra exacta de contagem `quotes_sent` para billing | Billing, contadores |
-| 6 | Call Card D+7: CTA "Adicionar proposta" se vazio | UX, frontend |
+| #   | Alteração                                           | Impacto                 |
+| --- | --------------------------------------------------- | ----------------------- |
+| 1   | `contacts.email` agora NULLABLE                     | Schema, validações      |
+| 2   | Separação `business_status` vs `ritmo_stage`        | Schema, API, UI         |
+| 3   | Cron com claim transacional (`UPDATE...RETURNING`)  | Cron flow, concorrência |
+| 4   | Enum `cadence_event.status` inclui `skipped`        | Schema, lógica          |
+| 5   | Regra exacta de contagem `quotes_sent` para billing | Billing, contadores     |
+| 6   | Call Card D+7: CTA "Adicionar proposta" se vazio    | UX, frontend            |
 
 ---
 
@@ -40,12 +40,12 @@ O **RITMO** é um SaaS de "cadência + painel + envio" para follow-up de orçame
 
 ### 1.2 Cadência (SLA) — Dias Úteis
 
-| Evento | Tipo | Prioridade | Descrição |
-|--------|------|------------|-----------|
-| D+1 | Email (T2) | — | Follow-up inicial |
-| D+3 | Email (T3) | — | Segundo follow-up |
-| D+7 | Tarefa Chamada | HIGH/LOW | Chamada (valor ≥1000€ = HIGH) |
-| D+14 | Email (T5) | — | Fecho suave |
+| Evento | Tipo           | Prioridade | Descrição                     |
+| ------ | -------------- | ---------- | ----------------------------- |
+| D+1    | Email (T2)     | —          | Follow-up inicial             |
+| D+3    | Email (T3)     | —          | Segundo follow-up             |
+| D+7    | Tarefa Chamada | HIGH/LOW   | Chamada (valor ≥1000€ = HIGH) |
+| D+14   | Email (T5)     | —          | Fecho suave                   |
 
 ### 1.3 Regras Anti-Robô
 
@@ -85,20 +85,20 @@ O **RITMO** é um SaaS de "cadência + painel + envio" para follow-up de orçame
 
 ### 2.1 Stack Escolhida (Decisão Final)
 
-| Componente | Escolha | Justificação |
-|------------|---------|--------------|
-| **Frontend** | Next.js 14+ (App Router) | SSR, RSC, excelente DX |
-| **Styling** | Tailwind + shadcn/ui | Rápido, consistente |
-| **Backend** | Next.js API Routes + Route Handlers | Unificado, serverless-ready |
-| **DB** | PostgreSQL (Neon) | Serverless Postgres, branching |
-| **ORM** | Prisma | Type-safe, migrations |
-| **Auth** | NextAuth.js v5 | Integração nativa Next.js |
-| **Scheduler** | Vercel Cron + endpoint idempotente | Sem worker residente |
-| **Email** | Resend (MVP) → SMTP org depois | API simples, bom deliverability |
-| **Storage** | Supabase Storage | S3-compatible, URLs assinadas |
-| **Inbound Email** | Resend Webhooks (ou Mailgun) | Parse automático de anexos |
-| **Billing** | Stripe | Subscriptions + usage-based |
-| **Timezone** | date-fns-tz + Intl | Europe/Lisbon nativo |
+| Componente        | Escolha                             | Justificação                    |
+| ----------------- | ----------------------------------- | ------------------------------- |
+| **Frontend**      | Next.js 14+ (App Router)            | SSR, RSC, excelente DX          |
+| **Styling**       | Tailwind + shadcn/ui                | Rápido, consistente             |
+| **Backend**       | Next.js API Routes + Route Handlers | Unificado, serverless-ready     |
+| **DB**            | PostgreSQL (Neon)                   | Serverless Postgres, branching  |
+| **ORM**           | Prisma                              | Type-safe, migrations           |
+| **Auth**          | NextAuth.js v5                      | Integração nativa Next.js       |
+| **Scheduler**     | Vercel Cron + endpoint idempotente  | Sem worker residente            |
+| **Email**         | Resend (MVP) → SMTP org depois      | API simples, bom deliverability |
+| **Storage**       | Supabase Storage                    | S3-compatible, URLs assinadas   |
+| **Inbound Email** | Resend Webhooks (ou Mailgun)        | Parse automático de anexos      |
+| **Billing**       | Stripe                              | Subscriptions + usage-based     |
+| **Timezone**      | date-fns-tz + Intl                  | Europe/Lisbon nativo            |
 
 ### 2.2 Diagrama de Componentes
 
@@ -229,6 +229,7 @@ CREATE TYPE call_priority AS ENUM ('HIGH', 'LOW');
 ### 3.3 Tabelas Detalhadas
 
 #### `organizations`
+
 ```sql
 id              UUID PRIMARY KEY DEFAULT gen_random_uuid()
 name            VARCHAR(255) NOT NULL
@@ -249,6 +250,7 @@ updated_at      TIMESTAMPTZ DEFAULT NOW()
 ```
 
 #### `users`
+
 ```sql
 id              UUID PRIMARY KEY DEFAULT gen_random_uuid()
 organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE
@@ -263,6 +265,7 @@ UNIQUE(organization_id, email)
 ```
 
 #### `contacts` (v1.1 — email NULLABLE)
+
 ```sql
 id              UUID PRIMARY KEY DEFAULT gen_random_uuid()
 organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE
@@ -275,12 +278,13 @@ created_at      TIMESTAMPTZ DEFAULT NOW()
 updated_at      TIMESTAMPTZ DEFAULT NOW()
 
 -- Índice parcial para unicidade onde email existe
-CREATE UNIQUE INDEX idx_contacts_org_email 
-  ON contacts(organization_id, email) 
+CREATE UNIQUE INDEX idx_contacts_org_email
+  ON contacts(organization_id, email)
   WHERE email IS NOT NULL;
 ```
 
 #### `quotes` (v1.1 — business_status + ritmo_stage)
+
 ```sql
 id                UUID PRIMARY KEY DEFAULT gen_random_uuid()
 organization_id   UUID REFERENCES organizations(id) ON DELETE CASCADE
@@ -313,6 +317,7 @@ INDEX idx_quotes_first_sent (organization_id, first_sent_at)
 ```
 
 #### `cadence_events` (v1.1 — claim transacional)
+
 ```sql
 id              UUID PRIMARY KEY DEFAULT gen_random_uuid()
 organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE
@@ -339,6 +344,7 @@ INDEX idx_events_claim (status, scheduled_for, claimed_at)
 ```
 
 #### `tasks`
+
 ```sql
 id              UUID PRIMARY KEY DEFAULT gen_random_uuid()
 organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE
@@ -360,6 +366,7 @@ INDEX idx_tasks_due (organization_id, status, due_at)
 ```
 
 #### `email_logs`
+
 ```sql
 id              UUID PRIMARY KEY DEFAULT gen_random_uuid()
 organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE
@@ -379,6 +386,7 @@ INDEX idx_email_logs_quote (quote_id, created_at)
 ```
 
 #### `templates`
+
 ```sql
 id              UUID PRIMARY KEY DEFAULT gen_random_uuid()
 organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE
@@ -395,6 +403,7 @@ UNIQUE(organization_id, code)
 ```
 
 #### `suppression_global`
+
 ```sql
 id              UUID PRIMARY KEY DEFAULT gen_random_uuid()
 organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE
@@ -406,6 +415,7 @@ UNIQUE(organization_id, email)
 ```
 
 #### `subscriptions`
+
 ```sql
 id                  UUID PRIMARY KEY DEFAULT gen_random_uuid()
 organization_id     UUID UNIQUE REFERENCES organizations(id)
@@ -421,6 +431,7 @@ updated_at          TIMESTAMPTZ DEFAULT NOW()
 ```
 
 #### `usage_counters`
+
 ```sql
 id              UUID PRIMARY KEY DEFAULT gen_random_uuid()
 organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE
@@ -435,6 +446,7 @@ UNIQUE(organization_id, period_start)
 ```
 
 #### `attachments`
+
 ```sql
 id              UUID PRIMARY KEY DEFAULT gen_random_uuid()
 organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE
@@ -447,6 +459,7 @@ created_at      TIMESTAMPTZ DEFAULT NOW()
 ```
 
 #### `inbound_ingestions`
+
 ```sql
 id              UUID PRIMARY KEY DEFAULT gen_random_uuid()
 organization_id UUID REFERENCES organizations(id)
@@ -469,12 +482,12 @@ created_at      TIMESTAMPTZ DEFAULT NOW()
 
 ### 4.1 Autenticação
 
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| POST | `/api/auth/register` | Registo org + admin |
-| POST | `/api/auth/login` | Login (NextAuth) |
-| POST | `/api/auth/logout` | Logout |
-| GET | `/api/auth/session` | Sessão atual |
+| Método | Endpoint             | Descrição           |
+| ------ | -------------------- | ------------------- |
+| POST   | `/api/auth/register` | Registo org + admin |
+| POST   | `/api/auth/login`    | Login (NextAuth)    |
+| POST   | `/api/auth/logout`   | Logout              |
+| GET    | `/api/auth/session`  | Sessão atual        |
 
 ### 4.2 Quotes (Orçamentos) — v1.1
 
@@ -657,14 +670,14 @@ created_at      TIMESTAMPTZ DEFAULT NOW()
 
 ### 5.2 Cron com Claim Transacional (v1.1)
 
-```
+````
 1. Vercel Cron chama POST /api/cron/process-cadence
    - Gera worker_id único (ex: crypto.randomUUID())
 
 2. CLAIM atómico (batch de 20):
    ```sql
    UPDATE cadence_events
-   SET 
+   SET
      status = 'claimed',
      claimed_at = NOW(),
      claimed_by = $worker_id
@@ -678,44 +691,46 @@ created_at      TIMESTAMPTZ DEFAULT NOW()
      FOR UPDATE SKIP LOCKED
    )
    RETURNING *;
-   ```
+````
 
 3. Para cada evento claimed:
    a) Verificar se agora está dentro da janela 09:00-18:00 Lisbon
-      └─ Se não: 
-         UPDATE status='deferred', scheduled_for=próximo dia útil 09:00
-         CONTINUE
-   
+   └─ Se não:
+   UPDATE status='deferred', scheduled_for=próximo dia útil 09:00
+   CONTINUE
+
    b) Verificar 48h desde último email do quote:
-      ```sql
-      SELECT MAX(sent_at) FROM email_logs 
-      WHERE quote_id = $quote_id AND status = 'sent'
-      ```
-      └─ Se <48h: defer para last_sent + 48h
-         CONTINUE
-   
-   c) Se event_type é email_*:
-      - Verificar contact.email IS NOT NULL
-        └─ Se NULL: status='skipped', skip_reason='no_email', CONTINUE
-      - Verificar suppression_global
-        └─ Se exists: status='skipped', skip_reason='suppressed', CONTINUE
-   
+
+   ```sql
+   SELECT MAX(sent_at) FROM email_logs
+   WHERE quote_id = $quote_id AND status = 'sent'
+   ```
+
+   └─ Se <48h: defer para last_sent + 48h
+   CONTINUE
+
+   c) Se event*type é email*\*:
+   - Verificar contact.email IS NOT NULL
+     └─ Se NULL: status='skipped', skip_reason='no_email', CONTINUE
+   - Verificar suppression_global
+     └─ Se exists: status='skipped', skip_reason='suppressed', CONTINUE
+
    d) Verificar business_status do quote:
-      └─ Se 'won' ou 'lost': status='cancelled', cancel_reason='status_changed'
-         CONTINUE
-   
+   └─ Se 'won' ou 'lost': status='cancelled', cancel_reason='status_changed'
+   CONTINUE
+
    e) PROCESSAR:
-      - Se email: enviar via Resend/SMTP, criar email_log
-      - Se call: criar/atualizar task
-   
+   - Se email: enviar via Resend/SMTP, criar email_log
+   - Se call: criar/atualizar task
+
    f) FINALIZAR:
-      UPDATE cadence_events 
-      SET status='sent', processed_at=NOW()
-      WHERE id = $event_id;
-      
-      UPDATE quotes
-      SET last_activity_at=NOW(), ritmo_stage=próximo_stage
-      WHERE id = $quote_id;
+   UPDATE cadence_events
+   SET status='sent', processed_at=NOW()
+   WHERE id = $event_id;
+
+   UPDATE quotes
+   SET last_activity_at=NOW(), ritmo_stage=próximo_stage
+   WHERE id = $quote_id;
 
 4. CLEANUP de claims órfãos (timeout 5 min):
    ```sql
@@ -724,11 +739,13 @@ created_at      TIMESTAMPTZ DEFAULT NOW()
    WHERE status = 'claimed'
      AND claimed_at < NOW() - INTERVAL '5 minutes';
    ```
+
 ```
 
 ### 5.3 Call Card D+7 (v1.1 — CTA Proposta)
 
 ```
+
 1. Dashboard mostra task do tipo 'call' com due_at = hoje
 
 2. Card exibe:
@@ -736,46 +753,49 @@ created_at      TIMESTAMPTZ DEFAULT NOW()
    - Valor: €{quote.value} · Prioridade: HIGH/LOW badge
    - Enviado: {quote.sent_at}
    - Último FUP: D+3 enviado ✓ (ou "Nenhum ainda")
-   
 3. PROPOSTA:
    SE quote.proposal_link OU quote.proposal_file_id:
-     [📎 Abrir Proposta] → abre link ou download
+   [📎 Abrir Proposta] → abre link ou download
    SENÃO:
-     ┌─────────────────────────────────────────┐
-     │ ⚠️ Proposta não anexada                 │
-     │                                         │
-     │ Adicione a proposta para a chamada:    │
-     │ [🔗 Colar Link] [📤 Upload] [📧 BCC]   │
-     └─────────────────────────────────────────┘
+   ┌─────────────────────────────────────────┐
+   │ ⚠️ Proposta não anexada │
+   │ │
+   │ Adicione a proposta para a chamada: │
+   │ [🔗 Colar Link] [📤 Upload] [📧 BCC] │
+   └─────────────────────────────────────────┘
 
 4. Outras ações:
    - [📞 Ligar] → tel:{contact.phone}
    - [📋 Copiar Resumo] → clipboard com script
    - Campo nota 1-linha
    - [✓ Completar] [⏭ Saltar]
+
 ```
 
 ### 5.4 Inbound BCC → Associar Proposta
 
 ```
+
 1. User envia email pelo Outlook com BCC: bcc+{org}+{quote}@inbound.ritmo.app
 2. Resend recebe → POST /api/webhooks/inbound-email
 3. API parse:
    a) Extrai org_id e quote_id do endereço To (regex)
    b) Valida que quote existe e pertence a org
    c) Se tem anexo PDF:
-      - Upload para Supabase Storage
-      - Cria attachment record
-      - Atualiza quote.proposal_file_id
-   d) Se tem link no body (regex https?://...):
-      - Atualiza quote.proposal_link
-   e) Cria inbound_ingestion log (status='processed')
+   - Upload para Supabase Storage
+   - Cria attachment record
+   - Atualiza quote.proposal_file_id
+     d) Se tem link no body (regex https?://...):
+   - Atualiza quote.proposal_link
+     e) Cria inbound_ingestion log (status='processed')
 4. Quote card agora mostra "Proposta anexada ✓"
+
 ```
 
 ### 5.5 Reenviar Orçamento
 
 ```
+
 1. User abre quote com business_status "sent" ou "negotiation"
 2. Clica "Reenviar Orçamento"
 3. Chama PATCH /api/quotes/:id/send
@@ -785,20 +805,23 @@ created_at      TIMESTAMPTZ DEFAULT NOW()
    - Cancela eventos antigos
    - Gera nova cadência
 5. Dashboard mostra nova cadência activa
+
 ```
 
 ### 5.6 Mudança de Status → Parar Cadência
 
 ```
+
 1. User muda business_status para "won" ou "lost"
 2. API:
    a) business_status = 'won' (ou 'lost')
    b) ritmo_stage = 'stopped'
-   c) UPDATE cadence_events 
-      SET status='cancelled', cancel_reason='status_changed'
-      WHERE quote_id=X AND status IN ('scheduled', 'claimed', 'deferred')
+   c) UPDATE cadence_events
+   SET status='cancelled', cancel_reason='status_changed'
+   WHERE quote_id=X AND status IN ('scheduled', 'claimed', 'deferred')
    d) UPDATE tasks SET status='skipped'
-      WHERE quote_id=X AND status='pending'
+   WHERE quote_id=X AND status='pending'
+
 ```
 
 ---
@@ -820,60 +843,64 @@ created_at      TIMESTAMPTZ DEFAULT NOW()
 ### 6.2 Dashboard — Cards Ricos (v1.1)
 
 ```
+
 ┌─────────────────────────────────────────────────────────────┐
-│ 📊 Hoje: 3 emails · 2 chamadas · €12,500 em pipeline        │
-│ 📈 Utilização: 42/50 orçamentos (84%)                       │
+│ 📊 Hoje: 3 emails · 2 chamadas · €12,500 em pipeline │
+│ 📈 Utilização: 42/50 orçamentos (84%) │
 ├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌─────────────────────────┐  ┌─────────────────────────┐  │
-│  │ 📧 Email D+1            │  │ 📧 Email D+3            │  │
-│  │ Cliente ABC             │  │ Empresa XYZ             │  │
-│  │ AVAC - €800             │  │ Elétrica - €2,100       │  │
-│  │ Stage: fup_d1           │  │ Stage: fup_d3           │  │
-│  │ [Enviar] [Ver] [Saltar] │  │ [Enviar] [Ver] [Saltar] │  │
-│  └─────────────────────────┘  └─────────────────────────┘  │
-│                                                             │
-│  ┌───────────────────────────────────────────────────────┐ │
-│  │ 📞 CHAMADA D+7                            🔴 HIGH     │ │
-│  │ João Silva @ TechCorp                                 │ │
-│  │ Instalação Solar · €4,500 · Enviado: 10/Jan          │ │
-│  │ Último FUP: D+3 ✓ · Tel: +351 912 345 678            │ │
-│  │ Stage: fup_d7                                         │ │
-│  │                                                       │ │
-│  │ ⚠️ Proposta não anexada                               │ │
-│  │ [🔗 Colar Link] [📤 Upload PDF] [📧 Copiar BCC]      │ │
-│  │                                                       │ │
-│  │ [📞 Ligar] [📋 Copiar Script] [✓ Feito] [⏭ Saltar]  │ │
-│  │ Nota: ___________________________________________     │ │
-│  └───────────────────────────────────────────────────────┘ │
-│                                                             │
+│ │
+│ ┌─────────────────────────┐ ┌─────────────────────────┐ │
+│ │ 📧 Email D+1 │ │ 📧 Email D+3 │ │
+│ │ Cliente ABC │ │ Empresa XYZ │ │
+│ │ AVAC - €800 │ │ Elétrica - €2,100 │ │
+│ │ Stage: fup_d1 │ │ Stage: fup_d3 │ │
+│ │ [Enviar] [Ver] [Saltar] │ │ [Enviar] [Ver] [Saltar] │ │
+│ └─────────────────────────┘ └─────────────────────────┘ │
+│ │
+│ ┌───────────────────────────────────────────────────────┐ │
+│ │ 📞 CHAMADA D+7 🔴 HIGH │ │
+│ │ João Silva @ TechCorp │ │
+│ │ Instalação Solar · €4,500 · Enviado: 10/Jan │ │
+│ │ Último FUP: D+3 ✓ · Tel: +351 912 345 678 │ │
+│ │ Stage: fup_d7 │ │
+│ │ │ │
+│ │ ⚠️ Proposta não anexada │ │
+│ │ [🔗 Colar Link] [📤 Upload PDF] [📧 Copiar BCC] │ │
+│ │ │ │
+│ │ [📞 Ligar] [📋 Copiar Script] [✓ Feito] [⏭ Saltar] │ │
+│ │ Nota: ********************\_\_\_******************** │ │
+│ └───────────────────────────────────────────────────────┘ │
+│ │
 └─────────────────────────────────────────────────────────────┘
+
 ```
 
 ### 6.3 Quote Detail — Timeline com Stages
 
 ```
+
 ┌─────────────────────────────────────────────────────────────┐
-│ ORC-2026-042 · Manutenção AVAC                              │
-│ TechCorp · João Silva · €4,500                              │
+│ ORC-2026-042 · Manutenção AVAC │
+│ TechCorp · João Silva · €4,500 │
 ├────────────────────────┬────────────────────────────────────┤
-│ Business: SENT         │ Ritmo: fup_d7                      │
+│ Business: SENT │ Ritmo: fup_d7 │
 ├────────────────────────┴────────────────────────────────────┤
-│ Proposta: ⚠️ Não anexada                                    │
-│ [🔗 Adicionar Link] [📤 Upload PDF] [📧 Copiar BCC]        │
+│ Proposta: ⚠️ Não anexada │
+│ [🔗 Adicionar Link] [📤 Upload PDF] [📧 Copiar BCC] │
 ├─────────────────────────────────────────────────────────────┤
-│ Timeline (run #2):                                          │
-│ ● 17 Jan - Orçamento enviado                                │
-│ ● 18 Jan - Email D+1 enviado ✓                              │
-│ ● 22 Jan - Email D+3 enviado ✓                              │
-│ ◐ 28 Jan - Chamada D+7 (HOJE)                               │
-│ ○ 04 Fev - Email D+14 agendado                              │
+│ Timeline (run #2): │
+│ ● 17 Jan - Orçamento enviado │
+│ ● 18 Jan - Email D+1 enviado ✓ │
+│ ● 22 Jan - Email D+3 enviado ✓ │
+│ ◐ 28 Jan - Chamada D+7 (HOJE) │
+│ ○ 04 Fev - Email D+14 agendado │
 ├─────────────────────────────────────────────────────────────┤
-│ Histórico anterior (run #1 - cancelado):                    │
-│ ✗ Cancelado por reenvio em 17 Jan                           │
+│ Histórico anterior (run #1 - cancelado): │
+│ ✗ Cancelado por reenvio em 17 Jan │
 ├─────────────────────────────────────────────────────────────┤
-│ [Em Negociação] [Ganho 🎉] [Perdido] [Reenviar] [Pausar]   │
+│ [Em Negociação] [Ganho 🎉] [Perdido] [Reenviar] [Pausar] │
 └─────────────────────────────────────────────────────────────┘
+
 ```
 
 ---
@@ -984,25 +1011,27 @@ created_at      TIMESTAMPTZ DEFAULT NOW()
 ### 8.2 Estrutura de Testes
 
 ```
+
 tests/
 ├── unit/
-│   ├── addBusinessDays.test.ts
-│   ├── cadenceGenerator.test.ts
-│   ├── emailCooldown.test.ts
-│   ├── claimLogic.test.ts
-│   ├── billingCounter.test.ts
-│   └── parseInboundEmail.test.ts
+│ ├── addBusinessDays.test.ts
+│ ├── cadenceGenerator.test.ts
+│ ├── emailCooldown.test.ts
+│ ├── claimLogic.test.ts
+│ ├── billingCounter.test.ts
+│ └── parseInboundEmail.test.ts
 ├── integration/
-│   ├── quotes.api.test.ts
-│   ├── cadence.api.test.ts
-│   ├── cron-claim.api.test.ts
-│   └── billing.api.test.ts
+│ ├── quotes.api.test.ts
+│ ├── cadence.api.test.ts
+│ ├── cron-claim.api.test.ts
+│ └── billing.api.test.ts
 └── e2e/
-    ├── quote-lifecycle.spec.ts
-    ├── dashboard-actions.spec.ts
-    ├── call-card-proposal.spec.ts
-    └── inbound-email.spec.ts
-```
+├── quote-lifecycle.spec.ts
+├── dashboard-actions.spec.ts
+├── call-card-proposal.spec.ts
+└── inbound-email.spec.ts
+
+````
 
 ---
 
@@ -1060,7 +1089,7 @@ pnpm add resend @supabase/supabase-js
 
 # Billing
 pnpm add stripe @stripe/stripe-js
-```
+````
 
 ### 10.2 Prisma Schema Snippet (v1.1)
 
@@ -1116,11 +1145,11 @@ model Quote {
   proposalLink    String?        @map("proposal_link")
   proposalFileId  String?        @map("proposal_file_id")
   // ...
-  
+
   organization    Organization   @relation(fields: [organizationId], references: [id])
   contact         Contact?       @relation(fields: [contactId], references: [id])
   cadenceEvents   CadenceEvent[]
-  
+
   @@index([organizationId, businessStatus])
   @@index([organizationId, ritmoStage])
   @@index([organizationId, firstSentAt])
@@ -1141,7 +1170,7 @@ model CadenceEvent {
   claimedBy       String?             @map("claimed_by")
   processedAt     DateTime?           @map("processed_at")
   // ...
-  
+
   @@unique([quoteId, cadenceRunId, eventType])
   @@index([status, scheduledFor, claimedAt])
   @@map("cadence_events")
@@ -1234,17 +1263,17 @@ src/
 
 A versão 1.1 do plano corrige as inconsistências identificadas:
 
-| Problema | Solução v1.1 |
-|----------|--------------|
-| Email obrigatório em contacts | NULLABLE + skip_reason='no_email' |
-| Confusão status/stage | Separação business_status + ritmo_stage |
-| Race condition cron | Claim com `FOR UPDATE SKIP LOCKED` |
-| Enum sem 'skipped' | Adicionado + skip_reason/cancel_reason |
-| Billing duplicado em reenvio | first_sent_at imutável |
-| Call card sem proposta | CTA com 3 opções |
+| Problema                      | Solução v1.1                            |
+| ----------------------------- | --------------------------------------- |
+| Email obrigatório em contacts | NULLABLE + skip_reason='no_email'       |
+| Confusão status/stage         | Separação business_status + ritmo_stage |
+| Race condition cron           | Claim com `FOR UPDATE SKIP LOCKED`      |
+| Enum sem 'skipped'            | Adicionado + skip_reason/cancel_reason  |
+| Billing duplicado em reenvio  | first_sent_at imutável                  |
+| Call card sem proposta        | CTA com 3 opções                        |
 
 O sistema mantém todas as regras originais (dias úteis, janela 9-18, 48h, suppressions, cadence_run_id, inbound BCC).
 
 ---
 
-*Documento v1.1 — Revisado 2026-01-17*
+_Documento v1.1 — Revisado 2026-01-17_

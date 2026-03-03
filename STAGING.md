@@ -103,9 +103,9 @@ npx prisma db seed
 Create the following products in Stripe Dashboard (Test Mode):
 
 | Plan    | Price    | Price ID                      |
-|---------|----------|-------------------------------|
-| Starter | €39/mês  | Copy to STRIPE_PRICE_STARTER |
-| Pro     | €99/mês  | Copy to STRIPE_PRICE_PRO     |
+| ------- | -------- | ----------------------------- |
+| Starter | €39/mês  | Copy to STRIPE_PRICE_STARTER  |
+| Pro     | €99/mês  | Copy to STRIPE_PRICE_PRO      |
 | Pro+    | €149/mês | Copy to STRIPE_PRICE_PRO_PLUS |
 
 ### 2. Configure Webhook
@@ -173,6 +173,7 @@ Configure in `vercel.json`:
 ## Testing Checklist
 
 ### Auth
+
 - [ ] Email/password login works
 - [ ] Google OAuth works
 - [ ] Password reset flow works
@@ -185,6 +186,7 @@ Configure in `vercel.json`:
 - [ ] Session persists correctly
 
 ### Billing
+
 - [ ] "Pagamentos em breve" banner shows on billing page (when PAYMENTS_ENABLED=false)
 - [ ] Clicking upgrade shows toast "Pagamentos em breve" (when PAYMENTS_ENABLED=false)
 - [ ] Billing page displays only public plans (free, starter, pro)
@@ -192,6 +194,7 @@ Configure in `vercel.json`:
 - [ ] (After enabling payments) Checkout flow works with test card
 
 ### Stripe Webhook
+
 - [ ] Valid webhook signature → processed
 - [ ] Invalid signature → 400
 - [ ] Same event sent twice → first processes, second returns `{duplicate: true}`
@@ -199,11 +202,13 @@ Configure in `vercel.json`:
 - [ ] Check stripe_events table has PROCESSING/PROCESSED/FAILED status
 
 ### Inbound Email
+
 - [ ] Send email to `all+test+xxx@inbound.useritmo.pt`
 - [ ] Verify webhook receives the email
 - [ ] PDF attachment is processed correctly
 
 ### Cron
+
 - [ ] Cadence emails are sent at correct times
 - [ ] Metrics calculation runs
 - [ ] Proposal purge runs

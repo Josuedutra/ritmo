@@ -21,52 +21,52 @@ import type { Prisma } from "@prisma/client";
 
 // Event names as constants for type safety
 export const ProductEventNames = {
-    SIGNUP_COMPLETED: "signup_completed",
-    ONBOARDING_STARTED: "onboarding_started",
-    ONBOARDING_COMPLETED: "onboarding_completed",
-    QUOTE_NEW_OPENED: "quote_new_opened",
-    QUOTE_CREATED: "quote_created",
-    MARK_SENT_CLICKED: "mark_sent_clicked",
-    MARK_SENT_SUCCESS: "mark_sent_success",
-    SECOND_MARK_SENT_SUCCESS: "second_mark_sent_success",
-    // Patch F: Seed example tracking
-    SEED_EXAMPLE_CREATED: "seed_example_created",
-    // UI click tracking (optional, for clicks-to-aha)
-    UI_CLICK: "ui_click",
-    // Referral tracking
-    REFERRAL_FIRST_TOUCH: "referral_first_touch",
-    REFERRAL_CAPTURED: "referral_captured",
-    REFERRAL_ATTRIBUTED: "referral_attributed",
-    REFERRAL_CONVERTED: "referral_converted",
-    REFERRAL_COOKIE_REUSED: "referral_cookie_reused",
-    REFERRAL_DISQUALIFIED: "referral_disqualified",
-    REFERRAL_EXPIRED: "referral_expired",
-    // OAuth security tracking
-    OAUTH_EMAIL_NOT_VERIFIED: "oauth_email_not_verified",
-    // Stripe webhook observability (P1-STRIPE-OBS-01)
-    STRIPE_WEBHOOK_PROCESSED: "stripe_webhook_processed",
-    STRIPE_WEBHOOK_FAILED: "stripe_webhook_failed",
-    // Upgrade prompts tracking (P1-UPGRADE-PROMPTS)
-    UPGRADE_PROMPT_SHOWN: "upgrade_prompt_shown",
-    UPGRADE_PROMPT_CLICKED: "upgrade_prompt_clicked",
-    // BCC Inbound "aha moment" tracking
-    AHA_BCC_INBOUND_FIRST_SUCCESS: "aha_bcc_inbound_first_success",
-    BCC_INBOUND_PROCESSED: "bcc_inbound_processed",
-    // Paywall events
-    PAYWALL_SHOWN: "paywall_shown",
-    // Scoreboard tracking
-    SCOREBOARD_VIEWED: "scoreboard_viewed",
-    // Manual send tracking (Free tier)
-    MANUAL_SEND_MARKED: "manual_send_marked",
+  SIGNUP_COMPLETED: "signup_completed",
+  ONBOARDING_STARTED: "onboarding_started",
+  ONBOARDING_COMPLETED: "onboarding_completed",
+  QUOTE_NEW_OPENED: "quote_new_opened",
+  QUOTE_CREATED: "quote_created",
+  MARK_SENT_CLICKED: "mark_sent_clicked",
+  MARK_SENT_SUCCESS: "mark_sent_success",
+  SECOND_MARK_SENT_SUCCESS: "second_mark_sent_success",
+  // Patch F: Seed example tracking
+  SEED_EXAMPLE_CREATED: "seed_example_created",
+  // UI click tracking (optional, for clicks-to-aha)
+  UI_CLICK: "ui_click",
+  // Referral tracking
+  REFERRAL_FIRST_TOUCH: "referral_first_touch",
+  REFERRAL_CAPTURED: "referral_captured",
+  REFERRAL_ATTRIBUTED: "referral_attributed",
+  REFERRAL_CONVERTED: "referral_converted",
+  REFERRAL_COOKIE_REUSED: "referral_cookie_reused",
+  REFERRAL_DISQUALIFIED: "referral_disqualified",
+  REFERRAL_EXPIRED: "referral_expired",
+  // OAuth security tracking
+  OAUTH_EMAIL_NOT_VERIFIED: "oauth_email_not_verified",
+  // Stripe webhook observability (P1-STRIPE-OBS-01)
+  STRIPE_WEBHOOK_PROCESSED: "stripe_webhook_processed",
+  STRIPE_WEBHOOK_FAILED: "stripe_webhook_failed",
+  // Upgrade prompts tracking (P1-UPGRADE-PROMPTS)
+  UPGRADE_PROMPT_SHOWN: "upgrade_prompt_shown",
+  UPGRADE_PROMPT_CLICKED: "upgrade_prompt_clicked",
+  // BCC Inbound "aha moment" tracking
+  AHA_BCC_INBOUND_FIRST_SUCCESS: "aha_bcc_inbound_first_success",
+  BCC_INBOUND_PROCESSED: "bcc_inbound_processed",
+  // Paywall events
+  PAYWALL_SHOWN: "paywall_shown",
+  // Scoreboard tracking
+  SCOREBOARD_VIEWED: "scoreboard_viewed",
+  // Manual send tracking (Free tier)
+  MANUAL_SEND_MARKED: "manual_send_marked",
 } as const;
 
 export type ProductEventName = (typeof ProductEventNames)[keyof typeof ProductEventNames];
 
 interface TrackEventOptions {
-    organizationId?: string | null;
-    userId?: string | null;
-    sessionId?: string | null;
-    props?: Record<string, unknown>;
+  organizationId?: string | null;
+  userId?: string | null;
+  sessionId?: string | null;
+  props?: Record<string, unknown>;
 }
 
 /**
@@ -74,27 +74,27 @@ interface TrackEventOptions {
  * Non-blocking - errors are logged but don't break the main flow.
  */
 export async function trackEvent(
-    name: ProductEventName,
-    options: TrackEventOptions = {}
+  name: ProductEventName,
+  options: TrackEventOptions = {}
 ): Promise<void> {
-    const { organizationId, userId, sessionId, props } = options;
+  const { organizationId, userId, sessionId, props } = options;
 
-    try {
-        await prisma.productEvent.create({
-            data: {
-                name,
-                organizationId: organizationId ?? null,
-                userId: userId ?? null,
-                sessionId: sessionId ?? null,
-                props: (props ?? {}) as Prisma.InputJsonValue,
-            },
-        });
+  try {
+    await prisma.productEvent.create({
+      data: {
+        name,
+        organizationId: organizationId ?? null,
+        userId: userId ?? null,
+        sessionId: sessionId ?? null,
+        props: (props ?? {}) as Prisma.InputJsonValue,
+      },
+    });
 
-        logger.debug({ event: name, organizationId, userId }, "Product event tracked");
-    } catch (error) {
-        // Log but don't throw - event tracking should never break the main flow
-        logger.error({ error, event: name, organizationId }, "Failed to track product event");
-    }
+    logger.debug({ event: name, organizationId, userId }, "Product event tracked");
+  } catch (error) {
+    // Log but don't throw - event tracking should never break the main flow
+    logger.error({ error, event: name, organizationId }, "Failed to track product event");
+  }
 }
 
 /**
@@ -103,47 +103,47 @@ export async function trackEvent(
  * P0 Fix: Added isSeedExample prop for seed quote tracking.
  */
 export async function trackAhaEvent(
-    organizationId: string,
-    userId: string,
-    quoteId: string,
-    cadenceEventsCreated: number = 4,
-    isSeedExample: boolean = false
+  organizationId: string,
+  userId: string,
+  quoteId: string,
+  cadenceEventsCreated: number = 4,
+  isSeedExample: boolean = false
 ): Promise<void> {
-    try {
-        // Count how many quotes this org has sent (including this one)
-        const sentCount = await prisma.quote.count({
-            where: {
-                organizationId,
-                businessStatus: "sent",
-            },
-        });
+  try {
+    // Count how many quotes this org has sent (including this one)
+    const sentCount = await prisma.quote.count({
+      where: {
+        organizationId,
+        businessStatus: "sent",
+      },
+    });
 
-        // Track the mark_sent_success event with isSeedExample prop
-        await trackEvent(ProductEventNames.MARK_SENT_SUCCESS, {
-            organizationId,
-            userId,
-            props: {
-                quoteId,
-                cadenceEventsCreated,
-                sentCount,
-                isSeedExample,
-            },
-        });
+    // Track the mark_sent_success event with isSeedExample prop
+    await trackEvent(ProductEventNames.MARK_SENT_SUCCESS, {
+      organizationId,
+      userId,
+      props: {
+        quoteId,
+        cadenceEventsCreated,
+        sentCount,
+        isSeedExample,
+      },
+    });
 
-        // If this is exactly the 2nd sent quote, track retention event
-        if (sentCount === 2) {
-            await trackEvent(ProductEventNames.SECOND_MARK_SENT_SUCCESS, {
-                organizationId,
-                userId,
-                props: {
-                    quoteId,
-                    isSeedExample,
-                },
-            });
-        }
-    } catch (error) {
-        logger.error({ error, organizationId, quoteId }, "Failed to track Aha event");
+    // If this is exactly the 2nd sent quote, track retention event
+    if (sentCount === 2) {
+      await trackEvent(ProductEventNames.SECOND_MARK_SENT_SUCCESS, {
+        organizationId,
+        userId,
+        props: {
+          quoteId,
+          isSeedExample,
+        },
+      });
     }
+  } catch (error) {
+    logger.error({ error, organizationId, quoteId }, "Failed to track Aha event");
+  }
 }
 
 /**
@@ -151,179 +151,179 @@ export async function trackAhaEvent(
  * Used by /api/admin/metrics endpoint.
  */
 export async function calculateMetrics(
-    startDate: Date,
-    endDate: Date
+  startDate: Date,
+  endDate: Date
 ): Promise<{
-    signupsCount: number;
-    ahaCount: number;
-    activationRate5m: number;
-    activationRate24h: number;
-    medianTimeToAhaSeconds: number | null;
-    retention7dSecondSendRate: number;
-    dailySignups: Array<{ date: string; count: number }>;
-    dailyAha: Array<{ date: string; count: number }>;
+  signupsCount: number;
+  ahaCount: number;
+  activationRate5m: number;
+  activationRate24h: number;
+  medianTimeToAhaSeconds: number | null;
+  retention7dSecondSendRate: number;
+  dailySignups: Array<{ date: string; count: number }>;
+  dailyAha: Array<{ date: string; count: number }>;
 }> {
-    // Get signups in range
-    const signups = await prisma.productEvent.findMany({
-        where: {
-            name: ProductEventNames.SIGNUP_COMPLETED,
-            createdAt: { gte: startDate, lte: endDate },
-        },
-        select: {
-            organizationId: true,
-            createdAt: true,
-        },
+  // Get signups in range
+  const signups = await prisma.productEvent.findMany({
+    where: {
+      name: ProductEventNames.SIGNUP_COMPLETED,
+      createdAt: { gte: startDate, lte: endDate },
+    },
+    select: {
+      organizationId: true,
+      createdAt: true,
+    },
+  });
+
+  const signupsCount = signups.length;
+
+  // Get all Aha events (mark_sent_success) in range
+  const ahaEvents = await prisma.productEvent.findMany({
+    where: {
+      name: ProductEventNames.MARK_SENT_SUCCESS,
+      createdAt: { gte: startDate, lte: endDate },
+    },
+    select: {
+      organizationId: true,
+      createdAt: true,
+      props: true,
+    },
+  });
+
+  // Filter to first Aha per org (sentCount === 1 in props)
+  const firstAhaEvents = ahaEvents.filter((e) => {
+    const props = e.props as { sentCount?: number } | null;
+    return props?.sentCount === 1;
+  });
+
+  const ahaCount = firstAhaEvents.length;
+
+  // Calculate time-to-aha for each org
+  const timeToAhaSeconds: number[] = [];
+  const activatedWithin5m: string[] = [];
+  const activatedWithin24h: string[] = [];
+
+  for (const aha of firstAhaEvents) {
+    if (!aha.organizationId) continue;
+
+    // Find signup event for this org
+    const signup = await prisma.productEvent.findFirst({
+      where: {
+        name: ProductEventNames.SIGNUP_COMPLETED,
+        organizationId: aha.organizationId,
+      },
+      orderBy: { createdAt: "asc" },
     });
 
-    const signupsCount = signups.length;
+    if (signup) {
+      const diffMs = aha.createdAt.getTime() - signup.createdAt.getTime();
+      const diffSeconds = diffMs / 1000;
+      timeToAhaSeconds.push(diffSeconds);
 
-    // Get all Aha events (mark_sent_success) in range
-    const ahaEvents = await prisma.productEvent.findMany({
-        where: {
-            name: ProductEventNames.MARK_SENT_SUCCESS,
-            createdAt: { gte: startDate, lte: endDate },
-        },
-        select: {
-            organizationId: true,
-            createdAt: true,
-            props: true,
-        },
-    });
-
-    // Filter to first Aha per org (sentCount === 1 in props)
-    const firstAhaEvents = ahaEvents.filter((e) => {
-        const props = e.props as { sentCount?: number } | null;
-        return props?.sentCount === 1;
-    });
-
-    const ahaCount = firstAhaEvents.length;
-
-    // Calculate time-to-aha for each org
-    const timeToAhaSeconds: number[] = [];
-    const activatedWithin5m: string[] = [];
-    const activatedWithin24h: string[] = [];
-
-    for (const aha of firstAhaEvents) {
-        if (!aha.organizationId) continue;
-
-        // Find signup event for this org
-        const signup = await prisma.productEvent.findFirst({
-            where: {
-                name: ProductEventNames.SIGNUP_COMPLETED,
-                organizationId: aha.organizationId,
-            },
-            orderBy: { createdAt: "asc" },
-        });
-
-        if (signup) {
-            const diffMs = aha.createdAt.getTime() - signup.createdAt.getTime();
-            const diffSeconds = diffMs / 1000;
-            timeToAhaSeconds.push(diffSeconds);
-
-            if (diffSeconds <= 300) {
-                // 5 minutes
-                activatedWithin5m.push(aha.organizationId);
-            }
-            if (diffSeconds <= 86400) {
-                // 24 hours
-                activatedWithin24h.push(aha.organizationId);
-            }
-        }
+      if (diffSeconds <= 300) {
+        // 5 minutes
+        activatedWithin5m.push(aha.organizationId);
+      }
+      if (diffSeconds <= 86400) {
+        // 24 hours
+        activatedWithin24h.push(aha.organizationId);
+      }
     }
+  }
 
-    // Calculate median time-to-aha
-    let medianTimeToAhaSeconds: number | null = null;
-    if (timeToAhaSeconds.length > 0) {
-        const sorted = [...timeToAhaSeconds].sort((a, b) => a - b);
-        const mid = Math.floor(sorted.length / 2);
-        medianTimeToAhaSeconds =
-            sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+  // Calculate median time-to-aha
+  let medianTimeToAhaSeconds: number | null = null;
+  if (timeToAhaSeconds.length > 0) {
+    const sorted = [...timeToAhaSeconds].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    medianTimeToAhaSeconds =
+      sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+  }
+
+  // Activation rates
+  const activationRate5m = signupsCount > 0 ? (activatedWithin5m.length / signupsCount) * 100 : 0;
+  const activationRate24h = signupsCount > 0 ? (activatedWithin24h.length / signupsCount) * 100 : 0;
+
+  // Retention: % of orgs with Aha that sent 2nd quote within 7 days
+  const secondSendEvents = await prisma.productEvent.findMany({
+    where: {
+      name: ProductEventNames.SECOND_MARK_SENT_SUCCESS,
+      createdAt: { gte: startDate, lte: endDate },
+    },
+    select: {
+      organizationId: true,
+      createdAt: true,
+    },
+  });
+
+  // Count orgs where 2nd send happened within 7 days of first Aha
+  let retainedCount = 0;
+  for (const secondSend of secondSendEvents) {
+    if (!secondSend.organizationId) continue;
+
+    const firstAha = firstAhaEvents.find((a) => a.organizationId === secondSend.organizationId);
+    if (firstAha) {
+      const diffDays =
+        (secondSend.createdAt.getTime() - firstAha.createdAt.getTime()) / (1000 * 60 * 60 * 24);
+      if (diffDays <= 7) {
+        retainedCount++;
+      }
     }
+  }
 
-    // Activation rates
-    const activationRate5m = signupsCount > 0 ? (activatedWithin5m.length / signupsCount) * 100 : 0;
-    const activationRate24h = signupsCount > 0 ? (activatedWithin24h.length / signupsCount) * 100 : 0;
+  const retention7dSecondSendRate = ahaCount > 0 ? (retainedCount / ahaCount) * 100 : 0;
 
-    // Retention: % of orgs with Aha that sent 2nd quote within 7 days
-    const secondSendEvents = await prisma.productEvent.findMany({
-        where: {
-            name: ProductEventNames.SECOND_MARK_SENT_SUCCESS,
-            createdAt: { gte: startDate, lte: endDate },
-        },
-        select: {
-            organizationId: true,
-            createdAt: true,
-        },
-    });
+  // Daily aggregations
+  const dailySignups = aggregateByDay(
+    signups.map((s) => s.createdAt),
+    startDate,
+    endDate
+  );
+  const dailyAha = aggregateByDay(
+    firstAhaEvents.map((a) => a.createdAt),
+    startDate,
+    endDate
+  );
 
-    // Count orgs where 2nd send happened within 7 days of first Aha
-    let retainedCount = 0;
-    for (const secondSend of secondSendEvents) {
-        if (!secondSend.organizationId) continue;
-
-        const firstAha = firstAhaEvents.find((a) => a.organizationId === secondSend.organizationId);
-        if (firstAha) {
-            const diffDays =
-                (secondSend.createdAt.getTime() - firstAha.createdAt.getTime()) / (1000 * 60 * 60 * 24);
-            if (diffDays <= 7) {
-                retainedCount++;
-            }
-        }
-    }
-
-    const retention7dSecondSendRate = ahaCount > 0 ? (retainedCount / ahaCount) * 100 : 0;
-
-    // Daily aggregations
-    const dailySignups = aggregateByDay(
-        signups.map((s) => s.createdAt),
-        startDate,
-        endDate
-    );
-    const dailyAha = aggregateByDay(
-        firstAhaEvents.map((a) => a.createdAt),
-        startDate,
-        endDate
-    );
-
-    return {
-        signupsCount,
-        ahaCount,
-        activationRate5m,
-        activationRate24h,
-        medianTimeToAhaSeconds,
-        retention7dSecondSendRate,
-        dailySignups,
-        dailyAha,
-    };
+  return {
+    signupsCount,
+    ahaCount,
+    activationRate5m,
+    activationRate24h,
+    medianTimeToAhaSeconds,
+    retention7dSecondSendRate,
+    dailySignups,
+    dailyAha,
+  };
 }
 
 /**
  * Aggregate events by day
  */
 function aggregateByDay(
-    dates: Date[],
-    startDate: Date,
-    endDate: Date
+  dates: Date[],
+  startDate: Date,
+  endDate: Date
 ): Array<{ date: string; count: number }> {
-    const counts: Record<string, number> = {};
+  const counts: Record<string, number> = {};
 
-    // Initialize all days in range with 0
-    const current = new Date(startDate);
-    while (current <= endDate) {
-        const dateStr = current.toISOString().split("T")[0];
-        counts[dateStr] = 0;
-        current.setDate(current.getDate() + 1);
+  // Initialize all days in range with 0
+  const current = new Date(startDate);
+  while (current <= endDate) {
+    const dateStr = current.toISOString().split("T")[0];
+    counts[dateStr] = 0;
+    current.setDate(current.getDate() + 1);
+  }
+
+  // Count events per day
+  for (const date of dates) {
+    const dateStr = date.toISOString().split("T")[0];
+    if (counts[dateStr] !== undefined) {
+      counts[dateStr]++;
     }
+  }
 
-    // Count events per day
-    for (const date of dates) {
-        const dateStr = date.toISOString().split("T")[0];
-        if (counts[dateStr] !== undefined) {
-            counts[dateStr]++;
-        }
-    }
-
-    return Object.entries(counts)
-        .map(([date, count]) => ({ date, count }))
-        .sort((a, b) => a.date.localeCompare(b.date));
+  return Object.entries(counts)
+    .map(([date, count]) => ({ date, count }))
+    .sort((a, b) => a.date.localeCompare(b.date));
 }

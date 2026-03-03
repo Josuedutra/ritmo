@@ -11,27 +11,27 @@ import { prisma } from "@/lib/prisma";
  * - Exception: /onboarding itself (handled separately)
  */
 export async function requireOnboardingComplete() {
-    const session = await auth();
+  const session = await auth();
 
-    if (!session?.user?.organizationId) {
-        redirect("/login");
-    }
+  if (!session?.user?.organizationId) {
+    redirect("/login");
+  }
 
-    const org = await prisma.organization.findUnique({
-        where: { id: session.user.organizationId },
-        select: { onboardingCompleted: true },
-    });
+  const org = await prisma.organization.findUnique({
+    where: { id: session.user.organizationId },
+    select: { onboardingCompleted: true },
+  });
 
-    if (!org) {
-        redirect("/login");
-    }
+  if (!org) {
+    redirect("/login");
+  }
 
-    // If onboarding not complete, redirect to onboarding
-    if (!org.onboardingCompleted) {
-        redirect("/onboarding");
-    }
+  // If onboarding not complete, redirect to onboarding
+  if (!org.onboardingCompleted) {
+    redirect("/onboarding");
+  }
 
-    return session;
+  return session;
 }
 
 /**
@@ -39,25 +39,25 @@ export async function requireOnboardingComplete() {
  * If complete, redirect to dashboard.
  */
 export async function requireOnboardingIncomplete() {
-    const session = await auth();
+  const session = await auth();
 
-    if (!session?.user?.organizationId) {
-        redirect("/login");
-    }
+  if (!session?.user?.organizationId) {
+    redirect("/login");
+  }
 
-    const org = await prisma.organization.findUnique({
-        where: { id: session.user.organizationId },
-        select: { onboardingCompleted: true },
-    });
+  const org = await prisma.organization.findUnique({
+    where: { id: session.user.organizationId },
+    select: { onboardingCompleted: true },
+  });
 
-    if (!org) {
-        redirect("/login");
-    }
+  if (!org) {
+    redirect("/login");
+  }
 
-    // If onboarding is complete, redirect to dashboard
-    if (org.onboardingCompleted) {
-        redirect("/dashboard");
-    }
+  // If onboarding is complete, redirect to dashboard
+  if (org.onboardingCompleted) {
+    redirect("/dashboard");
+  }
 
-    return session;
+  return session;
 }

@@ -26,10 +26,10 @@ const log = logger.child({ service: "org-scope" });
  * Security error thrown when org scope is violated
  */
 export class OrgScopeError extends Error {
-    constructor(message: string) {
-        super(message);
-        this.name = "OrgScopeError";
-    }
+  constructor(message: string) {
+    super(message);
+    this.name = "OrgScopeError";
+  }
 }
 
 /**
@@ -41,16 +41,16 @@ export class OrgScopeError extends Error {
  * @throws OrgScopeError if session or orgId is missing
  */
 export function requireOrgId(session: ApiSession | null): string {
-    if (!session) {
-        throw new OrgScopeError("Session required");
-    }
+  if (!session) {
+    throw new OrgScopeError("Session required");
+  }
 
-    if (!session.user.organizationId) {
-        log.error({ userId: session.user.id }, "User has no organizationId");
-        throw new OrgScopeError("Organization required");
-    }
+  if (!session.user.organizationId) {
+    log.error({ userId: session.user.id }, "User has no organizationId");
+    throw new OrgScopeError("Organization required");
+  }
 
-    return session.user.organizationId;
+  return session.user.organizationId;
 }
 
 /**
@@ -63,26 +63,26 @@ export function requireOrgId(session: ApiSession | null): string {
  * @throws OrgScopeError if orgIds don't match
  */
 export function assertOrgMatch(
-    entityOrgId: string | null | undefined,
-    sessionOrgId: string,
-    entityType = "Resource"
+  entityOrgId: string | null | undefined,
+  sessionOrgId: string,
+  entityType = "Resource"
 ): void {
-    if (!entityOrgId) {
-        throw new OrgScopeError(`${entityType} not found`);
-    }
+  if (!entityOrgId) {
+    throw new OrgScopeError(`${entityType} not found`);
+  }
 
-    if (entityOrgId !== sessionOrgId) {
-        log.warn(
-            {
-                entityOrgId,
-                sessionOrgId,
-                entityType,
-            },
-            "Org scope violation attempt"
-        );
-        // Don't reveal that the resource exists but belongs to another org
-        throw new OrgScopeError(`${entityType} not found`);
-    }
+  if (entityOrgId !== sessionOrgId) {
+    log.warn(
+      {
+        entityOrgId,
+        sessionOrgId,
+        entityType,
+      },
+      "Org scope violation attempt"
+    );
+    // Don't reveal that the resource exists but belongs to another org
+    throw new OrgScopeError(`${entityType} not found`);
+  }
 }
 
 /**
@@ -94,25 +94,23 @@ export function assertOrgMatch(
  * @returns Where clause with organizationId included
  */
 export function withOrgScope<T extends Record<string, unknown>>(
-    sessionOrgId: string,
-    additionalWhere: T = {} as T
+  sessionOrgId: string,
+  additionalWhere: T = {} as T
 ): T & { organizationId: string } {
-    return {
-        ...additionalWhere,
-        organizationId: sessionOrgId,
-    };
+  return {
+    ...additionalWhere,
+    organizationId: sessionOrgId,
+  };
 }
 
 /**
  * Type guard to check if an entity has organizationId
  */
-export function hasOrgId(
-    entity: unknown
-): entity is { organizationId: string } {
-    return (
-        typeof entity === "object" &&
-        entity !== null &&
-        "organizationId" in entity &&
-        typeof (entity as { organizationId: unknown }).organizationId === "string"
-    );
+export function hasOrgId(entity: unknown): entity is { organizationId: string } {
+  return (
+    typeof entity === "object" &&
+    entity !== null &&
+    "organizationId" in entity &&
+    typeof (entity as { organizationId: unknown }).organizationId === "string"
+  );
 }

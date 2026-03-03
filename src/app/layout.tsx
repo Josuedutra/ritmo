@@ -8,62 +8,59 @@ import { CrispWidget } from "@/components/crisp-widget";
 import "./globals.css";
 
 const inter = Inter({
-    subsets: ["latin"],
-    variable: "--font-inter",
+  subsets: ["latin"],
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
-    metadataBase: new URL('https://useritmo.pt'),
-    title: {
-        default: "Ritmo - Follow-up Inteligente para Orçamentos",
-        template: "%s | Ritmo"
-    },
-    description: "Cadência automática + painel + envio para follow-up de orçamentos B2B. Recupere propostas sem resposta.",
-    keywords: ["follow-up", "orçamentos", "CRM", "vendas", "B2B", "automação de vendas"],
-    openGraph: {
-        type: 'website',
-        locale: 'pt_PT',
-        url: 'https://useritmo.pt',
-        siteName: 'Ritmo',
-        images: [
-            {
-                url: '/brand/r-3d-transparent.png', // Using existing brand asset as fallback until specific OG image is created
-                width: 1200,
-                height: 630,
-                alt: 'Ritmo - Follow-up de Orçamentos',
-            },
-        ],
-    },
-    alternates: {
-        canonical: '/',
-    },
-    robots: {
-        index: true,
-        follow: true,
-    }
+  metadataBase: new URL("https://useritmo.pt"),
+  title: {
+    default: "Ritmo - Follow-up Inteligente para Orçamentos",
+    template: "%s | Ritmo",
+  },
+  description:
+    "Cadência automática + painel + envio para follow-up de orçamentos B2B. Recupere propostas sem resposta.",
+  keywords: ["follow-up", "orçamentos", "CRM", "vendas", "B2B", "automação de vendas"],
+  openGraph: {
+    type: "website",
+    locale: "pt_PT",
+    url: "https://useritmo.pt",
+    siteName: "Ritmo",
+    images: [
+      {
+        url: "/brand/r-3d-transparent.png", // Using existing brand asset as fallback until specific OG image is created
+        width: 1200,
+        height: 630,
+        alt: "Ritmo - Follow-up de Orçamentos",
+      },
+    ],
+  },
+  alternates: {
+    canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
-    children,
+  children,
 }: Readonly<{
-    children: React.ReactNode;
+  children: React.ReactNode;
 }>) {
-    return (
-        <html lang="pt-PT" suppressHydrationWarning>
-            <body className={`${inter.variable} antialiased`}>
-                <Providers>
-                    <ThemeProvider
-                        attribute="class"
-                        defaultTheme="light"
-                        disableTransitionOnChange
-                    >
-                        {children}
-                        <Toaster />
-                        <FeedbackModal />
-                        <CrispWidget />
-                    </ThemeProvider>
-                </Providers>
-            </body>
-        </html>
-    );
+  return (
+    <html lang="pt-PT" suppressHydrationWarning>
+      <body className={`${inter.variable} antialiased`}>
+        <Providers>
+          <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
+            {children}
+            <Toaster />
+            <FeedbackModal />
+            <CrispWidget />
+          </ThemeProvider>
+        </Providers>
+      </body>
+    </html>
+  );
 }

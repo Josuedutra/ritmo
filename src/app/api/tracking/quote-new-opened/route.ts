@@ -10,20 +10,20 @@ import { getApiSession } from "@/lib/api-utils";
 import { trackEvent, ProductEventNames } from "@/lib/product-events";
 
 export async function POST(request: NextRequest) {
-    try {
-        const session = await getApiSession();
-        if (!session) {
-            return new Response(null, { status: 204 });
-        }
-
-        await trackEvent(ProductEventNames.QUOTE_NEW_OPENED, {
-            organizationId: session.user.organizationId,
-            userId: session.user.id,
-        });
-
-        return new Response(null, { status: 204 });
-    } catch {
-        // Non-blocking - always return 204
-        return new Response(null, { status: 204 });
+  try {
+    const session = await getApiSession();
+    if (!session) {
+      return new Response(null, { status: 204 });
     }
+
+    await trackEvent(ProductEventNames.QUOTE_NEW_OPENED, {
+      organizationId: session.user.organizationId,
+      userId: session.user.id,
+    });
+
+    return new Response(null, { status: 204 });
+  } catch {
+    // Non-blocking - always return 204
+    return new Response(null, { status: 204 });
+  }
 }

@@ -17,9 +17,9 @@ export const REQUEST_ID_HEADER = "x-request-id";
  * Format: rid_<timestamp>_<random>
  */
 export function generateRequestId(): string {
-    const timestamp = Date.now().toString(36);
-    const random = Math.random().toString(36).substring(2, 10);
-    return `rid_${timestamp}_${random}`;
+  const timestamp = Date.now().toString(36);
+  const random = Math.random().toString(36).substring(2, 10);
+  return `rid_${timestamp}_${random}`;
 }
 
 /**
@@ -27,14 +27,14 @@ export function generateRequestId(): string {
  * Use in API routes and server components
  */
 export async function getRequestId(): Promise<string> {
-    try {
-        const headersList = await headers();
-        const existingId = headersList.get(REQUEST_ID_HEADER);
-        return existingId || generateRequestId();
-    } catch {
-        // headers() not available (e.g., in build time)
-        return generateRequestId();
-    }
+  try {
+    const headersList = await headers();
+    const existingId = headersList.get(REQUEST_ID_HEADER);
+    return existingId || generateRequestId();
+  } catch {
+    // headers() not available (e.g., in build time)
+    return generateRequestId();
+  }
 }
 
 /**
@@ -42,18 +42,18 @@ export async function getRequestId(): Promise<string> {
  * Falls back to generating a new ID
  */
 export function getRequestIdSync(headersList: Headers | null): string {
-    if (headersList) {
-        const existingId = headersList.get(REQUEST_ID_HEADER);
-        if (existingId) return existingId;
-    }
-    return generateRequestId();
+  if (headersList) {
+    const existingId = headersList.get(REQUEST_ID_HEADER);
+    if (existingId) return existingId;
+  }
+  return generateRequestId();
 }
 
 /**
  * Set request ID as Sentry tag for correlation
  */
 export function setRequestIdOnSentry(requestId: string): void {
-    Sentry.setTag("request_id", requestId);
+  Sentry.setTag("request_id", requestId);
 }
 
 /**
@@ -61,13 +61,13 @@ export function setRequestIdOnSentry(requestId: string): void {
  * Useful for passing to async operations
  */
 export interface CorrelationContext {
-    requestId: string;
-    timestamp: number;
+  requestId: string;
+  timestamp: number;
 }
 
 export function createCorrelationContext(requestId?: string): CorrelationContext {
-    return {
-        requestId: requestId || generateRequestId(),
-        timestamp: Date.now(),
-    };
+  return {
+    requestId: requestId || generateRequestId(),
+    timestamp: Date.now(),
+  };
 }

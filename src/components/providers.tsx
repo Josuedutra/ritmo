@@ -4,7 +4,7 @@ import { SessionProvider } from "next-auth/react";
 import { ReactNode } from "react";
 
 interface ProvidersProps {
-    children: ReactNode;
+  children: ReactNode;
 }
 
 /**
@@ -12,5 +12,5 @@ interface ProvidersProps {
  * Includes SessionProvider for NextAuth useSession() hook support.
  */
 export function Providers({ children }: ProvidersProps) {
-    return <SessionProvider>{children}</SessionProvider>;
+  return <SessionProvider>{children}</SessionProvider>;
 }

@@ -20,6 +20,7 @@ A documentação completa do projeto encontra-se na pasta [`docs/`](docs/index.m
 ## 🚀 Quick Start
 
 ### Pré-requisitos
+
 - Node.js 20+
 - pnpm 8+
 - PostgreSQL (Neon ou Supabase)
@@ -48,12 +49,12 @@ Aceda à aplicação em [http://localhost:3000](http://localhost:3000).
 
 ### Scripts Úteis
 
-| Script | Descrição |
-|--------|-----------|
-| `pnpm dev` | Inicia o servidor de desenvolvimento. |
-| `pnpm build` | Compila para produção. |
-| `pnpm db:push` | Atualiza o schema da base de dados (prototipagem). |
-| `pnpm db:studio` | Abre o Prisma Studio para visualizar dados. |
+| Script           | Descrição                                          |
+| ---------------- | -------------------------------------------------- |
+| `pnpm dev`       | Inicia o servidor de desenvolvimento.              |
+| `pnpm build`     | Compila para produção.                             |
+| `pnpm db:push`   | Atualiza o schema da base de dados (prototipagem). |
+| `pnpm db:studio` | Abre o Prisma Studio para visualizar dados.        |
 
 ## 🧪 Estrutura do Projeto
 

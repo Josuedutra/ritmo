@@ -13,16 +13,17 @@ import type { ErrorEvent, EventHint, Breadcrumb } from "@sentry/nextjs";
 
 // Patterns to detect and mask
 const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-const TOKEN_REGEX = /(bearer\s+|token[=:]\s*|api[_-]?key[=:]\s*|secret[=:]\s*)([a-zA-Z0-9_-]{20,})/gi;
+const TOKEN_REGEX =
+  /(bearer\s+|token[=:]\s*|api[_-]?key[=:]\s*|secret[=:]\s*)([a-zA-Z0-9_-]{20,})/gi;
 const JWT_REGEX = /eyJ[a-zA-Z0-9_-]*\.eyJ[a-zA-Z0-9_-]*\.[a-zA-Z0-9_-]*/g;
 
 // Headers to scrub entirely
 const SENSITIVE_HEADERS = [
-    "authorization",
-    "cookie",
-    "x-auth-token",
-    "x-api-key",
-    "x-session-token",
+  "authorization",
+  "cookie",
+  "x-auth-token",
+  "x-api-key",
+  "x-session-token",
 ];
 
 /**
@@ -30,60 +31,60 @@ const SENSITIVE_HEADERS = [
  * "john.doe@example.com" -> "j***@example.com"
  */
 export function maskEmail(email: string): string {
-    const [local, domain] = email.split("@");
-    if (!domain) return "[EMAIL]";
-    const masked = local && local.length > 1 ? local[0] + "***" : "***";
-    return `${masked}@${domain}`;
+  const [local, domain] = email.split("@");
+  if (!domain) return "[EMAIL]";
+  const masked = local && local.length > 1 ? local[0] + "***" : "***";
+  return `${masked}@${domain}`;
 }
 
 /**
  * Scrub sensitive data from a string
  */
 export function scrubString(value: string): string {
-    if (!value || typeof value !== "string") return value;
+  if (!value || typeof value !== "string") return value;
 
-    let scrubbed = value;
+  let scrubbed = value;
 
-    // Mask emails
-    scrubbed = scrubbed.replace(EMAIL_REGEX, (match) => maskEmail(match));
+  // Mask emails
+  scrubbed = scrubbed.replace(EMAIL_REGEX, (match) => maskEmail(match));
 
-    // Mask tokens (bearer, api keys, etc)
-    scrubbed = scrubbed.replace(TOKEN_REGEX, (_, prefix) => `${prefix}[REDACTED]`);
+  // Mask tokens (bearer, api keys, etc)
+  scrubbed = scrubbed.replace(TOKEN_REGEX, (_, prefix) => `${prefix}[REDACTED]`);
 
-    // Mask JWTs
-    scrubbed = scrubbed.replace(JWT_REGEX, "[JWT_REDACTED]");
+  // Mask JWTs
+  scrubbed = scrubbed.replace(JWT_REGEX, "[JWT_REDACTED]");
 
-    return scrubbed;
+  return scrubbed;
 }
 
 /**
  * Recursively scrub an object
  */
 export function scrubObject(obj: unknown): unknown {
-    if (obj === null || obj === undefined) return obj;
+  if (obj === null || obj === undefined) return obj;
 
-    if (typeof obj === "string") {
-        return scrubString(obj);
+  if (typeof obj === "string") {
+    return scrubString(obj);
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(scrubObject);
+  }
+
+  if (typeof obj === "object") {
+    const scrubbed: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      // Scrub sensitive header values entirely
+      if (SENSITIVE_HEADERS.includes(key.toLowerCase())) {
+        scrubbed[key] = "[REDACTED]";
+      } else {
+        scrubbed[key] = scrubObject(value);
+      }
     }
+    return scrubbed;
+  }
 
-    if (Array.isArray(obj)) {
-        return obj.map(scrubObject);
-    }
-
-    if (typeof obj === "object") {
-        const scrubbed: Record<string, unknown> = {};
-        for (const [key, value] of Object.entries(obj)) {
-            // Scrub sensitive header values entirely
-            if (SENSITIVE_HEADERS.includes(key.toLowerCase())) {
-                scrubbed[key] = "[REDACTED]";
-            } else {
-                scrubbed[key] = scrubObject(value);
-            }
-        }
-        return scrubbed;
-    }
-
-    return obj;
+  return obj;
 }
 
 /**
@@ -97,91 +98,91 @@ export function scrubObject(obj: unknown): unknown {
  * ```
  */
 export function scrubEvent(event: ErrorEvent, _hint?: EventHint): ErrorEvent | null {
-    // Scrub user data
-    if (event.user) {
-        if (event.user.email) {
-            event.user.email = maskEmail(event.user.email);
-        }
-        if (event.user.username) {
-            event.user.username = scrubString(event.user.username);
-        }
-        if (event.user.ip_address) {
-            event.user.ip_address = "[REDACTED]";
-        }
+  // Scrub user data
+  if (event.user) {
+    if (event.user.email) {
+      event.user.email = maskEmail(event.user.email);
+    }
+    if (event.user.username) {
+      event.user.username = scrubString(event.user.username);
+    }
+    if (event.user.ip_address) {
+      event.user.ip_address = "[REDACTED]";
+    }
+  }
+
+  // Scrub request data
+  if (event.request) {
+    // Scrub headers
+    if (event.request.headers) {
+      event.request.headers = scrubObject(event.request.headers) as Record<string, string>;
     }
 
-    // Scrub request data
-    if (event.request) {
-        // Scrub headers
-        if (event.request.headers) {
-            event.request.headers = scrubObject(event.request.headers) as Record<string, string>;
-        }
-
-        // Scrub query string
-        if (event.request.query_string) {
-            event.request.query_string = scrubString(
-                typeof event.request.query_string === "string"
-                    ? event.request.query_string
-                    : JSON.stringify(event.request.query_string)
-            );
-        }
-
-        // Scrub cookies
-        if (event.request.cookies) {
-            event.request.cookies = { _scrubbed: "[REDACTED]" };
-        }
-
-        // Scrub request body/data
-        if (event.request.data) {
-            event.request.data = scrubObject(event.request.data);
-        }
+    // Scrub query string
+    if (event.request.query_string) {
+      event.request.query_string = scrubString(
+        typeof event.request.query_string === "string"
+          ? event.request.query_string
+          : JSON.stringify(event.request.query_string)
+      );
     }
 
-    // Scrub breadcrumbs
-    if (event.breadcrumbs) {
-        event.breadcrumbs = event.breadcrumbs.map((crumb: Breadcrumb) => {
-            if (crumb.message) {
-                crumb.message = scrubString(crumb.message);
-            }
-            if (crumb.data) {
-                crumb.data = scrubObject(crumb.data) as Record<string, unknown>;
-            }
-            return crumb;
+    // Scrub cookies
+    if (event.request.cookies) {
+      event.request.cookies = { _scrubbed: "[REDACTED]" };
+    }
+
+    // Scrub request body/data
+    if (event.request.data) {
+      event.request.data = scrubObject(event.request.data);
+    }
+  }
+
+  // Scrub breadcrumbs
+  if (event.breadcrumbs) {
+    event.breadcrumbs = event.breadcrumbs.map((crumb: Breadcrumb) => {
+      if (crumb.message) {
+        crumb.message = scrubString(crumb.message);
+      }
+      if (crumb.data) {
+        crumb.data = scrubObject(crumb.data) as Record<string, unknown>;
+      }
+      return crumb;
+    });
+  }
+
+  // Scrub exception messages and stack traces
+  if (event.exception?.values) {
+    event.exception.values = event.exception.values.map((exc) => {
+      if (exc.value) {
+        exc.value = scrubString(exc.value);
+      }
+      if (exc.stacktrace?.frames) {
+        exc.stacktrace.frames = exc.stacktrace.frames.map((frame) => {
+          if (frame.vars) {
+            frame.vars = scrubObject(frame.vars) as Record<string, unknown>;
+          }
+          return frame;
         });
-    }
+      }
+      return exc;
+    });
+  }
 
-    // Scrub exception messages and stack traces
-    if (event.exception?.values) {
-        event.exception.values = event.exception.values.map((exc) => {
-            if (exc.value) {
-                exc.value = scrubString(exc.value);
-            }
-            if (exc.stacktrace?.frames) {
-                exc.stacktrace.frames = exc.stacktrace.frames.map((frame) => {
-                    if (frame.vars) {
-                        frame.vars = scrubObject(frame.vars) as Record<string, unknown>;
-                    }
-                    return frame;
-                });
-            }
-            return exc;
-        });
-    }
+  // Scrub extra context
+  if (event.extra) {
+    event.extra = scrubObject(event.extra) as Record<string, unknown>;
+  }
 
-    // Scrub extra context
-    if (event.extra) {
-        event.extra = scrubObject(event.extra) as Record<string, unknown>;
-    }
+  // Scrub tags
+  if (event.tags) {
+    event.tags = scrubObject(event.tags) as Record<string, string>;
+  }
 
-    // Scrub tags
-    if (event.tags) {
-        event.tags = scrubObject(event.tags) as Record<string, string>;
-    }
+  // Scrub contexts
+  if (event.contexts) {
+    event.contexts = scrubObject(event.contexts) as Record<string, Record<string, unknown>>;
+  }
 
-    // Scrub contexts
-    if (event.contexts) {
-        event.contexts = scrubObject(event.contexts) as Record<string, Record<string, unknown>>;
-    }
-
-    return event;
+  return event;
 }

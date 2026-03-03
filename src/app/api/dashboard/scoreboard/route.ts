@@ -1,11 +1,5 @@
 import { NextRequest } from "next/server";
-import {
-    getApiSession,
-    unauthorized,
-    forbidden,
-    serverError,
-    success,
-} from "@/lib/api-utils";
+import { getApiSession, unauthorized, forbidden, serverError, success } from "@/lib/api-utils";
 import { getScoreboardData } from "@/lib/org-metrics";
 import { canAccessScoreboard } from "@/lib/entitlements";
 
@@ -28,54 +22,54 @@ import { canAccessScoreboard } from "@/lib/entitlements";
  * - dailyMetrics: Daily breakdown for charts
  */
 export async function GET(request: NextRequest) {
-    try {
-        const session = await getApiSession();
-        if (!session) return unauthorized();
+  try {
+    const session = await getApiSession();
+    if (!session) return unauthorized();
 
-        const orgId = session.user.organizationId;
+    const orgId = session.user.organizationId;
 
-        // Check access
-        const access = await canAccessScoreboard(orgId);
+    // Check access
+    const access = await canAccessScoreboard(orgId);
 
-        if (!access.allowed) {
-            if (access.showTeaser) {
-                // Trial users get teaser response
-                return success({
-                    access: "teaser",
-                    tier: access.tier,
-                    organizationId: orgId,
-                    message: "O Scoreboard completo está disponível nos planos pagos.",
-                    upgradeUrl: "/settings/billing",
-                    // Sample/placeholder data for teaser
-                    preview: {
-                        sentCount: "—",
-                        completedActions: "—",
-                        followUpRate: "—",
-                        noResponseCount: "—",
-                    },
-                });
-            }
-
-            // Free tier - no access
-            return forbidden("O Scoreboard está disponível apenas nos planos Starter e superiores.");
-        }
-
-        // Get actual scoreboard data
-        const data = await getScoreboardData(orgId);
-
+    if (!access.allowed) {
+      if (access.showTeaser) {
+        // Trial users get teaser response
         return success({
-            access: "full",
-            tier: access.tier,
-            organizationId: orgId,
-            data: {
-                sentCount: data.sentCount,
-                completedActions: data.completedActions,
-                followUpRate: data.followUpRate,
-                noResponseCount: data.noResponseCount,
-                dailyMetrics: data.dailyMetrics,
-            },
+          access: "teaser",
+          tier: access.tier,
+          organizationId: orgId,
+          message: "O Scoreboard completo está disponível nos planos pagos.",
+          upgradeUrl: "/settings/billing",
+          // Sample/placeholder data for teaser
+          preview: {
+            sentCount: "—",
+            completedActions: "—",
+            followUpRate: "—",
+            noResponseCount: "—",
+          },
         });
-    } catch (error) {
-        return serverError(error, "GET /api/dashboard/scoreboard");
+      }
+
+      // Free tier - no access
+      return forbidden("O Scoreboard está disponível apenas nos planos Starter e superiores.");
     }
+
+    // Get actual scoreboard data
+    const data = await getScoreboardData(orgId);
+
+    return success({
+      access: "full",
+      tier: access.tier,
+      organizationId: orgId,
+      data: {
+        sentCount: data.sentCount,
+        completedActions: data.completedActions,
+        followUpRate: data.followUpRate,
+        noResponseCount: data.noResponseCount,
+        dailyMetrics: data.dailyMetrics,
+      },
+    });
+  } catch (error) {
+    return serverError(error, "GET /api/dashboard/scoreboard");
+  }
 }

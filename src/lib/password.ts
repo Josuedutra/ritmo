@@ -30,7 +30,7 @@ const BCRYPT_PREFIXES = ["$2a$", "$2b$", "$2y$"];
  * @returns The bcrypt hash
  */
 export async function hashPassword(plain: string): Promise<string> {
-    return bcrypt.hash(plain, BCRYPT_COST);
+  return bcrypt.hash(plain, BCRYPT_COST);
 }
 
 /**
@@ -41,7 +41,7 @@ export async function hashPassword(plain: string): Promise<string> {
  * @returns True if the password matches, false otherwise
  */
 export async function verifyPassword(plain: string, hash: string): Promise<boolean> {
-    return bcrypt.compare(plain, hash);
+  return bcrypt.compare(plain, hash);
 }
 
 /**
@@ -53,10 +53,10 @@ export async function verifyPassword(plain: string, hash: string): Promise<boole
  * @returns True if it's a bcrypt hash, false if plaintext/legacy
  */
 export function isBcryptHash(hash: string): boolean {
-    if (!hash || hash.length < 4) {
-        return false;
-    }
-    return BCRYPT_PREFIXES.some((prefix) => hash.startsWith(prefix));
+  if (!hash || hash.length < 4) {
+    return false;
+  }
+  return BCRYPT_PREFIXES.some((prefix) => hash.startsWith(prefix));
 }
 
 /**
@@ -75,43 +75,40 @@ export function isBcryptHash(hash: string): boolean {
  * @returns True if upgrade was performed, false if no upgrade needed
  */
 export async function upgradeLegacyPasswordIfNeeded(
-    userId: string,
-    plain: string,
-    storedValue: string
+  userId: string,
+  plain: string,
+  storedValue: string
 ): Promise<boolean> {
-    // Only upgrade if stored value is plaintext (not bcrypt)
-    if (isBcryptHash(storedValue)) {
-        return false; // Already bcrypt, no upgrade needed
-    }
+  // Only upgrade if stored value is plaintext (not bcrypt)
+  if (isBcryptHash(storedValue)) {
+    return false; // Already bcrypt, no upgrade needed
+  }
 
-    // Only upgrade if password matches (plaintext comparison)
-    if (plain !== storedValue) {
-        return false; // Wrong password, don't upgrade
-    }
+  // Only upgrade if password matches (plaintext comparison)
+  if (plain !== storedValue) {
+    return false; // Wrong password, don't upgrade
+  }
 
-    // Generate bcrypt hash and update user
-    try {
-        const newHash = await hashPassword(plain);
+  // Generate bcrypt hash and update user
+  try {
+    const newHash = await hashPassword(plain);
 
-        await prisma.user.update({
-            where: { id: userId },
-            data: { passwordHash: newHash },
-        });
+    await prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: newHash },
+    });
 
-        log.info(
-            { userId, scope: "security" },
-            "Legacy password upgraded to bcrypt"
-        );
+    log.info({ userId, scope: "security" }, "Legacy password upgraded to bcrypt");
 
-        return true;
-    } catch (error) {
-        // Log but don't throw - user can still login, upgrade will happen next time
-        log.error(
-            { userId, error: error instanceof Error ? error.message : "Unknown error" },
-            "Failed to upgrade legacy password"
-        );
-        return false;
-    }
+    return true;
+  } catch (error) {
+    // Log but don't throw - user can still login, upgrade will happen next time
+    log.error(
+      { userId, error: error instanceof Error ? error.message : "Unknown error" },
+      "Failed to upgrade legacy password"
+    );
+    return false;
+  }
 }
 
 /**
@@ -127,30 +124,30 @@ export async function upgradeLegacyPasswordIfNeeded(
  * @returns True if password is valid, false otherwise
  */
 export async function authenticatePassword(
-    plain: string,
-    storedHash: string,
-    userId: string
+  plain: string,
+  storedHash: string,
+  userId: string
 ): Promise<boolean> {
-    if (!plain || !storedHash) {
-        return false;
-    }
+  if (!plain || !storedHash) {
+    return false;
+  }
 
-    // Check if it's a bcrypt hash
-    if (isBcryptHash(storedHash)) {
-        // Modern path: verify with bcrypt
-        return verifyPassword(plain, storedHash);
-    }
+  // Check if it's a bcrypt hash
+  if (isBcryptHash(storedHash)) {
+    // Modern path: verify with bcrypt
+    return verifyPassword(plain, storedHash);
+  }
 
-    // Legacy path: plaintext comparison
-    const isValid = plain === storedHash;
+  // Legacy path: plaintext comparison
+  const isValid = plain === storedHash;
 
-    if (isValid) {
-        // Upgrade to bcrypt in the background (fire and forget)
-        // This runs async so login isn't delayed
-        upgradeLegacyPasswordIfNeeded(userId, plain, storedHash).catch((err) => {
-            log.error({ userId, error: err }, "Background password upgrade failed");
-        });
-    }
+  if (isValid) {
+    // Upgrade to bcrypt in the background (fire and forget)
+    // This runs async so login isn't delayed
+    upgradeLegacyPasswordIfNeeded(userId, plain, storedHash).catch((err) => {
+      log.error({ userId, error: err }, "Background password upgrade failed");
+    });
+  }
 
-    return isValid;
+  return isValid;
 }

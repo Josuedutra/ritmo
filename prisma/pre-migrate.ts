@@ -11,106 +11,98 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-    console.log("🔄 Running pre-migration fixes...");
+  console.log("🔄 Running pre-migration fixes...");
 
-    // Check if organizations table exists and has rows
-    const orgCount = await prisma.$queryRaw<{ count: bigint }[]>`
+  // Check if organizations table exists and has rows
+  const orgCount = await prisma.$queryRaw<{ count: bigint }[]>`
         SELECT COUNT(*) as count FROM information_schema.tables
         WHERE table_name = 'organizations'
     `;
 
-    if (orgCount[0]?.count > 0) {
-        // Check if short_id column exists
-        const columnExists = await prisma.$queryRaw<{ exists: boolean }[]>`
+  if (orgCount[0]?.count > 0) {
+    // Check if short_id column exists
+    const columnExists = await prisma.$queryRaw<{ exists: boolean }[]>`
             SELECT EXISTS (
                 SELECT 1 FROM information_schema.columns
                 WHERE table_name = 'organizations' AND column_name = 'short_id'
             ) as exists
         `;
 
-        if (!columnExists[0]?.exists) {
-            console.log("📝 Adding short_id column to organizations...");
+    if (!columnExists[0]?.exists) {
+      console.log("📝 Adding short_id column to organizations...");
 
-            // Add column as nullable first
-            await prisma.$executeRaw`
+      // Add column as nullable first
+      await prisma.$executeRaw`
                 ALTER TABLE organizations
                 ADD COLUMN IF NOT EXISTS short_id TEXT
             `;
 
-            // Populate with cuid-like values
-            await prisma.$executeRaw`
+      // Populate with cuid-like values
+      await prisma.$executeRaw`
                 UPDATE organizations
                 SET short_id = CONCAT('c', SUBSTRING(MD5(RANDOM()::TEXT), 1, 24))
                 WHERE short_id IS NULL
             `;
 
-            // Add unique constraint
-            await prisma.$executeRaw`
+      // Add unique constraint
+      await prisma.$executeRaw`
                 ALTER TABLE organizations
                 ADD CONSTRAINT organizations_short_id_key UNIQUE (short_id)
             `;
 
-            // Make it NOT NULL
-            await prisma.$executeRaw`
+      // Make it NOT NULL
+      await prisma.$executeRaw`
                 ALTER TABLE organizations
                 ALTER COLUMN short_id SET NOT NULL
             `;
 
-            console.log("✅ short_id column added and populated");
-        } else {
-            // Column exists, just ensure no nulls
-            const nullCount = await prisma.$queryRaw<{ count: bigint }[]>`
+      console.log("✅ short_id column added and populated");
+    } else {
+      // Column exists, just ensure no nulls
+      const nullCount = await prisma.$queryRaw<{ count: bigint }[]>`
                 SELECT COUNT(*) as count FROM organizations WHERE short_id IS NULL
             `;
 
-            if (Number(nullCount[0]?.count) > 0) {
-                console.log("📝 Populating NULL short_id values...");
-                await prisma.$executeRaw`
+      if (Number(nullCount[0]?.count) > 0) {
+        console.log("📝 Populating NULL short_id values...");
+        await prisma.$executeRaw`
                     UPDATE organizations
                     SET short_id = CONCAT('c', SUBSTRING(MD5(RANDOM()::TEXT), 1, 24))
                     WHERE short_id IS NULL
                 `;
-                console.log("✅ short_id values populated");
-            } else {
-                console.log("✅ short_id column already populated");
-            }
-        }
+        console.log("✅ short_id values populated");
+      } else {
+        console.log("✅ short_id column already populated");
+      }
     }
+  }
 
-    // Helper to check if table exists
-    async function tableExists(tableName: string): Promise<boolean> {
-        const result = await prisma.$queryRaw<{ exists: boolean }[]>`
+  // Helper to check if table exists
+  async function tableExists(tableName: string): Promise<boolean> {
+    const result = await prisma.$queryRaw<{ exists: boolean }[]>`
             SELECT EXISTS (
                 SELECT 1 FROM information_schema.tables
                 WHERE table_schema = 'public' AND table_name = ${tableName}
             ) as exists
         `;
-        return result[0]?.exists ?? false;
-    }
+    return result[0]?.exists ?? false;
+  }
 
-    // Helper to check if column exists
-    async function columnExists(
-        tableName: string,
-        columnName: string
-    ): Promise<boolean> {
-        const result = await prisma.$queryRaw<{ exists: boolean }[]>`
+  // Helper to check if column exists
+  async function columnExists(tableName: string, columnName: string): Promise<boolean> {
+    const result = await prisma.$queryRaw<{ exists: boolean }[]>`
             SELECT EXISTS (
                 SELECT 1 FROM information_schema.columns
                 WHERE table_schema = 'public' AND table_name = ${tableName} AND column_name = ${columnName}
             ) as exists
         `;
-        return result[0]?.exists ?? false;
-    }
+    return result[0]?.exists ?? false;
+  }
 
-    // Clean up duplicate cadence_event_id in email_logs (keep first, delete rest)
-    if (
-        (await tableExists("email_logs")) &&
-        (await columnExists("email_logs", "cadence_event_id"))
-    ) {
-        console.log(
-            "🧹 Cleaning up duplicate email_logs for unique constraint..."
-        );
-        await prisma.$executeRaw`
+  // Clean up duplicate cadence_event_id in email_logs (keep first, delete rest)
+  if ((await tableExists("email_logs")) && (await columnExists("email_logs", "cadence_event_id"))) {
+    console.log("🧹 Cleaning up duplicate email_logs for unique constraint...");
+    await prisma.$executeRaw`
             DELETE FROM email_logs
             WHERE id IN (
                 SELECT id FROM (
@@ -120,15 +112,12 @@ async function main() {
                 ) t WHERE rn > 1
             )
         `;
-    }
+  }
 
-    // Clean up duplicate cadence_event_id in tasks (keep first, delete rest)
-    if (
-        (await tableExists("tasks")) &&
-        (await columnExists("tasks", "cadence_event_id"))
-    ) {
-        console.log("🧹 Cleaning up duplicate tasks for unique constraint...");
-        await prisma.$executeRaw`
+  // Clean up duplicate cadence_event_id in tasks (keep first, delete rest)
+  if ((await tableExists("tasks")) && (await columnExists("tasks", "cadence_event_id"))) {
+    console.log("🧹 Cleaning up duplicate tasks for unique constraint...");
+    await prisma.$executeRaw`
             DELETE FROM tasks
             WHERE id IN (
                 SELECT id FROM (
@@ -138,17 +127,15 @@ async function main() {
                 ) t WHERE rn > 1
             )
         `;
-    }
+  }
 
-    // Clean up duplicate provider_message_id in inbound_ingestions (keep first, delete rest)
-    if (
-        (await tableExists("inbound_ingestions")) &&
-        (await columnExists("inbound_ingestions", "provider_message_id"))
-    ) {
-        console.log(
-            "🧹 Cleaning up duplicate inbound_ingestions for unique constraint..."
-        );
-        await prisma.$executeRaw`
+  // Clean up duplicate provider_message_id in inbound_ingestions (keep first, delete rest)
+  if (
+    (await tableExists("inbound_ingestions")) &&
+    (await columnExists("inbound_ingestions", "provider_message_id"))
+  ) {
+    console.log("🧹 Cleaning up duplicate inbound_ingestions for unique constraint...");
+    await prisma.$executeRaw`
             DELETE FROM inbound_ingestions
             WHERE id IN (
                 SELECT id FROM (
@@ -158,15 +145,12 @@ async function main() {
                 ) t WHERE rn > 1
             )
         `;
-    }
+  }
 
-    // Ensure unique public_id in quotes (regenerate duplicates)
-    if (
-        (await tableExists("quotes")) &&
-        (await columnExists("quotes", "public_id"))
-    ) {
-        console.log("🧹 Fixing duplicate public_id in quotes...");
-        await prisma.$executeRaw`
+  // Ensure unique public_id in quotes (regenerate duplicates)
+  if ((await tableExists("quotes")) && (await columnExists("quotes", "public_id"))) {
+    console.log("🧹 Fixing duplicate public_id in quotes...");
+    await prisma.$executeRaw`
             UPDATE quotes
             SET public_id = CONCAT('c', SUBSTRING(MD5(RANDOM()::TEXT || id), 1, 24))
             WHERE id IN (
@@ -176,45 +160,45 @@ async function main() {
                 ) t WHERE rn > 1
             )
         `;
-    }
+  }
 
-    // Fix contacts with non-UUID IDs (like 'sample-contact-1')
-    if (await tableExists("contacts")) {
-        console.log("🔧 Fixing contacts with non-UUID IDs...");
-        // Update contacts with invalid UUIDs to have valid UUIDs
-        // This uses a regex pattern to identify non-UUID strings
-        await prisma.$executeRaw`
+  // Fix contacts with non-UUID IDs (like 'sample-contact-1')
+  if (await tableExists("contacts")) {
+    console.log("🔧 Fixing contacts with non-UUID IDs...");
+    // Update contacts with invalid UUIDs to have valid UUIDs
+    // This uses a regex pattern to identify non-UUID strings
+    await prisma.$executeRaw`
             UPDATE contacts
             SET id = gen_random_uuid()::text
             WHERE id !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
         `;
-    }
+  }
 
-    // Seed/update plans if plans table exists
-    if (await tableExists("plans")) {
-        console.log("📝 Updating plans with frozen pricing...");
+  // Seed/update plans if plans table exists
+  if (await tableExists("plans")) {
+    console.log("📝 Updating plans with frozen pricing...");
 
-        // Check if max_users column exists, add if not
-        const maxUsersExists = await columnExists("plans", "max_users");
-        if (!maxUsersExists) {
-            await prisma.$executeRaw`
+    // Check if max_users column exists, add if not
+    const maxUsersExists = await columnExists("plans", "max_users");
+    if (!maxUsersExists) {
+      await prisma.$executeRaw`
                 ALTER TABLE plans ADD COLUMN IF NOT EXISTS max_users INTEGER DEFAULT 1
             `;
-            console.log("✅ Added max_users column to plans");
-        }
+      console.log("✅ Added max_users column to plans");
+    }
 
-        // Check if is_public column exists, add if not
-        const isPublicExists = await columnExists("plans", "is_public");
-        if (!isPublicExists) {
-            await prisma.$executeRaw`
+    // Check if is_public column exists, add if not
+    const isPublicExists = await columnExists("plans", "is_public");
+    if (!isPublicExists) {
+      await prisma.$executeRaw`
                 ALTER TABLE plans ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT true
             `;
-            console.log("✅ Added is_public column to plans");
-        }
+      console.log("✅ Added is_public column to plans");
+    }
 
-        // Upsert plans with frozen pricing: Free=5, Starter=€39/80, Pro=€99/250, Pro+=€149/500
-        // Pro+ and Enterprise are hidden (isPublic=false)
-        await prisma.$executeRaw`
+    // Upsert plans with frozen pricing: Free=5, Starter=€39/80, Pro=€99/250, Pro+=€149/500
+    // Pro+ and Enterprise are hidden (isPublic=false)
+    await prisma.$executeRaw`
             INSERT INTO plans (id, name, monthly_quote_limit, price_monthly, max_users, is_active, is_public, created_at, updated_at)
             VALUES
                 ('free', 'Gratuito', 5, 0, 1, true, true, NOW(), NOW()),
@@ -232,17 +216,17 @@ async function main() {
                 updated_at = NOW()
         `;
 
-        console.log("✅ Plans updated (Free=5, Starter=€39/80, Pro=€99/250, Pro+=€149/500 hidden)");
-    }
+    console.log("✅ Plans updated (Free=5, Starter=€39/80, Pro=€99/250, Pro+=€149/500 hidden)");
+  }
 
-    // Migrate stripe_events table for retry support
-    if (await tableExists("stripe_events")) {
-        console.log("📝 Checking stripe_events schema for status column...");
+  // Migrate stripe_events table for retry support
+  if (await tableExists("stripe_events")) {
+    console.log("📝 Checking stripe_events schema for status column...");
 
-        const statusExists = await columnExists("stripe_events", "status");
-        if (!statusExists) {
-            // Create enum type if it doesn't exist
-            await prisma.$executeRaw`
+    const statusExists = await columnExists("stripe_events", "status");
+    if (!statusExists) {
+      // Create enum type if it doesn't exist
+      await prisma.$executeRaw`
                 DO $$ BEGIN
                     CREATE TYPE "StripeEventStatus" AS ENUM ('PROCESSING', 'PROCESSED', 'FAILED');
                 EXCEPTION
@@ -250,104 +234,104 @@ async function main() {
                 END $$;
             `;
 
-            // Add status column with default PROCESSED (for existing events)
-            await prisma.$executeRaw`
+      // Add status column with default PROCESSED (for existing events)
+      await prisma.$executeRaw`
                 ALTER TABLE stripe_events
                 ADD COLUMN IF NOT EXISTS status "StripeEventStatus" DEFAULT 'PROCESSED'
             `;
 
-            // Add claimed_at column
-            await prisma.$executeRaw`
+      // Add claimed_at column
+      await prisma.$executeRaw`
                 ALTER TABLE stripe_events
                 ADD COLUMN IF NOT EXISTS claimed_at TIMESTAMP(3) DEFAULT NOW()
             `;
 
-            // Rename processed_at to keep compatibility
-            const processedAtExists = await columnExists("stripe_events", "processed_at");
-            if (processedAtExists) {
-                // Make processed_at nullable (for PROCESSING/FAILED states)
-                await prisma.$executeRaw`
+      // Rename processed_at to keep compatibility
+      const processedAtExists = await columnExists("stripe_events", "processed_at");
+      if (processedAtExists) {
+        // Make processed_at nullable (for PROCESSING/FAILED states)
+        await prisma.$executeRaw`
                     ALTER TABLE stripe_events
                     ALTER COLUMN processed_at DROP NOT NULL
                 `;
-            } else {
-                await prisma.$executeRaw`
+      } else {
+        await prisma.$executeRaw`
                     ALTER TABLE stripe_events
                     ADD COLUMN IF NOT EXISTS processed_at TIMESTAMP(3)
                 `;
-            }
+      }
 
-            // Add error_message column
-            await prisma.$executeRaw`
+      // Add error_message column
+      await prisma.$executeRaw`
                 ALTER TABLE stripe_events
                 ADD COLUMN IF NOT EXISTS error_message TEXT
             `;
 
-            // Set claimed_at from processed_at for existing records
-            await prisma.$executeRaw`
+      // Set claimed_at from processed_at for existing records
+      await prisma.$executeRaw`
                 UPDATE stripe_events
                 SET claimed_at = COALESCE(processed_at, NOW())
                 WHERE claimed_at IS NULL
             `;
 
-            console.log("✅ stripe_events schema updated with status/retry support");
-        } else {
-            console.log("✅ stripe_events already has status column");
-        }
+      console.log("✅ stripe_events schema updated with status/retry support");
+    } else {
+      console.log("✅ stripe_events already has status column");
     }
+  }
 
-    // Migrate users table for OAuth support (organizationId nullable)
-    if (await tableExists("users")) {
-        console.log("📝 Checking users table for OAuth support...");
+  // Migrate users table for OAuth support (organizationId nullable)
+  if (await tableExists("users")) {
+    console.log("📝 Checking users table for OAuth support...");
 
-        // Check if organization_id column is nullable
-        const result = await prisma.$queryRaw<{ is_nullable: string }[]>`
+    // Check if organization_id column is nullable
+    const result = await prisma.$queryRaw<{ is_nullable: string }[]>`
             SELECT is_nullable
             FROM information_schema.columns
             WHERE table_name = 'users' AND column_name = 'organization_id'
         `;
 
-        if (result.length > 0 && result[0].is_nullable === "NO") {
-            console.log("📝 Making organization_id nullable for OAuth users...");
+    if (result.length > 0 && result[0].is_nullable === "NO") {
+      console.log("📝 Making organization_id nullable for OAuth users...");
 
-            // Drop the foreign key constraint first (if exists)
-            await prisma.$executeRaw`
+      // Drop the foreign key constraint first (if exists)
+      await prisma.$executeRaw`
                 ALTER TABLE users
                 DROP CONSTRAINT IF EXISTS users_organization_id_fkey
             `;
 
-            // Make organization_id nullable
-            await prisma.$executeRaw`
+      // Make organization_id nullable
+      await prisma.$executeRaw`
                 ALTER TABLE users
                 ALTER COLUMN organization_id DROP NOT NULL
             `;
 
-            // Re-add the foreign key constraint with ON DELETE CASCADE
-            await prisma.$executeRaw`
+      // Re-add the foreign key constraint with ON DELETE CASCADE
+      await prisma.$executeRaw`
                 ALTER TABLE users
                 ADD CONSTRAINT users_organization_id_fkey
                 FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
             `;
 
-            // Add unique constraint on email if not exists (for OAuth account linking)
-            await prisma.$executeRaw`
+      // Add unique constraint on email if not exists (for OAuth account linking)
+      await prisma.$executeRaw`
                 CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique ON users(email)
             `;
 
-            console.log("✅ users table updated for OAuth support");
-        } else {
-            console.log("✅ users.organization_id already nullable");
-        }
+      console.log("✅ users table updated for OAuth support");
+    } else {
+      console.log("✅ users.organization_id already nullable");
     }
+  }
 
-    console.log("✅ Pre-migration complete");
+  console.log("✅ Pre-migration complete");
 }
 
 main()
-    .catch((e) => {
-        console.error("❌ Pre-migration failed:", e);
-        process.exit(1);
-    })
-    .finally(async () => {
-        await prisma.$disconnect();
-    });
+  .catch((e) => {
+    console.error("❌ Pre-migration failed:", e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

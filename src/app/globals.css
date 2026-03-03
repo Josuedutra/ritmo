@@ -75,9 +75,9 @@
   /* -------------------------------------------------------------------------
      Brand Colors - Ritmo Gradient (Blue → Emerald)
      ------------------------------------------------------------------------- */
-  --brand-from: oklch(0.70 0.15 240);   /* Blue 400 equivalent */
-  --brand-to: oklch(0.69 0.14 165);     /* Premium Emerald (refined) */
-  --brand: oklch(0.70 0.15 240);        /* Primary brand = from color */
+  --brand-from: oklch(0.7 0.15 240); /* Blue 400 equivalent */
+  --brand-to: oklch(0.69 0.14 165); /* Premium Emerald (refined) */
+  --brand: oklch(0.7 0.15 240); /* Primary brand = from color */
 
   /* -------------------------------------------------------------------------
      Light Mode - Premium Surfaces
@@ -98,7 +98,7 @@
   /* Primary: Mapped to brand */
   --primary: var(--brand);
   --primary-foreground: oklch(0.99 0 0);
-  --primary-hover: oklch(0.62 0.13 240);  /* Reduced chroma for premium hover */
+  --primary-hover: oklch(0.62 0.13 240); /* Reduced chroma for premium hover */
 
   /* Secondary: Softer than stock F5F5F5 */
   --secondary: oklch(0.97 0.003 90);
@@ -106,7 +106,7 @@
 
   /* Muted: Premium gray tones */
   --muted: oklch(0.965 0.003 90);
-  --muted-foreground: oklch(0.50 0.01 260);
+  --muted-foreground: oklch(0.5 0.01 260);
 
   /* Accent: Subtle warm tint */
   --accent: oklch(0.96 0.005 90);
@@ -151,7 +151,7 @@
 
   /* Brand: Slightly lighter for dark mode contrast */
   --brand-from: oklch(0.72 0.14 240);
-  --brand-to: oklch(0.71 0.13 165);     /* Premium Emerald (dark mode) */
+  --brand-to: oklch(0.71 0.13 165); /* Premium Emerald (dark mode) */
   --brand: oklch(0.72 0.14 240);
 
   /* Background: Deep black */
@@ -163,7 +163,7 @@
   --card-foreground: oklch(0.97 0 0);
 
   /* Popover: Slightly elevated */
-  --popover: oklch(0.10 0 0);
+  --popover: oklch(0.1 0 0);
   --popover-foreground: oklch(0.97 0 0);
 
   /* Primary: Brand adjusted for dark */
@@ -177,18 +177,18 @@
 
   /* Muted */
   --muted: oklch(0.14 0 0);
-  --muted-foreground: oklch(0.60 0 0);
+  --muted-foreground: oklch(0.6 0 0);
 
   /* Accent */
   --accent: oklch(0.16 0 0);
   --accent-foreground: oklch(0.97 0 0);
 
   /* Destructive: Softer for dark mode */
-  --destructive: oklch(0.50 0.16 25);
+  --destructive: oklch(0.5 0.16 25);
   --destructive-foreground: oklch(0.99 0 0);
 
   /* Borders */
-  --border: oklch(0.20 0 0);
+  --border: oklch(0.2 0 0);
   --input: oklch(0.18 0 0);
   --ring: var(--brand);
 
@@ -220,7 +220,11 @@
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -314,16 +318,8 @@ h4 {
 /* Hero premium background - off-white with subtle brand glow */
 .bg-hero-premium {
   background:
-    radial-gradient(
-      ellipse 100% 60% at 50% -10%,
-      oklch(0.70 0.15 240 / 0.06),
-      transparent 50%
-    ),
-    radial-gradient(
-      ellipse 80% 40% at 80% 50%,
-      oklch(0.69 0.14 165 / 0.04),
-      transparent 40%
-    );
+    radial-gradient(ellipse 100% 60% at 50% -10%, oklch(0.7 0.15 240 / 0.06), transparent 50%),
+    radial-gradient(ellipse 80% 40% at 80% 50%, oklch(0.69 0.14 165 / 0.04), transparent 40%);
 }
 
 /* Radial gradient utility for glow effects */
@@ -349,7 +345,10 @@ h4 {
 
 /* Subtle card hover */
 .card-interactive {
-  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .card-interactive:hover {
