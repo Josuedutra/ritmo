@@ -755,6 +755,7 @@ enum PartnerType {
 }
 
 enum PartnerStatus {
+  PENDING
   ACTIVE
   PAUSED
 }
@@ -780,8 +781,12 @@ model Partner {
   type                  PartnerType   @default(OTHER)
   contactName           String?       @map("contact_name")
   contactEmail          String?       @map("contact_email")
+  companyName           String?       @map("company_name")
+  nif                   String?
+  clientCountRange      String?       @map("client_count_range")
+  source                String?
   website               String?
-  status                PartnerStatus @default(ACTIVE)
+  status                PartnerStatus @default(PENDING)
 
   // Booster configuration (basis points: 1500 = 15%)
   defaultBoosterRateBps Int           @default(1500) @map("default_booster_rate_bps")
@@ -795,6 +800,7 @@ model Partner {
   boosterLedger         BoosterLedger[]
 
   @@index([status])
+  @@index([contactEmail])
   @@map("partners")
 }
 
