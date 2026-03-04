@@ -209,9 +209,9 @@ export default function PartnersPage() {
             </h1>
 
             <p className="mx-auto mb-10 max-w-2xl text-xl leading-relaxed font-light text-zinc-600">
-              Os seus clientes PME enviam propostas — e depois perdem negócios por falta de follow-up.
-              O Ritmo resolve isso automaticamente. Recomende e receba 20% de comissão recorrente.
-              Grátis para si.
+              Os seus clientes PME enviam propostas — e depois perdem negócios por falta de
+              follow-up. O Ritmo resolve isso automaticamente. Recomende e receba 20% de comissão
+              recorrente. Grátis para si.
             </p>
 
             <Button
@@ -301,8 +301,8 @@ export default function PartnersPage() {
                 </div>
                 <h3 className="mb-3 text-xl font-semibold text-zinc-900">Cadência automática</h3>
                 <p className="text-sm leading-relaxed text-zinc-600">
-                  D+1 email amigável · D+3 email de valor · D+7 guião de chamada · D+14 email
-                  final — no timing certo, sem intervenção manual.
+                  D+1 email amigável · D+3 email de valor · D+7 guião de chamada · D+14 email final
+                  — no timing certo, sem intervenção manual.
                 </p>
               </div>
 
@@ -311,7 +311,9 @@ export default function PartnersPage() {
                 <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100">
                   <Mail className="h-6 w-6 text-emerald-500" />
                 </div>
-                <h3 className="mb-3 text-xl font-semibold text-zinc-900">Guião de chamada no D+7</h3>
+                <h3 className="mb-3 text-xl font-semibold text-zinc-900">
+                  Guião de chamada no D+7
+                </h3>
                 <p className="text-sm leading-relaxed text-zinc-600">
                   No dia certo para ligar, o Ritmo entrega o guião ao dono — histórico da proposta,
                   perguntas a fazer, objecções a antecipar. Sem improvisação.
@@ -325,8 +327,8 @@ export default function PartnersPage() {
                 </div>
                 <h3 className="mb-3 text-xl font-semibold text-zinc-900">Pipeline visível</h3>
                 <p className="text-sm leading-relaxed text-zinc-600">
-                  Painel com todas as propostas por estado: enviada, em seguimento, respondida, ganha
-                  ou perdida. Tudo num sítio.
+                  Painel com todas as propostas por estado: enviada, em seguimento, respondida,
+                  ganha ou perdida. Tudo num sítio.
                 </p>
               </div>
             </div>
@@ -782,8 +784,8 @@ export default function PartnersPage() {
             </h2>
             <p className="mx-auto mb-12 max-w-2xl text-xl leading-relaxed text-zinc-400">
               O Ritmo é a ferramenta que garante que cada proposta enviada tem follow-up no timing
-              certo. E a comissão recorrente é o seu reconhecimento por ter colocado os seus clientes
-              no caminho certo.
+              certo. E a comissão recorrente é o seu reconhecimento por ter colocado os seus
+              clientes no caminho certo.
             </p>
 
             <Button
