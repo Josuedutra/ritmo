@@ -959,8 +959,8 @@ export default function LandingPage() {
                       </span>
                     </AccordionTrigger>
                     <AccordionContent className="bg-white px-6 pb-6 leading-relaxed text-zinc-600">
-                      Sim. Todos os emails automáticos são enviados a partir do seu Gmail ou
-                      Outlook — o cliente vê o seu nome e email, não o Ritmo.
+                      Sim. Todos os emails automáticos são enviados a partir do seu Gmail ou Outlook
+                      — o cliente vê o seu nome e email, não o Ritmo.
                     </AccordionContent>
                   </AccordionItem>
 
@@ -974,9 +974,8 @@ export default function LandingPage() {
                       </span>
                     </AccordionTrigger>
                     <AccordionContent className="bg-white px-6 pb-6 leading-relaxed text-zinc-600">
-                      Não. O Ritmo funciona de forma independente. Se já usar um CRM, pode
-                      registar os orçamentos em ambos — são ferramentas complementares, não
-                      concorrentes.
+                      Não. O Ritmo funciona de forma independente. Se já usar um CRM, pode registar
+                      os orçamentos em ambos — são ferramentas complementares, não concorrentes.
                     </AccordionContent>
                   </AccordionItem>
 
@@ -990,9 +989,9 @@ export default function LandingPage() {
                       </span>
                     </AccordionTrigger>
                     <AccordionContent className="bg-white px-6 pb-6 leading-relaxed text-zinc-600">
-                      O Ritmo para o follow-up automaticamente nesse orçamento. Pode marcá-lo
-                      como &quot;Em negociação&quot;, &quot;Ganho&quot; ou &quot;Perdido&quot; com
-                      1 clique.
+                      O Ritmo para o follow-up automaticamente nesse orçamento. Pode marcá-lo como
+                      &quot;Em negociação&quot;, &quot;Ganho&quot; ou &quot;Perdido&quot; com 1
+                      clique.
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>
