@@ -5,6 +5,7 @@ import { FeedbackModal } from "@/components/feedback";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Providers } from "@/components/providers";
 import { CrispWidget } from "@/components/crisp-widget";
+import { CookieBanner } from "@/components/marketing";
 import "./globals.css";
 
 const inter = Inter({
@@ -15,7 +16,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL("https://useritmo.pt"),
   title: {
-    default: "Ritmo - Follow-up Inteligente para Orçamentos",
+    default: "Ritmo — Follow-up de Orçamentos para PMEs | Recupere Propostas",
     template: "%s | Ritmo",
   },
   description:
@@ -58,6 +59,7 @@ export default function RootLayout({
             <Toaster />
             <FeedbackModal />
             <CrispWidget />
+            <CookieBanner />
           </ThemeProvider>
         </Providers>
       </body>
