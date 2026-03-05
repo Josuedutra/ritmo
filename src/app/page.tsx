@@ -100,7 +100,7 @@ export default function LandingPage() {
                 name: "Posso usar sem automação?",
                 acceptedAnswer: {
                   "@type": "Answer",
-                  text: "Sim. O plano Free funciona em modo manual: o Ritmo cria a cadência e as tarefas, mas é quem decide quando enviar.",
+                  text: "Sim. O plano Free funciona em modo manual: o Ritmo cria a cadência e as tarefas, mas decide quando enviar.",
                 },
               },
               {
@@ -125,6 +125,30 @@ export default function LandingPage() {
                 acceptedAnswer: {
                   "@type": "Answer",
                   text: "Sim. Pode gerir a subscrição na página de faturação e cancelar a qualquer momento.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "Os emails de follow-up saem do meu endereço de email?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Sim. Todos os emails automáticos são enviados a partir do seu Gmail ou Outlook — o cliente vê o seu nome e email, não o Ritmo.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "Tenho de ter um CRM para usar o Ritmo?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Não. O Ritmo funciona de forma independente. Se já usar um CRM, pode registar os orçamentos em ambos — são ferramentas complementares, não concorrentes.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "O que acontece quando o cliente responde?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "O Ritmo para o follow-up automaticamente nesse orçamento. Pode marcá-lo como 'Em negociação', 'Ganho' ou 'Perdido' com 1 clique.",
                 },
               },
             ],
@@ -876,7 +900,7 @@ export default function LandingPage() {
                     </AccordionTrigger>
                     <AccordionContent className="bg-white px-6 pb-6 leading-relaxed text-zinc-600">
                       Sim. O plano Free funciona em modo manual: o Ritmo cria a cadência e as
-                      tarefas, mas é quem decide quando enviar.
+                      tarefas, mas decide quando enviar.
                     </AccordionContent>
                   </AccordionItem>
 
@@ -922,6 +946,52 @@ export default function LandingPage() {
                     <AccordionContent className="bg-white px-6 pb-6 leading-relaxed text-zinc-600">
                       Sim. Pode gerir a subscrição na página de faturação e cancelar a qualquer
                       momento.
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  <AccordionItem
+                    value="item-9"
+                    className="overflow-hidden rounded-2xl border border-zinc-100 bg-white px-2 shadow-sm transition-shadow duration-200 hover:shadow-md"
+                  >
+                    <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-[var(--color-primary)]">
+                      <span className="text-base font-medium text-zinc-700">
+                        Os emails de follow-up saem do meu endereço de email?
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent className="bg-white px-6 pb-6 leading-relaxed text-zinc-600">
+                      Sim. Todos os emails automáticos são enviados a partir do seu Gmail ou Outlook
+                      — o cliente vê o seu nome e email, não o Ritmo.
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  <AccordionItem
+                    value="item-10"
+                    className="overflow-hidden rounded-2xl border border-zinc-100 bg-white px-2 shadow-sm transition-shadow duration-200 hover:shadow-md"
+                  >
+                    <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-[var(--color-primary)]">
+                      <span className="text-base font-medium text-zinc-700">
+                        Tenho de ter um CRM para usar o Ritmo?
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent className="bg-white px-6 pb-6 leading-relaxed text-zinc-600">
+                      Não. O Ritmo funciona de forma independente. Se já usar um CRM, pode registar
+                      os orçamentos em ambos — são ferramentas complementares, não concorrentes.
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  <AccordionItem
+                    value="item-11"
+                    className="overflow-hidden rounded-2xl border border-zinc-100 bg-white px-2 shadow-sm transition-shadow duration-200 hover:shadow-md"
+                  >
+                    <AccordionTrigger className="px-6 py-5 text-left hover:no-underline [&[data-state=open]]:text-[var(--color-primary)]">
+                      <span className="text-base font-medium text-zinc-700">
+                        O que acontece quando o cliente responde?
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent className="bg-white px-6 pb-6 leading-relaxed text-zinc-600">
+                      O Ritmo para o follow-up automaticamente nesse orçamento. Pode marcá-lo como
+                      &quot;Em negociação&quot;, &quot;Ganho&quot; ou &quot;Perdido&quot; com 1
+                      clique.
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>
