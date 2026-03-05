@@ -613,43 +613,46 @@ export default function LandingPage() {
         </section>
 
         {/* PRICING */}
-        <section id="pricing" className="border-t border-zinc-100 bg-zinc-50 px-6 py-24">
-          <div className="container mx-auto max-w-7xl">
+        <section id="pricing" className="relative overflow-hidden bg-zinc-950 px-6 py-24">
+          {/* Subtle ambient glow */}
+          <div className="pointer-events-none absolute top-0 left-1/2 h-[500px] w-[800px] -translate-x-1/2 bg-gradient-to-b from-blue-500/8 via-emerald-500/4 to-transparent blur-[100px]" />
+
+          <div className="relative z-10 container mx-auto max-w-7xl">
             <div className="mb-12 text-center">
-              <h2 className="mb-4 text-3xl leading-[1.1] font-medium tracking-tighter text-zinc-900 md:text-5xl">
+              <h2 className="mb-4 text-3xl leading-[1.1] font-medium tracking-tighter text-white md:text-5xl">
                 Planos para PMEs que enviam orçamentos.
               </h2>
-              <p className="mx-auto mb-2 max-w-2xl text-lg text-zinc-500">
+              <p className="mx-auto mb-2 max-w-2xl text-lg text-zinc-400">
                 Comece grátis e só pague quando o Ritmo já estiver a recuperar respostas.
               </p>
             </div>
 
             <div className="mx-auto grid max-w-6xl items-start gap-6 md:grid-cols-2 lg:grid-cols-4">
               {/* Free Plan */}
-              <div className="relative flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-zinc-300 hover:shadow-lg">
-                <h3 className="mb-1 text-lg font-bold text-zinc-900">Free</h3>
+              <div className="relative flex h-full flex-col rounded-2xl border border-zinc-800 bg-zinc-900 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-zinc-700 hover:shadow-lg hover:shadow-zinc-900/50">
+                <h3 className="mb-1 text-lg font-bold text-white">Free</h3>
                 <p className="mb-4 text-xs text-zinc-500">5 envios/mês · 1 utilizador</p>
                 <div className="mb-4">
-                  <span className="text-3xl font-bold tracking-tight text-zinc-900">€0</span>
+                  <span className="text-3xl font-bold tracking-tight text-white">€0</span>
                   <span className="text-sm font-medium text-zinc-500">/mês</span>
                 </div>
-                <p className="mb-6 text-sm text-zinc-600">
+                <p className="mb-6 text-sm text-zinc-400">
                   Para testar o essencial, em modo manual.
                 </p>
                 <ul className="mb-6 flex-grow space-y-3 text-sm">
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                  <li className="flex items-start gap-2 text-zinc-300">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
                     Cadência e tarefas (manual)
                   </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                  <li className="flex items-start gap-2 text-zinc-300">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
                     Templates e scripts
                   </li>
-                  <li className="flex items-start gap-2 text-zinc-400">
+                  <li className="flex items-start gap-2 text-zinc-600">
                     <X className="mt-0.5 h-4 w-4 shrink-0" />
                     Emails automáticos
                   </li>
-                  <li className="flex items-start gap-2 text-zinc-400">
+                  <li className="flex items-start gap-2 text-zinc-600">
                     <X className="mt-0.5 h-4 w-4 shrink-0" />
                     Captura por BCC
                   </li>
@@ -657,96 +660,95 @@ export default function LandingPage() {
                 <Link href="/signup" className="mt-auto">
                   <Button
                     variant="outline"
-                    className="h-10 w-full rounded-full border-zinc-300 text-sm hover:bg-zinc-50"
+                    className="h-10 w-full rounded-full border-zinc-700 text-sm text-zinc-300 hover:border-zinc-600 hover:bg-zinc-800 hover:text-white"
                   >
                     Continuar grátis
                   </Button>
                 </Link>
               </div>
 
-              {/* Starter Plan - Popular */}
-              <div
-                className="relative flex h-full flex-col rounded-2xl border-2 border-transparent bg-white p-6 shadow-xl"
-                style={{ borderImage: "linear-gradient(to right, #60a5fa, #34d399) 1" }}
-              >
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+              {/* Starter Plan - Popular (Highlighted) */}
+              <div className="relative rounded-2xl bg-gradient-to-b from-blue-500/60 to-emerald-500/60 p-[1px] shadow-lg shadow-blue-500/10">
+                <div className="absolute -top-3 left-1/2 z-10 -translate-x-1/2">
                   <span className="rounded-full bg-gradient-to-r from-blue-400 to-emerald-400 px-3 py-1 text-xs font-bold text-white uppercase shadow-lg shadow-emerald-500/20">
                     Mais Popular
                   </span>
                 </div>
-                <h3 className="mt-2 mb-1 text-lg font-bold text-zinc-900">Starter</h3>
-                <p className="mb-4 text-xs text-zinc-500">80 envios/mês · 2 utilizadores</p>
-                <div className="mb-4">
-                  <span className="text-3xl font-bold tracking-tight text-zinc-900">€39</span>
-                  <span className="text-sm font-medium text-zinc-500">/mês</span>
+                <div className="flex h-full flex-col rounded-[15px] bg-zinc-900 p-6">
+                  <h3 className="mt-2 mb-1 text-lg font-bold text-white">Starter</h3>
+                  <p className="mb-4 text-xs text-zinc-500">80 envios/mês · 2 utilizadores</p>
+                  <div className="mb-4">
+                    <span className="text-3xl font-bold tracking-tight text-white">€39</span>
+                    <span className="text-sm font-medium text-zinc-500">/mês</span>
+                  </div>
+                  <p className="mb-6 text-sm text-zinc-400">Para o dono + 1 apoio, com automação.</p>
+                  <ul className="mb-6 flex-grow space-y-3 text-sm">
+                    <li className="flex items-start gap-2 text-zinc-300">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+                      Emails automáticos (D+1, D+3)
+                    </li>
+                    <li className="flex items-start gap-2 text-zinc-300">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+                      D+7 com chamada guiada + proposta a 1 clique
+                    </li>
+                    <li className="flex items-start gap-2 text-zinc-300">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+                      Captura de proposta por BCC (PDF/link)
+                    </li>
+                    <li className="flex items-start gap-2 text-zinc-300">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+                      Templates por etapa
+                    </li>
+                    <li className="flex items-start gap-2 text-zinc-300">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+                      Scoreboard (rotina e consistência)
+                    </li>
+                  </ul>
+                  <Link href="/signup" className="mt-auto">
+                    <Button className="h-10 w-full rounded-full border-0 bg-gradient-to-r from-blue-400 to-emerald-400 text-sm text-white shadow-lg shadow-emerald-500/20 hover:from-blue-500 hover:to-emerald-500">
+                      Começar trial grátis
+                    </Button>
+                  </Link>
                 </div>
-                <p className="mb-6 text-sm text-zinc-600">Para o dono + 1 apoio, com automação.</p>
-                <ul className="mb-6 flex-grow space-y-3 text-sm">
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                    Emails automáticos (D+1, D+3)
-                  </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                    D+7 com chamada guiada + proposta a 1 clique
-                  </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                    Captura de proposta por BCC (PDF/link)
-                  </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                    Templates por etapa
-                  </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                    Scoreboard (rotina e consistência)
-                  </li>
-                </ul>
-                <Link href="/signup" className="mt-auto">
-                  <Button className="h-10 w-full rounded-full border-0 bg-gradient-to-r from-blue-400 to-emerald-400 text-sm text-white shadow-lg shadow-emerald-500/20 hover:from-blue-500 hover:to-emerald-500">
-                    Começar trial grátis
-                  </Button>
-                </Link>
               </div>
 
               {/* Pro Plan */}
-              <div className="relative flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-zinc-300 hover:shadow-lg">
-                <h3 className="mb-1 text-lg font-bold text-zinc-900">Pro</h3>
+              <div className="relative flex h-full flex-col rounded-2xl border border-zinc-800 bg-zinc-900 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-zinc-700 hover:shadow-lg hover:shadow-zinc-900/50">
+                <h3 className="mb-1 text-lg font-bold text-white">Pro</h3>
                 <p className="mb-4 text-xs text-zinc-500">250 envios/mês · 5 utilizadores</p>
                 <div className="mb-4">
-                  <span className="text-3xl font-bold tracking-tight text-zinc-900">€99</span>
+                  <span className="text-3xl font-bold tracking-tight text-white">€99</span>
                   <span className="text-sm font-medium text-zinc-500">/mês</span>
                 </div>
-                <p className="mb-6 text-sm text-zinc-600">
+                <p className="mb-6 text-sm text-zinc-400">
                   Para equipas e maior volume, com controlo.
                 </p>
                 <ul className="mb-6 flex-grow space-y-3 text-sm">
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                  <li className="flex items-start gap-2 text-zinc-300">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
                     Tudo do Starter
                   </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                  <li className="flex items-start gap-2 text-zinc-300">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
                     Benchmark por setor
                   </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                  <li className="flex items-start gap-2 text-zinc-300">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
                     Relatórios (pipeline, aging, follow-up rate)
                   </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                  <li className="flex items-start gap-2 text-zinc-300">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
                     Regras avançadas (prioridade/atribuição)
                   </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                  <li className="flex items-start gap-2 text-zinc-300">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
                     Suporte prioritário
                   </li>
                 </ul>
                 <Link href="/signup" className="mt-auto">
                   <Button
                     variant="outline"
-                    className="h-10 w-full rounded-full border-zinc-300 text-sm hover:bg-zinc-50"
+                    className="h-10 w-full rounded-full border-zinc-700 text-sm text-zinc-300 hover:border-zinc-600 hover:bg-zinc-800 hover:text-white"
                   >
                     Começar trial grátis
                   </Button>
@@ -754,41 +756,41 @@ export default function LandingPage() {
               </div>
 
               {/* Enterprise Plan */}
-              <div className="relative flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-zinc-300 hover:shadow-lg">
-                <h3 className="mb-1 text-lg font-bold text-zinc-900">Enterprise</h3>
+              <div className="relative flex h-full flex-col rounded-2xl border border-zinc-800 bg-zinc-900 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-zinc-700 hover:shadow-lg hover:shadow-zinc-900/50">
+                <h3 className="mb-1 text-lg font-bold text-white">Enterprise</h3>
                 <p className="mb-4 text-xs text-zinc-500">Limites personalizados</p>
                 <div className="mb-4">
-                  <span className="text-2xl font-bold text-zinc-900">Sob consulta</span>
+                  <span className="text-2xl font-bold text-white">Sob consulta</span>
                 </div>
-                <p className="mb-6 text-sm text-zinc-600">
+                <p className="mb-6 text-sm text-zinc-400">
                   Para operações maiores e requisitos especiais.
                 </p>
                 <ul className="mb-6 flex-grow space-y-3 text-sm">
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                  <li className="flex items-start gap-2 text-zinc-300">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
                     Utilizadores ilimitados
                   </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                  <li className="flex items-start gap-2 text-zinc-300">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
                     Onboarding assistido + migração
                   </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                  <li className="flex items-start gap-2 text-zinc-300">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
                     Governance avançada (perfis, auditoria)
                   </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                  <li className="flex items-start gap-2 text-zinc-300">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
                     Integrações/API + export avançado
                   </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                  <li className="flex items-start gap-2 text-zinc-300">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
                     SLA e suporte dedicado
                   </li>
                 </ul>
                 <a href="mailto:ritmo@useritmo.pt" className="mt-auto">
                   <Button
                     variant="outline"
-                    className="h-10 w-full rounded-full border-zinc-300 text-sm hover:bg-zinc-50"
+                    className="h-10 w-full rounded-full border-zinc-700 text-sm text-zinc-300 hover:border-zinc-600 hover:bg-zinc-800 hover:text-white"
                   >
                     Falar connosco
                   </Button>
@@ -797,7 +799,7 @@ export default function LandingPage() {
             </div>
 
             <div className="mt-12 text-center">
-              <p className="text-sm text-zinc-400">
+              <p className="text-sm text-zinc-600">
                 Aos preços indicados acresce IVA à taxa legal em vigor. As atualizações são
                 gratuitas e automáticas.
               </p>
