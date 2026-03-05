@@ -12,7 +12,9 @@ import {
   Headphones,
   FileText,
   ArrowRight,
+  AlertCircle,
 } from "lucide-react";
+import { ReferralCodeForm } from "./referral-form";
 import { Logo } from "@/components/brand";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,6 +68,7 @@ export default function PartnersPage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [formError, setFormError] = useState("");
 
   function scrollToForm(ctaLabel: string) {
     trackEvent("partner_page_cta_click", ctaLabel);
@@ -76,21 +79,37 @@ export default function PartnersPage() {
     e.preventDefault();
     trackEvent("partner_register_start");
     setSubmitting(true);
+    setFormError("");
 
-    // MVP: Send form data via mailto
-    const subject = encodeURIComponent("Novo registo de parceiro — Programa Contabilistas");
-    const body = encodeURIComponent(
-      `Nome: ${formData.name}\nEmail: ${formData.email}\nEmpresa: ${formData.company}\nNIF: ${formData.nif || "(não indicado)"}\nNº clientes PME: ${formData.clients || "(não indicado)"}\nComo soube: ${formData.source || "(não indicado)"}`
-    );
+    try {
+      const res = await fetch("/api/partners/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          company: formData.company.trim(),
+          nif: formData.nif.trim() || undefined,
+          clients: formData.clients || undefined,
+          source: formData.source || undefined,
+        }),
+      });
 
-    window.location.href = `mailto:parceiros@useritmo.pt?subject=${subject}&body=${body}`;
+      const data = await res.json();
 
-    // Give the mail client time to open, then show success
-    setTimeout(() => {
+      if (res.ok && data.success) {
+        setSubmitted(true);
+        trackEvent("partner_register_complete");
+      } else {
+        setFormError(data.error || "Erro ao registar. Tente novamente.");
+        trackEvent("partner_register_error", data.error);
+      }
+    } catch {
+      setFormError("Erro de ligação. Verifique a sua internet e tente novamente.");
+      trackEvent("partner_register_error", "network_error");
+    } finally {
       setSubmitting(false);
-      setSubmitted(true);
-      trackEvent("partner_register_complete");
-    }, 1000);
+    }
   }
 
   return (
@@ -535,7 +554,21 @@ export default function PartnersPage() {
           </div>
         </section>
 
-        {/* ─── SECTION 7: FAQ ─── */}
+        {/* ─── SECTION 7: VALIDAR CÓDIGO DE REFERÊNCIA ─── */}
+        <section className="px-6 py-24">
+          <div className="container mx-auto max-w-2xl text-center">
+            <h2 className="mb-4 text-3xl leading-[1.1] font-medium tracking-tighter text-zinc-900 md:text-4xl">
+              Já é parceiro? Valide o seu código
+            </h2>
+            <p className="mx-auto mb-8 max-w-lg text-lg text-zinc-500">
+              Insira o seu código de referência para verificar que está ativo e obter o link de partilha.
+            </p>
+
+            <ReferralCodeForm />
+          </div>
+        </section>
+
+        {/* ─── SECTION 8: FAQ ─── */}
         <section className="px-6 py-24">
           <div className="container mx-auto max-w-6xl">
             <div className="grid gap-12 lg:grid-cols-12 lg:gap-24">
@@ -623,10 +656,10 @@ export default function PartnersPage() {
                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
                   <Check className="h-7 w-7 text-emerald-600" />
                 </div>
-                <h3 className="mb-2 text-xl font-semibold text-zinc-900">Obrigado pelo registo!</h3>
+                <h3 className="mb-2 text-xl font-semibold text-zinc-900">Registo recebido!</h3>
                 <p className="text-zinc-600">
-                  O seu email deverá ter aberto com os dados preenchidos. Se não abriu, envie os
-                  seus dados diretamente para{" "}
+                  Entraremos em contacto brevemente com o seu link de referência.
+                  Dúvidas? Contacte{" "}
                   <a
                     href="mailto:parceiros@useritmo.pt"
                     className="font-medium text-blue-600 hover:underline"
@@ -740,12 +773,19 @@ export default function PartnersPage() {
                   </div>
                 </div>
 
+                {formError && (
+                  <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
+                    <p className="text-sm text-red-700">{formError}</p>
+                  </div>
+                )}
+
                 <Button
                   type="submit"
                   disabled={submitting}
                   className="h-12 w-full rounded-full bg-gradient-to-r from-blue-400 to-emerald-400 text-base font-medium text-white shadow-lg shadow-emerald-500/20 transition-all hover:from-blue-500 hover:to-emerald-500 hover:shadow-xl"
                 >
-                  {submitting ? "A abrir email..." : "Criar conta de parceiro — é grátis"}
+                  {submitting ? "A registar..." : "Criar conta de parceiro — é grátis"}
                 </Button>
 
                 <p className="text-center text-xs text-zinc-400">
