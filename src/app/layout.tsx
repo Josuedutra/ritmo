@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Roboto, Comfortaa } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import { FeedbackModal } from "@/components/feedback";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -8,9 +8,16 @@ import { CrispWidget } from "@/components/crisp-widget";
 import { CookieBanner } from "@/components/marketing";
 import "./globals.css";
 
-const inter = Inter({
+const roboto = Roboto({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-roboto",
+  weight: ["400", "500", "700"],
+});
+
+const comfortaa = Comfortaa({
+  subsets: ["latin"],
+  variable: "--font-comfortaa",
+  weight: ["400", "500", "700"],
 });
 
 export const metadata: Metadata = {
@@ -52,7 +59,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-PT" suppressHydrationWarning>
-      <body className={`${inter.variable} antialiased`}>
+      <body className={`${roboto.variable} ${comfortaa.variable} antialiased`}>
         <Providers>
           <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
             {children}
