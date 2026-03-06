@@ -681,7 +681,9 @@ export default function LandingPage() {
                     <span className="text-3xl font-bold tracking-tight text-white">€39</span>
                     <span className="text-sm font-medium text-zinc-500">/mês</span>
                   </div>
-                  <p className="mb-6 text-sm text-zinc-400">Para o dono + 1 apoio, com automação.</p>
+                  <p className="mb-6 text-sm text-zinc-400">
+                    Para o dono + 1 apoio, com automação.
+                  </p>
                   <ul className="mb-6 flex-grow space-y-3 text-sm">
                     <li className="flex items-start gap-2 text-zinc-300">
                       <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
