@@ -84,9 +84,7 @@ function PricingToggleSection() {
               onClick={() => setIsAnnual(false)}
               className={cn(
                 "rounded-full px-5 py-2 text-sm font-medium transition-all duration-200",
-                !isAnnual
-                  ? "bg-zinc-900 text-white shadow-sm"
-                  : "text-zinc-500 hover:text-zinc-900",
+                !isAnnual ? "bg-zinc-900 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-900"
               )}
             >
               Mensal
@@ -95,9 +93,7 @@ function PricingToggleSection() {
               onClick={() => setIsAnnual(true)}
               className={cn(
                 "relative rounded-full px-5 py-2 text-sm font-medium transition-all duration-200",
-                isAnnual
-                  ? "bg-zinc-900 text-white shadow-sm"
-                  : "text-zinc-500 hover:text-zinc-900",
+                isAnnual ? "bg-zinc-900 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-900"
               )}
             >
               Anual
@@ -125,9 +121,7 @@ function PricingToggleSection() {
               </motion.span>
               <span className="text-sm font-medium text-zinc-500">/mês</span>
             </div>
-            <p className="mb-6 text-sm text-zinc-600">
-              Para testar o essencial, em modo manual.
-            </p>
+            <p className="mb-6 text-sm text-zinc-600">Para testar o essencial, em modo manual.</p>
             <ul className="mb-6 flex-grow space-y-3 text-sm">
               <li className="flex items-start gap-2 text-zinc-600">
                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
@@ -246,9 +240,7 @@ function PricingToggleSection() {
                 </motion.p>
               )}
             </div>
-            <p className="mb-6 text-sm text-zinc-600">
-              Para equipas e maior volume, com controlo.
-            </p>
+            <p className="mb-6 text-sm text-zinc-600">Para equipas e maior volume, com controlo.</p>
             <ul className="mb-6 flex-grow space-y-3 text-sm">
               <li className="flex items-start gap-2 text-zinc-600">
                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
@@ -326,8 +318,8 @@ function PricingToggleSection() {
 
         <div className="mt-12 text-center">
           <p className="text-sm text-zinc-400">
-            Aos preços indicados acresce IVA à taxa legal em vigor. As atualizações são
-            gratuitas e automáticas.
+            Aos preços indicados acresce IVA à taxa legal em vigor. As atualizações são gratuitas e
+            automáticas.
           </p>
         </div>
       </div>
