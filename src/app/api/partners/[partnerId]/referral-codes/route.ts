@@ -61,10 +61,7 @@ export async function POST(
           where: { code: body.code },
         });
         if (existing) {
-          return NextResponse.json(
-            { error: "Referral code already exists" },
-            { status: 409 }
-          );
+          return NextResponse.json({ error: "Referral code already exists" }, { status: 409 });
         }
 
         const link = await prisma.referralLink.create({
@@ -101,10 +98,7 @@ export async function POST(
     return NextResponse.json({ link: { ...link, fullUrl } }, { status: 201 });
   } catch (error) {
     log.error({ error }, "Error generating referral code");
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -153,9 +147,6 @@ export async function GET(
     return NextResponse.json({ links: linksWithUrls });
   } catch (error) {
     log.error({ error }, "Error listing referral codes");
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -48,9 +48,7 @@ export function generateReferralCode(partnerName: string): string {
  *
  * @throws Error if unable to generate a unique code after all retries
  */
-export async function generateUniqueReferralCode(
-  partnerName: string
-): Promise<string> {
+export async function generateUniqueReferralCode(partnerName: string): Promise<string> {
   const slug = generateSlug(partnerName);
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {

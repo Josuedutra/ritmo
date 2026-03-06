@@ -561,7 +561,8 @@ export default function PartnersPage() {
               Já é parceiro? Valide o seu código
             </h2>
             <p className="mx-auto mb-8 max-w-lg text-lg text-zinc-500">
-              Insira o seu código de referência para verificar que está ativo e obter o link de partilha.
+              Insira o seu código de referência para verificar que está ativo e obter o link de
+              partilha.
             </p>
 
             <ReferralCodeForm />
@@ -658,8 +659,7 @@ export default function PartnersPage() {
                 </div>
                 <h3 className="mb-2 text-xl font-semibold text-zinc-900">Registo recebido!</h3>
                 <p className="text-zinc-600">
-                  Entraremos em contacto brevemente com o seu link de referência.
-                  Dúvidas? Contacte{" "}
+                  Entraremos em contacto brevemente com o seu link de referência. Dúvidas? Contacte{" "}
                   <a
                     href="mailto:parceiros@useritmo.pt"
                     className="font-medium text-blue-600 hover:underline"
