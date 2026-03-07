@@ -17,7 +17,11 @@ const BUCKETS = [
 
 function track(event: string, props?: Record<string, unknown>) {
   if (typeof window !== "undefined" && "posthog" in window) {
-    (window as unknown as { posthog: { capture: (e: string, p?: Record<string, unknown>) => void } }).posthog.capture(event, props);
+    (
+      window as unknown as {
+        posthog: { capture: (e: string, p?: Record<string, unknown>) => void };
+      }
+    ).posthog.capture(event, props);
   }
 }
 
@@ -41,18 +45,18 @@ export function RoiCalculator() {
   }
 
   return (
-    <section className="bg-zinc-950 py-16 px-4">
-      <div className="max-w-2xl mx-auto">
-        <h2 className="text-2xl font-bold text-white text-center mb-2">
+    <section className="bg-zinc-950 px-4 py-16">
+      <div className="mx-auto max-w-2xl">
+        <h2 className="mb-2 text-center text-2xl font-bold text-white">
           Calcule o seu retorno com o Ritmo
         </h2>
-        <p className="text-zinc-400 text-center mb-10 text-sm">
+        <p className="mb-10 text-center text-sm text-zinc-400">
           Veja quanto pode recuperar em receita todos os meses.
         </p>
 
         {/* Bucket */}
         <div className="mb-6">
-          <label className="block text-zinc-300 text-sm font-medium mb-3">
+          <label className="mb-3 block text-sm font-medium text-zinc-300">
             Ticket médio das suas propostas
           </label>
           <div className="flex flex-wrap gap-2">
@@ -60,9 +64,9 @@ export function RoiCalculator() {
               <button
                 key={i}
                 onClick={() => handleChange("bucket", i)}
-                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+                className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
                   bucketIdx === i
-                    ? "bg-blue-600 border-blue-600 text-white"
+                    ? "border-blue-600 bg-blue-600 text-white"
                     : "border-zinc-700 text-zinc-400 hover:border-zinc-500"
                 }`}
               >
@@ -78,19 +82,19 @@ export function RoiCalculator() {
                 max={50000}
                 value={customTicket}
                 onChange={(e) => handleChange("custom", Number(e.target.value))}
-                className="bg-zinc-900 border border-zinc-700 text-white rounded-lg px-4 py-2 w-40 text-sm"
+                className="w-40 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-white"
                 placeholder="Ex: 2000"
               />
-              <span className="text-zinc-500 text-sm ml-2">€</span>
+              <span className="ml-2 text-sm text-zinc-500">€</span>
             </div>
           )}
         </div>
 
         {/* Margin slider */}
         <div className="mb-6">
-          <label className="block text-zinc-300 text-sm font-medium mb-3">
+          <label className="mb-3 block text-sm font-medium text-zinc-300">
             Margem de recuperação estimada:{" "}
-            <span className="text-blue-400 font-bold">{margin}%</span>
+            <span className="font-bold text-blue-400">{margin}%</span>
           </label>
           <input
             type="range"
@@ -100,28 +104,29 @@ export function RoiCalculator() {
             onChange={(e) => handleChange("margin", Number(e.target.value))}
             className="w-full accent-blue-600"
           />
-          <div className="flex justify-between text-zinc-600 text-xs mt-1">
-            <span>5%</span><span>60%</span>
+          <div className="mt-1 flex justify-between text-xs text-zinc-600">
+            <span>5%</span>
+            <span>60%</span>
           </div>
         </div>
 
         {/* Proposals stepper */}
         <div className="mb-10">
-          <label className="block text-zinc-300 text-sm font-medium mb-3">
+          <label className="mb-3 block text-sm font-medium text-zinc-300">
             Propostas recuperadas por mês:{" "}
-            <span className="text-blue-400 font-bold">{proposals}</span>
+            <span className="font-bold text-blue-400">{proposals}</span>
           </label>
           <div className="flex items-center gap-4">
             <button
               onClick={() => handleChange("proposals", Math.max(1, proposals - 1))}
-              className="w-10 h-10 rounded-full border border-zinc-700 text-zinc-300 hover:border-zinc-500 text-lg font-bold"
+              className="h-10 w-10 rounded-full border border-zinc-700 text-lg font-bold text-zinc-300 hover:border-zinc-500"
             >
               −
             </button>
-            <span className="text-white text-xl font-bold w-8 text-center">{proposals}</span>
+            <span className="w-8 text-center text-xl font-bold text-white">{proposals}</span>
             <button
               onClick={() => handleChange("proposals", Math.min(10, proposals + 1))}
-              className="w-10 h-10 rounded-full border border-zinc-700 text-zinc-300 hover:border-zinc-500 text-lg font-bold"
+              className="h-10 w-10 rounded-full border border-zinc-700 text-lg font-bold text-zinc-300 hover:border-zinc-500"
             >
               +
             </button>
@@ -129,30 +134,32 @@ export function RoiCalculator() {
         </div>
 
         {/* Result */}
-        <div className="bg-zinc-900 rounded-2xl p-6 border border-zinc-800">
-          <p className="text-zinc-400 text-sm text-center mb-4">Retorno estimado com o Ritmo</p>
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-zinc-800 rounded-xl p-4 text-center">
-              <p className="text-zinc-500 text-xs mb-1">Plano Starter</p>
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+          <p className="mb-4 text-center text-sm text-zinc-400">Retorno estimado com o Ritmo</p>
+          <div className="mb-6 grid grid-cols-2 gap-4">
+            <div className="rounded-xl bg-zinc-800 p-4 text-center">
+              <p className="mb-1 text-xs text-zinc-500">Plano Starter</p>
               <p className="text-2xl font-bold text-white">
                 +€{Math.max(0, Math.round(netStarter)).toLocaleString("pt-PT")}
                 <span className="text-sm font-normal text-zinc-400">/mês</span>
               </p>
-              <p className="text-zinc-600 text-xs mt-1">Receita − €{PLAN_COSTS.starter.monthly}/mês</p>
+              <p className="mt-1 text-xs text-zinc-600">
+                Receita − €{PLAN_COSTS.starter.monthly}/mês
+              </p>
             </div>
-            <div className="bg-gradient-to-b from-blue-500/20 to-emerald-500/20 rounded-xl p-4 text-center border border-blue-500/30">
-              <p className="text-blue-400 text-xs mb-1 font-medium">Plano Pro</p>
+            <div className="rounded-xl border border-blue-500/30 bg-gradient-to-b from-blue-500/20 to-emerald-500/20 p-4 text-center">
+              <p className="mb-1 text-xs font-medium text-blue-400">Plano Pro</p>
               <p className="text-2xl font-bold text-white">
                 +€{Math.max(0, Math.round(netPro)).toLocaleString("pt-PT")}
                 <span className="text-sm font-normal text-zinc-400">/mês</span>
               </p>
-              <p className="text-zinc-600 text-xs mt-1">Receita − €{PLAN_COSTS.pro.monthly}/mês</p>
+              <p className="mt-1 text-xs text-zinc-600">Receita − €{PLAN_COSTS.pro.monthly}/mês</p>
             </div>
           </div>
           <Link
             href="/#pricing"
             onClick={() => track("roi-calculator.cta_clicked", { netStarter, netPro })}
-            className="block w-full bg-blue-600 hover:bg-blue-500 text-white text-center py-3 rounded-xl font-semibold transition-colors text-sm"
+            className="block w-full rounded-xl bg-blue-600 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-blue-500"
           >
             Começar agora — planos a partir de €39/mês
           </Link>
