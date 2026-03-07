@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 
 const PLAN_COSTS = {
   starter: { monthly: 39, annual: 31.2 },
@@ -148,13 +149,13 @@ export function RoiCalculator() {
               <p className="text-zinc-600 text-xs mt-1">Receita − €{PLAN_COSTS.pro.monthly}/mês</p>
             </div>
           </div>
-          <a
+          <Link
             href="/#pricing"
             onClick={() => track("roi-calculator.cta_clicked", { netStarter, netPro })}
             className="block w-full bg-blue-600 hover:bg-blue-500 text-white text-center py-3 rounded-xl font-semibold transition-colors text-sm"
           >
             Começar agora — planos a partir de €39/mês
-          </a>
+          </Link>
         </div>
       </div>
     </section>
