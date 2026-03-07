@@ -57,6 +57,10 @@
   /* Hover States */
   --color-primary-hover: var(--primary-hover);
 
+  /* Font Families */
+  --font-sans: var(--font-roboto), system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-comfortaa), var(--font-roboto), system-ui, sans-serif;
+
   /* Border Radius */
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
@@ -220,11 +224,7 @@
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
-  font-family:
-    "Inter",
-    system-ui,
-    -apple-system,
-    sans-serif;
+  font-family: var(--font-sans);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -246,6 +246,7 @@ h3,
 h4,
 h5,
 h6 {
+  font-family: var(--font-display);
   font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--color-foreground);
