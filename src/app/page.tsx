@@ -16,6 +16,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Footer } from "@/components/marketing";
+import { RoiCalculator } from "@/components/marketing/roi-calculator";
 
 // Animation variants
 const fadeInUp = {
@@ -803,6 +804,8 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+
+        <RoiCalculator />
 
         {/* FAQ */}
         <section id="faq" className="border-t border-zinc-100 bg-zinc-50 px-6 py-24">
