@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -8,6 +8,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui";
 import { ArrowRight, Check, ListChecks, FileText, Zap, Bell, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Logo } from "@/components/brand";
 import {
   Accordion,
@@ -46,6 +47,284 @@ function SignedOutToast() {
   }, [searchParams]);
 
   return null;
+}
+
+const pricing = {
+  free: { monthly: 0, annual: 0 },
+  starter: { monthly: 39, annual: 31.2 },
+  pro: { monthly: 99, annual: 79.2 },
+} as const;
+
+function formatPrice(price: number): string {
+  if (price === 0) return "€0";
+  return price % 1 === 0 ? `€${price}` : `€${price.toFixed(2).replace(".", ",")}`;
+}
+
+function PricingToggleSection() {
+  const [isAnnual, setIsAnnual] = useState(false);
+
+  const freePrice = isAnnual ? pricing.free.annual : pricing.free.monthly;
+  const starterPrice = isAnnual ? pricing.starter.annual : pricing.starter.monthly;
+  const proPrice = isAnnual ? pricing.pro.annual : pricing.pro.monthly;
+
+  return (
+    <section id="pricing" className="border-t border-zinc-100 bg-zinc-50 px-6 py-24">
+      <div className="container mx-auto max-w-7xl">
+        <div className="mb-12 text-center">
+          <h2 className="mb-4 text-3xl leading-[1.1] font-medium tracking-tighter text-zinc-900 md:text-5xl">
+            Planos para PMEs que enviam orçamentos.
+          </h2>
+          <p className="mx-auto mb-8 max-w-2xl text-lg text-zinc-500">
+            Comece grátis e só pague quando o Ritmo já estiver a recuperar respostas.
+          </p>
+
+          {/* Billing cycle toggle */}
+          <div className="inline-flex items-center gap-3 rounded-full border border-zinc-200 bg-white p-1 shadow-sm">
+            <button
+              onClick={() => setIsAnnual(false)}
+              className={cn(
+                "rounded-full px-5 py-2 text-sm font-medium transition-all duration-200",
+                !isAnnual ? "bg-zinc-900 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-900"
+              )}
+            >
+              Mensal
+            </button>
+            <button
+              onClick={() => setIsAnnual(true)}
+              className={cn(
+                "relative rounded-full px-5 py-2 text-sm font-medium transition-all duration-200",
+                isAnnual ? "bg-zinc-900 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-900"
+              )}
+            >
+              Anual
+              <span className="ml-2 inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">
+                -20%
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <div className="mx-auto grid max-w-6xl items-start gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {/* Free Plan */}
+          <div className="relative flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-zinc-300 hover:shadow-lg">
+            <h3 className="mb-1 text-lg font-bold text-zinc-900">Free</h3>
+            <p className="mb-4 text-xs text-zinc-500">5 envios/mês · 1 utilizador</p>
+            <div className="mb-4">
+              <motion.span
+                key={`free-${isAnnual}`}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="inline-block text-3xl font-bold tracking-tight text-zinc-900"
+              >
+                {formatPrice(freePrice)}
+              </motion.span>
+              <span className="text-sm font-medium text-zinc-500">/mês</span>
+            </div>
+            <p className="mb-6 text-sm text-zinc-600">Para testar o essencial, em modo manual.</p>
+            <ul className="mb-6 flex-grow space-y-3 text-sm">
+              <li className="flex items-start gap-2 text-zinc-600">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                Cadência e tarefas (manual)
+              </li>
+              <li className="flex items-start gap-2 text-zinc-600">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                Templates e scripts
+              </li>
+              <li className="flex items-start gap-2 text-zinc-400">
+                <X className="mt-0.5 h-4 w-4 shrink-0" />
+                Emails automáticos
+              </li>
+              <li className="flex items-start gap-2 text-zinc-400">
+                <X className="mt-0.5 h-4 w-4 shrink-0" />
+                Captura por BCC
+              </li>
+            </ul>
+            <Link href="/signup" className="mt-auto">
+              <Button
+                variant="outline"
+                className="h-10 w-full rounded-full border-zinc-300 text-sm hover:bg-zinc-50"
+              >
+                Continuar grátis
+              </Button>
+            </Link>
+          </div>
+
+          {/* Starter Plan - Popular */}
+          <div
+            className="relative flex h-full flex-col rounded-2xl border-2 border-transparent bg-white p-6 shadow-xl"
+            style={{ borderImage: "linear-gradient(to right, #60a5fa, #34d399) 1" }}
+          >
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+              <span className="rounded-full bg-gradient-to-r from-blue-400 to-emerald-400 px-3 py-1 text-xs font-bold text-white uppercase shadow-lg shadow-emerald-500/20">
+                Mais Popular
+              </span>
+            </div>
+            <h3 className="mt-2 mb-1 text-lg font-bold text-zinc-900">Starter</h3>
+            <p className="mb-4 text-xs text-zinc-500">80 envios/mês · 2 utilizadores</p>
+            <div className="mb-4">
+              <motion.span
+                key={`starter-${isAnnual}`}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="inline-block text-3xl font-bold tracking-tight text-zinc-900"
+              >
+                {formatPrice(starterPrice)}
+              </motion.span>
+              <span className="text-sm font-medium text-zinc-500">/mês</span>
+              {isAnnual && (
+                <motion.p
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  transition={{ duration: 0.2 }}
+                  className="mt-1 text-xs text-zinc-400"
+                >
+                  faturado anualmente
+                </motion.p>
+              )}
+            </div>
+            <p className="mb-6 text-sm text-zinc-600">Para o dono + 1 apoio, com automação.</p>
+            <ul className="mb-6 flex-grow space-y-3 text-sm">
+              <li className="flex items-start gap-2 text-zinc-600">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                Emails automáticos (D+1, D+3)
+              </li>
+              <li className="flex items-start gap-2 text-zinc-600">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                D+7 com chamada guiada + proposta a 1 clique
+              </li>
+              <li className="flex items-start gap-2 text-zinc-600">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                Captura de proposta por BCC (PDF/link)
+              </li>
+              <li className="flex items-start gap-2 text-zinc-600">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                Templates por etapa
+              </li>
+              <li className="flex items-start gap-2 text-zinc-600">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                Scoreboard (rotina e consistência)
+              </li>
+            </ul>
+            <Link href="/signup" className="mt-auto">
+              <Button className="h-10 w-full rounded-full border-0 bg-gradient-to-r from-blue-400 to-emerald-400 text-sm text-white shadow-lg shadow-emerald-500/20 hover:from-blue-500 hover:to-emerald-500">
+                Começar trial grátis
+              </Button>
+            </Link>
+          </div>
+
+          {/* Pro Plan */}
+          <div className="relative flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-zinc-300 hover:shadow-lg">
+            <h3 className="mb-1 text-lg font-bold text-zinc-900">Pro</h3>
+            <p className="mb-4 text-xs text-zinc-500">250 envios/mês · 5 utilizadores</p>
+            <div className="mb-4">
+              <motion.span
+                key={`pro-${isAnnual}`}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="inline-block text-3xl font-bold tracking-tight text-zinc-900"
+              >
+                {formatPrice(proPrice)}
+              </motion.span>
+              <span className="text-sm font-medium text-zinc-500">/mês</span>
+              {isAnnual && (
+                <motion.p
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  transition={{ duration: 0.2 }}
+                  className="mt-1 text-xs text-zinc-400"
+                >
+                  faturado anualmente
+                </motion.p>
+              )}
+            </div>
+            <p className="mb-6 text-sm text-zinc-600">Para equipas e maior volume, com controlo.</p>
+            <ul className="mb-6 flex-grow space-y-3 text-sm">
+              <li className="flex items-start gap-2 text-zinc-600">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                Tudo do Starter
+              </li>
+              <li className="flex items-start gap-2 text-zinc-600">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                Benchmark por setor
+              </li>
+              <li className="flex items-start gap-2 text-zinc-600">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                Relatórios (pipeline, aging, follow-up rate)
+              </li>
+              <li className="flex items-start gap-2 text-zinc-600">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                Regras avançadas (prioridade/atribuição)
+              </li>
+              <li className="flex items-start gap-2 text-zinc-600">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                Suporte prioritário
+              </li>
+            </ul>
+            <Link href="/signup" className="mt-auto">
+              <Button
+                variant="outline"
+                className="h-10 w-full rounded-full border-zinc-300 text-sm hover:bg-zinc-50"
+              >
+                Começar trial grátis
+              </Button>
+            </Link>
+          </div>
+
+          {/* Enterprise Plan */}
+          <div className="relative flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-zinc-300 hover:shadow-lg">
+            <h3 className="mb-1 text-lg font-bold text-zinc-900">Enterprise</h3>
+            <p className="mb-4 text-xs text-zinc-500">Limites personalizados</p>
+            <div className="mb-4">
+              <span className="text-2xl font-bold text-zinc-900">Sob consulta</span>
+            </div>
+            <p className="mb-6 text-sm text-zinc-600">
+              Para operações maiores e requisitos especiais.
+            </p>
+            <ul className="mb-6 flex-grow space-y-3 text-sm">
+              <li className="flex items-start gap-2 text-zinc-600">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                Utilizadores ilimitados
+              </li>
+              <li className="flex items-start gap-2 text-zinc-600">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                Onboarding assistido + migração
+              </li>
+              <li className="flex items-start gap-2 text-zinc-600">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                Governance avançada (perfis, auditoria)
+              </li>
+              <li className="flex items-start gap-2 text-zinc-600">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                Integrações/API + export avançado
+              </li>
+              <li className="flex items-start gap-2 text-zinc-600">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                SLA e suporte dedicado
+              </li>
+            </ul>
+            <a href="mailto:ritmo@useritmo.pt" className="mt-auto">
+              <Button
+                variant="outline"
+                className="h-10 w-full rounded-full border-zinc-300 text-sm hover:bg-zinc-50"
+              >
+                Falar connosco
+              </Button>
+            </a>
+          </div>
+        </div>
+
+        <div className="mt-12 text-center">
+          <p className="text-sm text-zinc-400">
+            Aos preços indicados acresce IVA à taxa legal em vigor. As atualizações são gratuitas e
+            automáticas.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 export default function LandingPage() {
@@ -613,197 +892,7 @@ export default function LandingPage() {
         </section>
 
         {/* PRICING */}
-        <section id="pricing" className="border-t border-zinc-100 bg-zinc-50 px-6 py-24">
-          <div className="container mx-auto max-w-7xl">
-            <div className="mb-12 text-center">
-              <h2 className="mb-4 text-3xl leading-[1.1] font-medium tracking-tighter text-zinc-900 md:text-5xl">
-                Planos para PMEs que enviam orçamentos.
-              </h2>
-              <p className="mx-auto mb-2 max-w-2xl text-lg text-zinc-500">
-                Comece grátis e só pague quando o Ritmo já estiver a recuperar respostas.
-              </p>
-            </div>
-
-            <div className="mx-auto grid max-w-6xl items-start gap-6 md:grid-cols-2 lg:grid-cols-4">
-              {/* Free Plan */}
-              <div className="relative flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-zinc-300 hover:shadow-lg">
-                <h3 className="mb-1 text-lg font-bold text-zinc-900">Free</h3>
-                <p className="mb-4 text-xs text-zinc-500">5 envios/mês · 1 utilizador</p>
-                <div className="mb-4">
-                  <span className="text-3xl font-bold tracking-tight text-zinc-900">€0</span>
-                  <span className="text-sm font-medium text-zinc-500">/mês</span>
-                </div>
-                <p className="mb-6 text-sm text-zinc-600">
-                  Para testar o essencial, em modo manual.
-                </p>
-                <ul className="mb-6 flex-grow space-y-3 text-sm">
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                    Cadência e tarefas (manual)
-                  </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                    Templates e scripts
-                  </li>
-                  <li className="flex items-start gap-2 text-zinc-400">
-                    <X className="mt-0.5 h-4 w-4 shrink-0" />
-                    Emails automáticos
-                  </li>
-                  <li className="flex items-start gap-2 text-zinc-400">
-                    <X className="mt-0.5 h-4 w-4 shrink-0" />
-                    Captura por BCC
-                  </li>
-                </ul>
-                <Link href="/signup" className="mt-auto">
-                  <Button
-                    variant="outline"
-                    className="h-10 w-full rounded-full border-zinc-300 text-sm hover:bg-zinc-50"
-                  >
-                    Continuar grátis
-                  </Button>
-                </Link>
-              </div>
-
-              {/* Starter Plan - Popular */}
-              <div
-                className="relative flex h-full flex-col rounded-2xl border-2 border-transparent bg-white p-6 shadow-xl"
-                style={{ borderImage: "linear-gradient(to right, #60a5fa, #34d399) 1" }}
-              >
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="rounded-full bg-gradient-to-r from-blue-400 to-emerald-400 px-3 py-1 text-xs font-bold text-white uppercase shadow-lg shadow-emerald-500/20">
-                    Mais Popular
-                  </span>
-                </div>
-                <h3 className="mt-2 mb-1 text-lg font-bold text-zinc-900">Starter</h3>
-                <p className="mb-4 text-xs text-zinc-500">80 envios/mês · 2 utilizadores</p>
-                <div className="mb-4">
-                  <span className="text-3xl font-bold tracking-tight text-zinc-900">€39</span>
-                  <span className="text-sm font-medium text-zinc-500">/mês</span>
-                </div>
-                <p className="mb-6 text-sm text-zinc-600">Para o dono + 1 apoio, com automação.</p>
-                <ul className="mb-6 flex-grow space-y-3 text-sm">
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                    Emails automáticos (D+1, D+3)
-                  </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                    D+7 com chamada guiada + proposta a 1 clique
-                  </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                    Captura de proposta por BCC (PDF/link)
-                  </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                    Templates por etapa
-                  </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                    Scoreboard (rotina e consistência)
-                  </li>
-                </ul>
-                <Link href="/signup" className="mt-auto">
-                  <Button className="h-10 w-full rounded-full border-0 bg-gradient-to-r from-blue-400 to-emerald-400 text-sm text-white shadow-lg shadow-emerald-500/20 hover:from-blue-500 hover:to-emerald-500">
-                    Começar trial grátis
-                  </Button>
-                </Link>
-              </div>
-
-              {/* Pro Plan */}
-              <div className="relative flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-zinc-300 hover:shadow-lg">
-                <h3 className="mb-1 text-lg font-bold text-zinc-900">Pro</h3>
-                <p className="mb-4 text-xs text-zinc-500">250 envios/mês · 5 utilizadores</p>
-                <div className="mb-4">
-                  <span className="text-3xl font-bold tracking-tight text-zinc-900">€99</span>
-                  <span className="text-sm font-medium text-zinc-500">/mês</span>
-                </div>
-                <p className="mb-6 text-sm text-zinc-600">
-                  Para equipas e maior volume, com controlo.
-                </p>
-                <ul className="mb-6 flex-grow space-y-3 text-sm">
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                    Tudo do Starter
-                  </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                    Benchmark por setor
-                  </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                    Relatórios (pipeline, aging, follow-up rate)
-                  </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                    Regras avançadas (prioridade/atribuição)
-                  </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                    Suporte prioritário
-                  </li>
-                </ul>
-                <Link href="/signup" className="mt-auto">
-                  <Button
-                    variant="outline"
-                    className="h-10 w-full rounded-full border-zinc-300 text-sm hover:bg-zinc-50"
-                  >
-                    Começar trial grátis
-                  </Button>
-                </Link>
-              </div>
-
-              {/* Enterprise Plan */}
-              <div className="relative flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-zinc-300 hover:shadow-lg">
-                <h3 className="mb-1 text-lg font-bold text-zinc-900">Enterprise</h3>
-                <p className="mb-4 text-xs text-zinc-500">Limites personalizados</p>
-                <div className="mb-4">
-                  <span className="text-2xl font-bold text-zinc-900">Sob consulta</span>
-                </div>
-                <p className="mb-6 text-sm text-zinc-600">
-                  Para operações maiores e requisitos especiais.
-                </p>
-                <ul className="mb-6 flex-grow space-y-3 text-sm">
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                    Utilizadores ilimitados
-                  </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                    Onboarding assistido + migração
-                  </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                    Governance avançada (perfis, auditoria)
-                  </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                    Integrações/API + export avançado
-                  </li>
-                  <li className="flex items-start gap-2 text-zinc-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                    SLA e suporte dedicado
-                  </li>
-                </ul>
-                <a href="mailto:ritmo@useritmo.pt" className="mt-auto">
-                  <Button
-                    variant="outline"
-                    className="h-10 w-full rounded-full border-zinc-300 text-sm hover:bg-zinc-50"
-                  >
-                    Falar connosco
-                  </Button>
-                </a>
-              </div>
-            </div>
-
-            <div className="mt-12 text-center">
-              <p className="text-sm text-zinc-400">
-                Aos preços indicados acresce IVA à taxa legal em vigor. As atualizações são
-                gratuitas e automáticas.
-              </p>
-            </div>
-          </div>
-        </section>
+        <PricingToggleSection />
 
         <RoiCalculator />
 
