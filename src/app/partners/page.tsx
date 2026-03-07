@@ -113,10 +113,26 @@ export default function PartnersPage() {
               },
               {
                 "@type": "Question",
-                name: "Como funciona o rastreamento de referências?",
+                name: "Que tipo de clientes beneficia mais do Ritmo?",
                 acceptedAnswer: {
                   "@type": "Answer",
-                  text: "Cada parceiro tem um link único. Quando um cliente subscreve através desse link, a referência fica associada à sua conta automaticamente.",
+                  text: "PMEs que vendem por orçamento ou proposta — consultores, arquitectos, empresas de IT, construção, instalações, agências. Qualquer cliente que envie mais de 5 propostas por mês e não tenha sistema de follow-up estruturado.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "O Ritmo substitui o CRM dos meus clientes?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Não. O Ritmo é uma ferramenta focada: transforma cada orçamento enviado numa cadência automática de follow-up. Para quem não usa CRM, resolve o problema sem obrigar a aprender uma ferramenta complexa. Para quem já usa CRM, complementa com a automação de follow-up.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "Como funciona o processo de referência?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Após registo, recebe um código único para partilhar com os seus clientes. Quando um cliente subscreve e indica o seu código, a comissão fica registada a seu favor.",
                 },
               },
               {
@@ -124,7 +140,7 @@ export default function PartnersPage() {
                 name: "Quando recebo a comissão?",
                 acceptedAnswer: {
                   "@type": "Answer",
-                  text: "As comissões são calculadas mensalmente e pagas no início do mês seguinte. Os detalhes estão no painel de parceiro.",
+                  text: "As comissões são calculadas mensalmente. O processo de pagamento e detalhes são comunicados no momento do registo como parceiro.",
                 },
               },
               {
@@ -132,23 +148,15 @@ export default function PartnersPage() {
                 name: "O que acontece se um cliente cancelar?",
                 acceptedAnswer: {
                   "@type": "Answer",
-                  text: "A comissão é proporcional ao tempo em que o cliente manteve o plano ativo. Se cancelar, deixa de haver comissão desse cliente — sem penalizações para si.",
+                  text: "A comissão é proporcional ao tempo em que o cliente manteve o plano activo. Se cancelar, deixa de haver comissão desse cliente — sem penalizações para si.",
                 },
               },
               {
                 "@type": "Question",
-                name: "Posso ver os dados dos meus clientes no Ritmo?",
+                name: "Posso ver o pipeline de propostas dos meus clientes?",
                 acceptedAnswer: {
                   "@type": "Answer",
-                  text: "Sim. Os clientes que ativarem a partilha de dados permitem-lhe aceder ao seu dashboard de cobranças — cobranças emitidas, pagas, em atraso — sem custo adicional.",
-                },
-              },
-              {
-                "@type": "Question",
-                name: "O Ritmo emite fatura certificada (ATCUD)?",
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: "O Ritmo integra-se com o InvoiceXpress para emissão de faturas certificadas. Os seus clientes podem continuar a usar o faturador que já têm.",
+                  text: "Esta funcionalidade está em desenvolvimento. Em breve, parceiros com consentimento dos seus clientes poderão aceder a um painel de consulta de propostas.",
                 },
               },
               {
@@ -156,7 +164,7 @@ export default function PartnersPage() {
                 name: "Há um número mínimo de referências?",
                 acceptedAnswer: {
                   "@type": "Answer",
-                  text: "Não. Pode referenciar 1 ou 100 clientes. Não há mínimos nem quotas.",
+                  text: "Não. Pode referenciar 1 ou 100 clientes. Não há mínimos.",
                 },
               },
             ],
@@ -196,13 +204,14 @@ export default function PartnersPage() {
             <h1 className="mb-8 text-5xl leading-[1] font-medium tracking-tighter text-zinc-900 md:text-7xl">
               Ganhe por ajudar os seus clientes a{" "}
               <span className="bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
-                cobrar melhor.
+                fechar mais orçamentos.
               </span>
             </h1>
 
             <p className="mx-auto mb-10 max-w-2xl text-xl leading-relaxed font-light text-zinc-600">
-              Recomende o Ritmo às suas PMEs de serviços. Receba 20% de comissão recorrente enquanto
-              o cliente mantiver o plano. Grátis para si.
+              Os seus clientes PME enviam propostas — e depois perdem negócios por falta de
+              follow-up. O Ritmo resolve isso automaticamente. Recomende e receba 20% de comissão
+              recorrente. Grátis para si.
             </p>
 
             <Button
@@ -225,7 +234,7 @@ export default function PartnersPage() {
               </span>
               <span className="flex items-center gap-1.5">
                 <Check className="h-4 w-4 text-emerald-500" />
-                Acesso ao painel dos seus clientes
+                Acesso ao pipeline dos seus clientes
               </span>
             </div>
           </div>
@@ -235,21 +244,21 @@ export default function PartnersPage() {
         <section className="border-y border-zinc-100 bg-zinc-50 px-6 py-24">
           <div className="container mx-auto max-w-4xl">
             <h2 className="mb-8 text-center text-3xl leading-[1.1] font-medium tracking-tighter text-zinc-900 md:text-5xl">
-              Os seus clientes PME perdem horas a cobrar todos os meses.
+              Os seus clientes PME perdem negócios depois de enviar orçamentos.
             </h2>
 
             <p className="mx-auto mb-10 max-w-3xl text-center text-lg leading-relaxed text-zinc-600">
-              Empresas de serviços — AVAC, informática, condomínios, formação, consultoria — têm
-              clientes de contrato com cobranças mensais ou trimestrais. Hoje, a maioria ainda faz
-              isso manualmente:
+              Empresas de serviços — consultoria, IT, arquitectura, construção, instalações — enviam
+              propostas e orçamentos todos os dias. O problema não é a qualidade da proposta. O
+              problema é o que acontece a seguir:
             </p>
 
             <div className="mx-auto grid max-w-3xl gap-4 sm:grid-cols-2">
               {[
-                "Emissão de quotas uma a uma no faturador",
-                "Follow-up por email ou telefone quando se lembram",
-                "Excel para controlar quem pagou",
-                "Descobrem atrasos semanas depois de acontecerem",
+                "A proposta fica no email do cliente — ninguém faz follow-up no timing certo",
+                "O cliente responde ao concorrente que ligou primeiro",
+                "O dono do negócio não tem visibilidade de quantas propostas tem em aberto",
+                "O pipeline de vendas é completamente invisível",
               ].map((pain) => (
                 <div
                   key={pain}
@@ -264,8 +273,7 @@ export default function PartnersPage() {
             </div>
 
             <p className="mx-auto mt-10 max-w-2xl text-center text-lg text-zinc-500">
-              O resultado: horas de trabalho administrativo, fluxo de caixa imprevisível, e stress
-              que não precisava de existir.
+              O resultado: negócios perdidos por falta de timing, não por falta de qualidade.
             </p>
           </div>
         </section>
@@ -275,14 +283,13 @@ export default function PartnersPage() {
           <div className="container mx-auto max-w-6xl">
             <div className="mb-16 text-center">
               <h2 className="mb-4 text-3xl leading-[1.1] font-medium tracking-tighter text-zinc-900 md:text-5xl">
-                O Ritmo resolve isso em{" "}
+                O Ritmo transforma cada orçamento enviado numa{" "}
                 <span className="bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
-                  5 minutos
-                </span>{" "}
-                de configuração.
+                  cadência automática.
+                </span>
               </h2>
               <p className="mx-auto max-w-2xl text-lg text-zinc-500">
-                O Ritmo automatiza o ciclo completo de cobranças recorrentes para PMEs:
+                Quando o cliente marca um orçamento como enviado, o Ritmo activa automaticamente:
               </p>
             </div>
 
@@ -292,10 +299,10 @@ export default function PartnersPage() {
                 <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-50 to-blue-100">
                   <Zap className="h-6 w-6 text-blue-500" />
                 </div>
-                <h3 className="mb-3 text-xl font-semibold text-zinc-900">Emissão automática</h3>
+                <h3 className="mb-3 text-xl font-semibold text-zinc-900">Cadência automática</h3>
                 <p className="text-sm leading-relaxed text-zinc-600">
-                  Quotas e faturas emitidas automaticamente no dia certo, para todos os clientes de
-                  contrato, sem intervenção manual.
+                  D+1 email amigável · D+3 email de valor · D+7 guião de chamada · D+14 email final
+                  — no timing certo, sem intervenção manual.
                 </p>
               </div>
 
@@ -304,10 +311,12 @@ export default function PartnersPage() {
                 <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100">
                   <Mail className="h-6 w-6 text-emerald-500" />
                 </div>
-                <h3 className="mb-3 text-xl font-semibold text-zinc-900">Cobrança sem esforço</h3>
+                <h3 className="mb-3 text-xl font-semibold text-zinc-900">
+                  Guião de chamada no D+7
+                </h3>
                 <p className="text-sm leading-relaxed text-zinc-600">
-                  Lembretes de pagamento por email automáticos. O cliente paga. O gestor não tem de
-                  ligar nem enviar emails.
+                  No dia certo para ligar, o Ritmo entrega o guião ao dono — histórico da proposta,
+                  perguntas a fazer, objecções a antecipar. Sem improvisação.
                 </p>
               </div>
 
@@ -316,10 +325,10 @@ export default function PartnersPage() {
                 <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-violet-50 to-violet-100">
                   <BarChart3 className="h-6 w-6 text-violet-500" />
                 </div>
-                <h3 className="mb-3 text-xl font-semibold text-zinc-900">Visibilidade total</h3>
+                <h3 className="mb-3 text-xl font-semibold text-zinc-900">Pipeline visível</h3>
                 <p className="text-sm leading-relaxed text-zinc-600">
-                  Dashboard em tempo real: quem pagou, quem está em atraso, quanto está pendente.
-                  Tudo num sítio.
+                  Painel com todas as propostas por estado: enviada, em seguimento, respondida,
+                  ganha ou perdida. Tudo num sítio.
                 </p>
               </div>
             </div>
@@ -361,11 +370,12 @@ export default function PartnersPage() {
                   <BarChart3 className="h-5 w-5 text-blue-500" />
                 </div>
                 <h3 className="mb-2 text-lg font-semibold text-zinc-900">
-                  Acesso de consulta incluído
+                  Acesso de consulta (em breve)
                 </h3>
                 <p className="text-sm leading-relaxed text-zinc-600">
-                  Visualize os dados financeiros dos seus clientes Ritmo — cobranças, atrasos,
-                  previsão de caixa — sem custo adicional.
+                  Futuramente, visualize o pipeline de propostas dos seus clientes Ritmo — propostas
+                  enviadas, em seguimento, ganhas — sem custo adicional. Funcionalidade em
+                  desenvolvimento.
                 </p>
               </div>
 
@@ -379,7 +389,7 @@ export default function PartnersPage() {
                 </h3>
                 <p className="text-sm leading-relaxed text-zinc-600">
                   Deixa de ser só o contabilista. Passa a ser o parceiro que trouxe a solução que
-                  eles não saberiam encontrar sozinhos.
+                  aumenta as vendas dos seus clientes.
                 </p>
               </div>
 
@@ -438,7 +448,7 @@ export default function PartnersPage() {
                     <td className="px-6 py-4 text-sm font-medium text-zinc-900">Free</td>
                     <td className="px-6 py-4 text-sm text-zinc-600">€0/mês</td>
                     <td className="hidden px-6 py-4 text-sm text-zinc-500 sm:table-cell">
-                      Até 5 contratos, modo manual
+                      Até 5 orçamentos, modo manual
                     </td>
                     <td className="px-6 py-4 text-sm text-zinc-400">&mdash;</td>
                   </tr>
@@ -453,7 +463,7 @@ export default function PartnersPage() {
                     </td>
                     <td className="px-6 py-4 text-sm font-semibold text-zinc-900">€39/mês</td>
                     <td className="hidden px-6 py-4 text-sm text-zinc-500 sm:table-cell">
-                      PME com 1–2 pessoas
+                      Negócio individual, automação completa
                     </td>
                     <td className="px-6 py-4 text-sm font-semibold text-emerald-600">€7,80/mês</td>
                   </tr>
@@ -461,7 +471,7 @@ export default function PartnersPage() {
                     <td className="px-6 py-4 text-sm font-medium text-zinc-900">Pro</td>
                     <td className="px-6 py-4 text-sm font-semibold text-zinc-900">€99/mês</td>
                     <td className="hidden px-6 py-4 text-sm text-zinc-500 sm:table-cell">
-                      Volume maior, equipas
+                      Equipas, volume maior, relatórios
                     </td>
                     <td className="px-6 py-4 text-sm font-semibold text-emerald-600">€19,80/mês</td>
                   </tr>
@@ -470,8 +480,8 @@ export default function PartnersPage() {
             </div>
 
             <p className="mt-6 text-center text-sm text-zinc-400">
-              Comissões pagas mensalmente, automaticamente, para a conta bancária ou plataforma de
-              pagamento configurada no painel de parceiro.
+              Comissões calculadas mensalmente. Processo de pagamento comunicado no momento do
+              registo.
             </p>
           </div>
         </section>
@@ -497,14 +507,14 @@ export default function PartnersPage() {
                   },
                   {
                     num: "02",
-                    title: "Receba o seu link único",
-                    text: "Um link rastreável para partilhar com os seus clientes. Cada subscrição via esse link é creditada à sua conta.",
+                    title: "Receba o seu código de parceiro",
+                    text: "Após registo, a equipa Ritmo envia-lhe um código ou link único para partilhar com os seus clientes.",
                     gradient: "from-blue-400 to-emerald-400",
                   },
                   {
                     num: "03",
-                    title: "Acompanhe e receba",
-                    text: "Veja em tempo real quantos clientes subscreveram, que comissões gerou, e quando receberá o próximo pagamento.",
+                    title: "Recomende e receba",
+                    text: "Partilhe o link com os clientes elegíveis. Cada subscrição associada ao seu código gera comissão para si.",
                     gradient: "from-emerald-400 to-emerald-500",
                   },
                 ].map((step) => (
@@ -549,28 +559,32 @@ export default function PartnersPage() {
                       a: "Nada. O registo é gratuito e não há taxa de parceiro. Ganha comissão quando os seus clientes subscrevem um plano pago.",
                     },
                     {
-                      q: "Como funciona o rastreamento de referências?",
-                      a: "Cada parceiro tem um link único. Quando um cliente subscreve através desse link, a referência fica associada à sua conta automaticamente.",
+                      q: "Que tipo de clientes beneficia mais do Ritmo?",
+                      a: "PMEs que vendem por orçamento ou proposta — consultores, arquitectos, empresas de IT, construção, instalações, agências. Qualquer cliente que envie mais de 5 propostas por mês e não tenha sistema de follow-up estruturado.",
+                    },
+                    {
+                      q: "O Ritmo substitui o CRM dos meus clientes?",
+                      a: "Não. O Ritmo é uma ferramenta focada: transforma cada orçamento enviado numa cadência automática de follow-up. Para quem não usa CRM, o Ritmo resolve o problema sem obrigar a aprender uma ferramenta complexa. Para quem já usa CRM, o Ritmo complementa com a automação de follow-up que o CRM não faz de forma simples.",
+                    },
+                    {
+                      q: "Como funciona o processo de referência?",
+                      a: "Após registo, recebe um código único para partilhar com os seus clientes. Quando um cliente subscreve e indica o seu código, a comissão fica registada a seu favor. O processo de atribuição é confirmado pela equipa Ritmo.",
                     },
                     {
                       q: "Quando recebo a comissão?",
-                      a: "As comissões são calculadas mensalmente e pagas no início do mês seguinte. Os detalhes estão no painel de parceiro.",
+                      a: "As comissões são calculadas mensalmente. O processo de pagamento e detalhes são comunicados no momento do registo como parceiro. Para dúvidas: parceiros@useritmo.pt",
                     },
                     {
                       q: "O que acontece se um cliente cancelar?",
-                      a: "A comissão é proporcional ao tempo em que o cliente manteve o plano ativo. Se cancelar, deixa de haver comissão desse cliente — sem penalizações para si.",
+                      a: "A comissão é proporcional ao tempo em que o cliente manteve o plano activo. Se cancelar, deixa de haver comissão desse cliente — sem penalizações para si.",
                     },
                     {
-                      q: "Posso ver os dados dos meus clientes no Ritmo?",
-                      a: "Sim. Os clientes que ativarem a partilha de dados permitem-lhe aceder ao seu dashboard de cobranças — cobranças emitidas, pagas, em atraso — sem custo adicional.",
-                    },
-                    {
-                      q: "O Ritmo emite fatura certificada (ATCUD)?",
-                      a: "O Ritmo integra-se com o InvoiceXpress para emissão de faturas certificadas. Os seus clientes podem continuar a usar o faturador que já têm.",
+                      q: "Posso ver o pipeline de propostas dos meus clientes?",
+                      a: "Esta funcionalidade está em desenvolvimento. Em breve, parceiros com consentimento dos seus clientes poderão aceder a um painel de consulta de propostas. Data prevista a confirmar — registe-se já e será notificado quando disponível.",
                     },
                     {
                       q: "Há um número mínimo de referências?",
-                      a: "Não. Pode referenciar 1 ou 100 clientes. Não há mínimos nem quotas.",
+                      a: "Não. Pode referenciar 1 ou 100 clientes. Não há mínimos.",
                     },
                   ].map((faq, i) => (
                     <AccordionItem
@@ -766,11 +780,12 @@ export default function PartnersPage() {
 
           <div className="relative z-10 container mx-auto max-w-4xl text-center">
             <h2 className="mb-8 text-4xl leading-[1] font-medium tracking-tighter md:text-6xl">
-              Os seus clientes já estão a perder tempo. Ajude-os hoje.
+              Os seus clientes já estão a perder orçamentos. Ajude-os hoje.
             </h2>
             <p className="mx-auto mb-12 max-w-2xl text-xl leading-relaxed text-zinc-400">
-              O Ritmo é a ferramenta que faltava para as PMEs dos seus clientes. E a comissão
-              recorrente é o seu reconhecimento por os ter colocado no caminho certo.
+              O Ritmo é a ferramenta que garante que cada proposta enviada tem follow-up no timing
+              certo. E a comissão recorrente é o seu reconhecimento por ter colocado os seus
+              clientes no caminho certo.
             </p>
 
             <Button
