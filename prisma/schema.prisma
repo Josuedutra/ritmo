@@ -197,6 +197,7 @@ model User {
   accounts        Account[]
   sessions        Session[]
   passwordResetTokens PasswordResetToken[]
+  partnerCommissions  PartnerCommission[] @relation("CommissionClient")
 
   @@unique([organizationId, email]) // Compound unique allows same email in different orgs
   @@map("users")
@@ -798,6 +799,7 @@ model Partner {
   referralLinks         ReferralLink[]
   attributions          ReferralAttribution[]
   boosterLedger         BoosterLedger[]
+  commissions           PartnerCommission[]
 
   @@index([status])
   @@index([contactEmail])
@@ -873,4 +875,31 @@ model BoosterLedger {
   @@index([organizationId, createdAt])
   @@index([status])
   @@map("booster_ledger")
+}
+
+/// Monthly commission tracking for partners based on referred client subscriptions
+model PartnerCommission {
+  id                 String           @id @default(cuid())
+  partnerId          String           @map("partner_id")
+  clientId           String           @map("client_id")
+  period             String           // YYYY-MM
+  subscriptionAmount Float            @map("subscription_amount")
+  commissionRate     Float            @default(0.20) @map("commission_rate")
+  commissionAmount   Float            @map("commission_amount")
+  status             CommissionStatus @default(CALCULATED)
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+
+  partner Partner @relation(fields: [partnerId], references: [id])
+  client  User    @relation("CommissionClient", fields: [clientId], references: [id])
+
+  @@unique([partnerId, clientId, period])
+  @@index([partnerId, period])
+  @@map("partner_commissions")
+}
+
+enum CommissionStatus {
+  CALCULATED
+  PAID
+  CANCELLED
 }
