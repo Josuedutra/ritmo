@@ -38,7 +38,7 @@ jobs:
         run: pnpm install
 
       - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps chromium webkit
 
       - name: Generate Prisma client
         run: pnpm db:generate
@@ -71,3 +71,4 @@ jobs:
           name: test-screenshots
           path: e2e/screenshots/
           retention-days: 7
+
