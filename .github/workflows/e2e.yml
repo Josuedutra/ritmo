@@ -18,6 +18,7 @@ jobs:
       TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
       TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
       PLAYWRIGHT_BASE_URL: http://localhost:3000
+      AUTH_TRUST_HOST: true
 
     steps:
       - uses: actions/checkout@v4
