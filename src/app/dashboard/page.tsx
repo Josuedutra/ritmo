@@ -11,7 +11,8 @@ import { ActionsList } from "@/components/actions";
 import { OnboardingChecklist } from "@/components/onboarding";
 import { LifecycleBanner } from "@/components/lifecycle";
 import { ScoreboardCard, BenchmarkCard } from "@/components/scoreboard";
-import { getEntitlements, type Entitlements } from "@/lib/entitlements";
+import { getEntitlements, checkSeatLimit, type Entitlements } from "@/lib/entitlements";
+import { TeamTooltip } from "@/components/team-tooltip";
 
 // Usage Meter Component - shows correct limits based on tier
 function UsageMeter({ entitlements }: { entitlements: Entitlements }) {
@@ -368,13 +369,14 @@ export default async function DashboardPage() {
   // Requirement C: Onboarding gate - redirects to /onboarding if not complete
   const session = await requireOnboardingComplete();
 
-  // Get organization timezone and entitlements in parallel
-  const [org, entitlements] = await Promise.all([
+  // Get organization timezone, entitlements, and seat info in parallel
+  const [org, entitlements, seatInfo] = await Promise.all([
     prisma.organization.findUnique({
       where: { id: session.user.organizationId },
       select: { timezone: true },
     }),
     getEntitlements(session.user.organizationId),
+    checkSeatLimit(session.user.organizationId),
   ]);
 
   const timezone = org?.timezone ?? "Europe/Lisbon";
@@ -399,6 +401,9 @@ export default async function DashboardPage() {
 
         {/* Lifecycle Banner (Trial/Free tier messaging) */}
         <LifecycleBanner />
+
+        {/* Team Tooltip - show on paid plans with available seats */}
+        <TeamTooltip show={entitlements.tier === "paid" && seatInfo.canAddUser} />
 
         {/* Stats Grid */}
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
