@@ -365,7 +365,8 @@ export function TemplatesList({ templates }: TemplatesListProps) {
       {templates.length === 0 && (
         <Card>
           <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
-            <p className="text-[var(--color-muted-foreground)]">Nenhum template encontrado.</p>
+            <Mail className="h-8 w-8 text-[var(--color-muted-foreground)]" />
+            <p className="text-[var(--color-muted-foreground)]">Ainda não tem templates de follow-up. Crie os modelos padrão para começar.</p>
             <Button
               onClick={async () => {
                 setSeeding(true);
