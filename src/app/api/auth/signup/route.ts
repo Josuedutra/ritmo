@@ -130,6 +130,33 @@ export async function POST(request: NextRequest) {
         },
       });
 
+      // Create default templates for the new organization
+      await tx.template.createMany({
+        data: [
+          {
+            organizationId: organization.id,
+            code: "T2",
+            name: "Follow-up D+1",
+            subject: "Confirmação de receção - {{quote_title}}",
+            body: `Olá {{contact_name}},\n\nEspero que esteja bem.\n\nVenho confirmar que o orçamento "{{quote_title}}" foi enviado ontem.\nGostaria de saber se teve oportunidade de analisar a proposta e se tem alguma dúvida.\n\nFico ao dispor para esclarecer qualquer questão.\n\nCom os melhores cumprimentos,\n{{user_name}}`,
+          },
+          {
+            organizationId: organization.id,
+            code: "T3",
+            name: "Follow-up D+3",
+            subject: "Acompanhamento - {{quote_title}}",
+            body: `Olá {{contact_name}},\n\nVolto a contactá-lo relativamente ao orçamento "{{quote_title}}" enviado há alguns dias.\n\nCompreendo que possa estar ocupado, mas gostaria de saber se posso ajudar a esclarecer alguma dúvida sobre a nossa proposta.\n\nAguardo o seu feedback.\n\nCom os melhores cumprimentos,\n{{user_name}}`,
+          },
+          {
+            organizationId: organization.id,
+            code: "T5",
+            name: "Fecho Suave D+14",
+            subject: "Última verificação - {{quote_title}}",
+            body: `Olá {{contact_name}},\n\nEspero que esteja bem.\n\nPassaram cerca de duas semanas desde que enviei a proposta "{{quote_title}}". Gostaria de fazer um último follow-up para entender o estado da sua decisão.\n\nSe o projeto foi adiado ou se optaram por outra solução, agradeço que me informe para eu poder arquivar este orçamento.\n\nCaso ainda estejam a considerar, fico totalmente disponível para agendar uma conversa.\n\nCom os melhores cumprimentos,\n{{user_name}}`,
+          },
+        ],
+      });
+
       return { organization, user };
     });
 
