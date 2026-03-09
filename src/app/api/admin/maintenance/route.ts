@@ -40,9 +40,7 @@ function decodeMimeHeader(header: string): string {
           const enc = encoding.toUpperCase();
           if (enc === "B") {
             const buffer = Buffer.from(text, "base64");
-            return buffer.toString(
-              charset.toLowerCase() === "utf-8" ? "utf-8" : charset
-            );
+            return buffer.toString(charset.toLowerCase() === "utf-8" ? "utf-8" : charset);
           } else if (enc === "Q") {
             const decoded = text
               .replace(/_/g, " ")
