@@ -172,7 +172,7 @@ export function OnboardingWizard({
   };
 
   // Concluir onboarding - marca como completo
-  const handleComplete = async () => {
+  const completeOnboarding = async (redirectTo: string) => {
     setCompleting(true);
     try {
       const response = await fetch("/api/onboarding", {
@@ -185,7 +185,7 @@ export function OnboardingWizard({
       }
 
       toast.success("Configuração concluída. Bem-vindo ao Ritmo.");
-      router.push("/dashboard?onboarding=complete");
+      router.push(redirectTo);
     } catch (error) {
       console.error("Error completing onboarding:", error);
       toast.error("Erro ao concluir configuração");
@@ -193,6 +193,8 @@ export function OnboardingWizard({
       setCompleting(false);
     }
   };
+
+  const handleComplete = () => completeOnboarding("/dashboard?onboarding=complete");
 
   // Verifica se pode avançar no passo SMTP
   const canAdvanceFromSmtp = () => {
@@ -940,15 +942,23 @@ export function OnboardingWizard({
 
                   {/* Ações finais */}
                   <div className="space-y-3">
-                    <Link href="/quotes/new" className="block">
-                      <Button variant="brand" size="lg" className="w-full gap-2 text-base">
+                    <Button
+                      variant="brand"
+                      size="lg"
+                      className="w-full gap-2 text-base"
+                      onClick={() => completeOnboarding("/quotes/new")}
+                      disabled={completing}
+                    >
+                      {completing ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
                         <Rocket className="h-5 w-5" />
-                        Criar orçamento
-                      </Button>
-                    </Link>
+                      )}
+                      Criar orçamento
+                    </Button>
                     <Button
                       variant="outline"
-                      onClick={handleComplete}
+                      onClick={() => completeOnboarding("/dashboard?onboarding=complete")}
                       disabled={completing}
                       className="w-full gap-2"
                     >
