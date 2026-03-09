@@ -20,6 +20,8 @@ interface Metrics {
   activationRate24h: number;
   medianTimeToAhaSeconds: number | null;
   retention7dSecondSendRate: number;
+  quotesTotal: number;
+  quotesWon: number;
 }
 
 interface Targets {
@@ -28,6 +30,7 @@ interface Targets {
   activationRate5m: number;
   activationRate24h: number;
   retention7dSecondSendRate: number;
+  quoteConversionRate: number;
 }
 
 interface DailyData {
@@ -172,6 +175,23 @@ export function AdminMetricsClient() {
               : metrics.retention7dSecondSendRate >= targets.retention7dSecondSendRate * 0.8
                 ? "warning"
                 : "bad"
+          }
+        />
+        <MetricCard
+          title="Taxa de Conversão"
+          value={
+            metrics.quotesTotal > 0
+              ? `${Math.round((metrics.quotesWon / metrics.quotesTotal) * 100)}%`
+              : "—"
+          }
+          icon={<TrendingUp className="h-4 w-4" />}
+          target={`Target: ${targets.quoteConversionRate}%`}
+          status={
+            metrics.quotesTotal > 0
+              ? Math.round((metrics.quotesWon / metrics.quotesTotal) * 100) >= targets.quoteConversionRate
+                ? "good"
+                : "bad"
+              : "neutral"
           }
         />
       </div>

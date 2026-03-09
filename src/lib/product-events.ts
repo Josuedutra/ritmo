@@ -162,6 +162,8 @@ export async function calculateMetrics(
   activationRate24h: number;
   medianTimeToAhaSeconds: number | null;
   retention7dSecondSendRate: number;
+  quotesTotal: number;
+  quotesWon: number;
   dailySignups: Array<{ date: string; count: number }>;
   dailyAha: Array<{ date: string; count: number }>;
 }> {
@@ -275,6 +277,14 @@ export async function calculateMetrics(
 
   const retention7dSecondSendRate = ahaCount > 0 ? (retainedCount / ahaCount) * 100 : 0;
 
+  // Quote conversion metrics
+  const quotesTotal = await prisma.quote.count({
+    where: { createdAt: { gte: startDate, lte: endDate } },
+  });
+  const quotesWon = await prisma.quote.count({
+    where: { createdAt: { gte: startDate, lte: endDate }, status: "won" },
+  });
+
   // Daily aggregations
   const dailySignups = aggregateByDay(
     signups.map((s) => s.createdAt),
@@ -294,6 +304,8 @@ export async function calculateMetrics(
     activationRate24h,
     medianTimeToAhaSeconds,
     retention7dSecondSendRate,
+    quotesTotal,
+    quotesWon,
     dailySignups,
     dailyAha,
   };
