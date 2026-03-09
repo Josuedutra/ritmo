@@ -916,9 +916,9 @@ export async function reserveStorageQuota(
     // This atomically checks AND updates in a single operation
     const result = await prisma.$executeRaw`
             UPDATE "Organization"
-            SET "storageUsedBytes" = "storageUsedBytes" + ${BigInt(sizeBytes)}
+            SET storage_used_bytes = storage_used_bytes + ${BigInt(sizeBytes)}
             WHERE id = ${organizationId}
-            AND "storageUsedBytes" + ${BigInt(sizeBytes)} <= "storageQuotaBytes"
+            AND storage_used_bytes + ${BigInt(sizeBytes)} <= storage_quota_bytes
         `;
 
     if (result === 0) {
@@ -951,7 +951,7 @@ export async function reserveStorageQuota(
       rollback: async () => {
         await prisma.$executeRaw`
                     UPDATE "Organization"
-                    SET "storageUsedBytes" = GREATEST(0, "storageUsedBytes" - ${BigInt(sizeBytes)})
+                    SET storage_used_bytes = GREATEST(0, storage_used_bytes - ${BigInt(sizeBytes)})
                     WHERE id = ${organizationId}
                 `;
       },
@@ -1070,7 +1070,7 @@ export async function decrementStorageUsage(
   // Use raw query to ensure storageUsedBytes never goes negative
   await prisma.$executeRaw`
         UPDATE "Organization"
-        SET "storageUsedBytes" = GREATEST(0, "storageUsedBytes" - ${BigInt(sizeBytes)})
+        SET storage_used_bytes = GREATEST(0, storage_used_bytes - ${BigInt(sizeBytes)})
         WHERE id = ${organizationId}
     `;
 }
