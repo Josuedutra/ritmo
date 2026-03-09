@@ -2,7 +2,7 @@
  * POST /api/partners/register
  *
  * Public endpoint for partner self-registration.
- * Creates a Partner record with status=PENDING.
+ * Creates a Partner record with status=ACTIVE and generates a referral link.
  *
  * Rate limited: 5 requests per 10 minutes per IP.
  */
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ── Create Partner with status PENDING ──
+    // ── Create Partner with status ACTIVE ──
     const partner = await prisma.partner.create({
       data: {
         name: name.trim(),
@@ -78,13 +78,24 @@ export async function POST(request: NextRequest) {
         nif: nif ? nif.replace(/\s/g, "") : null,
         clientCountRange: clients || null,
         source: source || null,
-        status: "PENDING",
+        status: "ACTIVE",
+      },
+    });
+
+    // Auto-generate referral link
+    const { generateUniqueReferralCode } = await import("@/lib/referral-codes");
+    const code = await generateUniqueReferralCode(partner.name);
+    const referralLink = await prisma.referralLink.create({
+      data: {
+        partnerId: partner.id,
+        code,
+        landingPath: "/signup",
       },
     });
 
     log.info(
-      { partnerId: partner.id, email: email.replace(/(.{2}).*@/, "$1***@") },
-      "Partner registered (pending)"
+      { partnerId: partner.id, email: email.replace(/(.{2}).*@/, "$1***@"), code },
+      "Partner registered (active) with referral link"
     );
 
     // ── Send confirmation emails (fire-and-forget) ──
@@ -97,23 +108,27 @@ export async function POST(request: NextRequest) {
         resend.emails.send({
           from: fromAddress,
           to: partner.contactEmail!,
-          subject: "Candidatura de parceiro recebida — Ritmo",
+          subject: "Bem-vindo ao programa de parceiros Ritmo!",
           html: `<p>Olá ${partner.contactName},</p>
-<p>Recebemos a sua candidatura ao programa de parceiros Ritmo. A nossa equipa irá analisar os dados e entrar em contacto brevemente.</p>
+<p>A sua conta de parceiro Ritmo foi activada com sucesso!</p>
+<p>O seu código de parceiro: <strong>${referralLink.code}</strong></p>
+<p>Link de referral: <strong>${process.env.NEXT_PUBLIC_APP_URL || "https://useritmo.pt"}/signup?ref=${referralLink.code}</strong></p>
+<p>Partilhe este link com os seus clientes para registarem-se no Ritmo.</p>
 <p>Obrigado pelo interesse!</p>
 <p>— Equipa Ritmo</p>`,
         }),
         resend.emails.send({
           from: fromAddress,
           to: "parceiros@useritmo.pt",
-          subject: `Novo parceiro pendente: ${partner.companyName}`,
-          html: `<p>Novo parceiro registado:</p>
+          subject: `Novo parceiro activo: ${partner.companyName}`,
+          html: `<p>Novo parceiro registado e activado:</p>
 <ul>
 <li><strong>Nome:</strong> ${partner.contactName}</li>
 <li><strong>Email:</strong> ${partner.contactEmail}</li>
 <li><strong>Empresa:</strong> ${partner.companyName}</li>
 <li><strong>NIF:</strong> ${partner.nif || "Não indicado"}</li>
 <li><strong>Clientes:</strong> ${partner.clientCountRange || "Não indicado"}</li>
+<li><strong>Código referral:</strong> ${referralLink.code}</li>
 </ul>`,
         }),
       ]);
@@ -126,7 +141,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message: "Registo recebido com sucesso! Entraremos em contacto brevemente.",
+        message: "Registo concluído com sucesso! Verifique o seu email para o código de parceiro.",
+        referralCode: referralLink.code,
       },
       { status: 201 }
     );
