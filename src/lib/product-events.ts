@@ -282,7 +282,7 @@ export async function calculateMetrics(
     where: { createdAt: { gte: startDate, lte: endDate } },
   });
   const quotesWon = await prisma.quote.count({
-    where: { createdAt: { gte: startDate, lte: endDate }, status: "won" },
+    where: { createdAt: { gte: startDate, lte: endDate }, businessStatus: "won" },
   });
 
   // Daily aggregations
