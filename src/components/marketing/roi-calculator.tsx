@@ -228,7 +228,7 @@ export function RoiCalculator() {
               {balance >= 0 ? "+" : ""}€{Math.round(balance).toLocaleString("pt-PT")}
               <span className="text-sm font-normal text-zinc-500">/mês</span>
             </p>
-            <p className="mt-1 text-xs text-zinc-500">Receita recuperada − €{monthlyCost}/mês</p>
+            <p className="mt-1 text-xs text-zinc-500">€{Math.round(monthlyProfit).toLocaleString("pt-PT")} recuperados − €{monthlyCost} do plano = €{Math.round(balance).toLocaleString("pt-PT")}</p>
           </div>
 
           {/* Pro vs Starter comparison banner */}
