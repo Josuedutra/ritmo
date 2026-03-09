@@ -45,18 +45,18 @@ export function RoiCalculator() {
   }
 
   return (
-    <section className="bg-zinc-950 px-4 py-16">
+    <section className="bg-zinc-50 px-4 py-16">
       <div className="mx-auto max-w-2xl">
-        <h2 className="mb-2 text-center text-2xl font-bold text-white">
+        <h2 className="mb-2 text-center text-2xl font-bold text-zinc-900">
           Calcule o seu retorno com o Ritmo
         </h2>
-        <p className="mb-10 text-center text-sm text-zinc-400">
+        <p className="mb-10 text-center text-sm text-zinc-500">
           Veja quanto pode recuperar em receita todos os meses.
         </p>
 
         {/* Bucket */}
         <div className="mb-6">
-          <label className="mb-3 block text-sm font-medium text-zinc-300">
+          <label className="mb-3 block text-sm font-medium text-zinc-700">
             Ticket médio das suas propostas
           </label>
           <div className="flex flex-wrap gap-2">
@@ -67,7 +67,7 @@ export function RoiCalculator() {
                 className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
                   bucketIdx === i
                     ? "border-blue-600 bg-blue-600 text-white"
-                    : "border-zinc-700 text-zinc-400 hover:border-zinc-500"
+                    : "border-zinc-300 text-zinc-600 hover:border-zinc-400"
                 }`}
               >
                 {b.label}
@@ -82,7 +82,7 @@ export function RoiCalculator() {
                 max={50000}
                 value={customTicket}
                 onChange={(e) => handleChange("custom", Number(e.target.value))}
-                className="w-40 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-white"
+                className="w-40 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm text-zinc-900"
                 placeholder="Ex: 2000"
               />
               <span className="ml-2 text-sm text-zinc-500">€</span>
@@ -92,9 +92,9 @@ export function RoiCalculator() {
 
         {/* Margin slider */}
         <div className="mb-6">
-          <label className="mb-3 block text-sm font-medium text-zinc-300">
+          <label className="mb-3 block text-sm font-medium text-zinc-700">
             Margem de recuperação estimada:{" "}
-            <span className="font-bold text-blue-400">{margin}%</span>
+            <span className="font-bold text-blue-600">{margin}%</span>
           </label>
           <input
             type="range"
@@ -112,21 +112,21 @@ export function RoiCalculator() {
 
         {/* Proposals stepper */}
         <div className="mb-10">
-          <label className="mb-3 block text-sm font-medium text-zinc-300">
+          <label className="mb-3 block text-sm font-medium text-zinc-700">
             Propostas recuperadas por mês:{" "}
-            <span className="font-bold text-blue-400">{proposals}</span>
+            <span className="font-bold text-blue-600">{proposals}</span>
           </label>
           <div className="flex items-center gap-4">
             <button
               onClick={() => handleChange("proposals", Math.max(1, proposals - 1))}
-              className="h-10 w-10 rounded-full border border-zinc-700 text-lg font-bold text-zinc-300 hover:border-zinc-500"
+              className="h-10 w-10 rounded-full border border-zinc-300 text-lg font-bold text-zinc-600 hover:border-zinc-400"
             >
               −
             </button>
-            <span className="w-8 text-center text-xl font-bold text-white">{proposals}</span>
+            <span className="w-8 text-center text-xl font-bold text-zinc-900">{proposals}</span>
             <button
               onClick={() => handleChange("proposals", Math.min(10, proposals + 1))}
-              className="h-10 w-10 rounded-full border border-zinc-700 text-lg font-bold text-zinc-300 hover:border-zinc-500"
+              className="h-10 w-10 rounded-full border border-zinc-300 text-lg font-bold text-zinc-600 hover:border-zinc-400"
             >
               +
             </button>
@@ -134,26 +134,26 @@ export function RoiCalculator() {
         </div>
 
         {/* Result */}
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
-          <p className="mb-4 text-center text-sm text-zinc-400">Retorno estimado com o Ritmo</p>
+        <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+          <p className="mb-4 text-center text-sm text-zinc-500">Retorno estimado com o Ritmo</p>
           <div className="mb-6 grid grid-cols-2 gap-4">
-            <div className="rounded-xl bg-zinc-800 p-4 text-center">
+            <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-center">
               <p className="mb-1 text-xs text-zinc-500">Plano Starter</p>
-              <p className="text-2xl font-bold text-white">
+              <p className="text-2xl font-bold text-zinc-900">
                 +€{Math.max(0, Math.round(netStarter)).toLocaleString("pt-PT")}
-                <span className="text-sm font-normal text-zinc-400">/mês</span>
+                <span className="text-sm font-normal text-zinc-500">/mês</span>
               </p>
-              <p className="mt-1 text-xs text-zinc-600">
+              <p className="mt-1 text-xs text-zinc-500">
                 Receita − €{PLAN_COSTS.starter.monthly}/mês
               </p>
             </div>
-            <div className="rounded-xl border border-blue-500/30 bg-gradient-to-b from-blue-500/20 to-emerald-500/20 p-4 text-center">
-              <p className="mb-1 text-xs font-medium text-blue-400">Plano Pro</p>
-              <p className="text-2xl font-bold text-white">
+            <div className="rounded-xl border border-blue-500/30 bg-gradient-to-b from-blue-500/10 to-emerald-500/10 p-4 text-center">
+              <p className="mb-1 text-xs font-medium text-blue-600">Plano Pro</p>
+              <p className="text-2xl font-bold text-zinc-900">
                 +€{Math.max(0, Math.round(netPro)).toLocaleString("pt-PT")}
-                <span className="text-sm font-normal text-zinc-400">/mês</span>
+                <span className="text-sm font-normal text-zinc-500">/mês</span>
               </p>
-              <p className="mt-1 text-xs text-zinc-600">Receita − €{PLAN_COSTS.pro.monthly}/mês</p>
+              <p className="mt-1 text-xs text-zinc-500">Receita − €{PLAN_COSTS.pro.monthly}/mês</p>
             </div>
           </div>
           <Link
