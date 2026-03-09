@@ -39,21 +39,14 @@ export function RoiCalculator() {
   const ticket = BUCKETS[bucketIdx].value || customTicket;
 
   const effectiveMargin =
-    selectedPlan === "pro"
-      ? Math.min(margin + PRO_AUTOMATION_BONUS_PP, 95)
-      : margin;
+    selectedPlan === "pro" ? Math.min(margin + PRO_AUTOMATION_BONUS_PP, 95) : margin;
 
   const monthlyProfit =
-    ticket *
-    (effectiveMargin / 100) *
-    proposals *
-    (selectedPlan === "pro" ? teamSize : 1);
+    ticket * (effectiveMargin / 100) * proposals * (selectedPlan === "pro" ? teamSize : 1);
 
-  const monthlyCost =
-    PLAN_COSTS[selectedPlan][isAnnual ? "annual" : "monthly"];
+  const monthlyCost = PLAN_COSTS[selectedPlan][isAnnual ? "annual" : "monthly"];
 
-  const netStarter =
-    ticket * (margin / 100) * proposals - PLAN_COSTS.starter.monthly;
+  const netStarter = ticket * (margin / 100) * proposals - PLAN_COSTS.starter.monthly;
   const balance = monthlyProfit - monthlyCost;
 
   function handleChange(field: string, value: number) {
@@ -189,8 +182,7 @@ export function RoiCalculator() {
         {/* Team size stepper — Pro only, space reserved to avoid layout jump */}
         <div className={`mb-10 ${selectedPlan === "pro" ? "" : "invisible"}`}>
           <label className="mb-3 block text-sm font-medium text-zinc-700">
-            Utilizadores na equipa:{" "}
-            <span className="font-bold text-blue-600">{teamSize}</span>
+            Utilizadores na equipa: <span className="font-bold text-blue-600">{teamSize}</span>
           </label>
           <div className="flex items-center gap-4">
             <button
@@ -215,8 +207,7 @@ export function RoiCalculator() {
         {/* Result */}
         <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
           <p className="mb-4 text-center text-sm text-zinc-500">
-            Retorno estimado com o Ritmo — Plano{" "}
-            {selectedPlan === "pro" ? "Pro" : "Starter"}
+            Retorno estimado com o Ritmo — Plano {selectedPlan === "pro" ? "Pro" : "Starter"}
           </p>
 
           {/* Effective margin — Pro only */}
@@ -224,9 +215,7 @@ export function RoiCalculator() {
             <div className="mb-4 flex items-center justify-between rounded-lg bg-zinc-50 px-4 py-3">
               <div>
                 <p className="text-sm font-medium text-zinc-700">Margem efectiva</p>
-                <p className="text-xs text-zinc-400">
-                  {margin}% base + 5% automações Pro
-                </p>
+                <p className="text-xs text-zinc-400">{margin}% base + 5% automações Pro</p>
               </div>
               <p className="text-lg font-bold text-blue-600">{effectiveMargin}%</p>
             </div>
@@ -234,32 +223,27 @@ export function RoiCalculator() {
 
           {/* Main result */}
           <div className="mb-4 rounded-xl border border-blue-500/30 bg-gradient-to-b from-blue-500/10 to-emerald-500/10 p-5 text-center">
-            <p className="mb-1 text-xs font-medium text-blue-600">
-              Ganho estimado/mês
-            </p>
+            <p className="mb-1 text-xs font-medium text-blue-600">Ganho estimado/mês</p>
             <p className="text-3xl font-bold text-zinc-900">
-              {balance >= 0 ? "+" : ""}€
-              {Math.round(balance).toLocaleString("pt-PT")}
+              {balance >= 0 ? "+" : ""}€{Math.round(balance).toLocaleString("pt-PT")}
               <span className="text-sm font-normal text-zinc-500">/mês</span>
             </p>
-            <p className="mt-1 text-xs text-zinc-500">
-              Receita recuperada − €{monthlyCost}/mês
-            </p>
+            <p className="mt-1 text-xs text-zinc-500">Receita recuperada − €{monthlyCost}/mês</p>
           </div>
 
           {/* Pro vs Starter comparison banner */}
           {selectedPlan === "pro" && proAhead && (
             <div className="mb-4 rounded-lg bg-emerald-50 px-4 py-2 text-center text-sm text-emerald-700">
-              Pro recupera +€{Math.round(balance - netStarter).toLocaleString("pt-PT")}/mês
-              vs Starter neste cenário
+              Pro recupera +€{Math.round(balance - netStarter).toLocaleString("pt-PT")}/mês vs
+              Starter neste cenário
             </div>
           )}
 
           {/* Negative balance on Starter */}
           {selectedPlan === "starter" && balance < 0 && (
             <div className="mb-4 rounded-lg bg-amber-50 px-4 py-2 text-center text-sm text-amber-700">
-              Com este volume, o Starter tem retorno negativo. O Pro, com automações,
-              pode alterar esse cálculo.
+              Com este volume, o Starter tem retorno negativo. O Pro, com automações, pode alterar
+              esse cálculo.
             </div>
           )}
 
@@ -281,9 +265,8 @@ export function RoiCalculator() {
           </Link>
 
           <p className="mt-4 text-center text-xs text-zinc-400">
-            Estimativa baseada em orçamentos recuperados por acção de follow-up.
-            Resultados reais dependem do sector, ticket real e taxa de resposta
-            dos seus clientes.
+            Estimativa baseada em orçamentos recuperados por acção de follow-up. Resultados reais
+            dependem do sector, ticket real e taxa de resposta dos seus clientes.
           </p>
         </div>
       </div>
