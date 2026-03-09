@@ -188,7 +188,8 @@ export function AdminMetricsClient() {
           target={`Target: ${targets.quoteConversionRate}%`}
           status={
             metrics.quotesTotal > 0
-              ? Math.round((metrics.quotesWon / metrics.quotesTotal) * 100) >= targets.quoteConversionRate
+              ? Math.round((metrics.quotesWon / metrics.quotesTotal) * 100) >=
+                targets.quoteConversionRate
                 ? "good"
                 : "bad"
               : "neutral"
