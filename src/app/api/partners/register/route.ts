@@ -87,6 +87,42 @@ export async function POST(request: NextRequest) {
       "Partner registered (pending)"
     );
 
+    // ── Send confirmation emails (fire-and-forget) ──
+    try {
+      const { Resend } = await import("resend");
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      const fromAddress = process.env.RESEND_FROM || "Ritmo <noreply@useritmo.pt>";
+
+      await Promise.all([
+        resend.emails.send({
+          from: fromAddress,
+          to: partner.contactEmail!,
+          subject: "Candidatura de parceiro recebida — Ritmo",
+          html: `<p>Olá ${partner.contactName},</p>
+<p>Recebemos a sua candidatura ao programa de parceiros Ritmo. A nossa equipa irá analisar os dados e entrar em contacto brevemente.</p>
+<p>Obrigado pelo interesse!</p>
+<p>— Equipa Ritmo</p>`,
+        }),
+        resend.emails.send({
+          from: fromAddress,
+          to: "parceiros@useritmo.pt",
+          subject: `Novo parceiro pendente: ${partner.companyName}`,
+          html: `<p>Novo parceiro registado:</p>
+<ul>
+<li><strong>Nome:</strong> ${partner.contactName}</li>
+<li><strong>Email:</strong> ${partner.contactEmail}</li>
+<li><strong>Empresa:</strong> ${partner.companyName}</li>
+<li><strong>NIF:</strong> ${partner.nif || "Não indicado"}</li>
+<li><strong>Clientes:</strong> ${partner.clientCountRange || "Não indicado"}</li>
+</ul>`,
+        }),
+      ]);
+
+      log.info({ partnerId: partner.id }, "Confirmation emails sent");
+    } catch (emailErr) {
+      log.warn({ error: emailErr, partnerId: partner.id }, "Failed to send confirmation emails");
+    }
+
     return NextResponse.json(
       {
         success: true,
