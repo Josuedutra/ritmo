@@ -69,6 +69,8 @@ export async function GET(request: NextRequest) {
           ? Math.round(metrics.medianTimeToAhaSeconds)
           : null,
         retention7dSecondSendRate: Math.round(metrics.retention7dSecondSendRate * 10) / 10,
+        quotesTotal: metrics.quotesTotal ?? 0,
+        quotesWon: metrics.quotesWon ?? 0,
       },
       targets: {
         medianTimeToAhaSeconds: 120,
@@ -76,6 +78,7 @@ export async function GET(request: NextRequest) {
         activationRate5m: 32.5, // 30-35%
         activationRate24h: 50, // 45-55%
         retention7dSecondSendRate: 60,
+        quoteConversionRate: 25, // 25% target
       },
       series: {
         dailySignups: metrics.dailySignups,
