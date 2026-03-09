@@ -117,6 +117,14 @@ export default async function HealthPage() {
                   {health.commit}
                 </span>
               </div>
+
+              {/* Uptime */}
+              <div className="flex items-center justify-between rounded-md bg-[var(--color-muted)] p-3">
+                <span className="text-sm font-medium">Uptime</span>
+                <span className="font-mono text-sm text-[var(--color-muted-foreground)]">
+                  {health.timestamp ? new Date(health.timestamp).toLocaleString("pt-PT") : "—"}
+                </span>
+              </div>
             </CardContent>
           </Card>
 
