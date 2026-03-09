@@ -157,6 +157,49 @@ export function parseEmailAddress(raw: string): { name: string | null; email: st
 }
 
 // =============================================================================
+// MIME HEADER DECODING (RFC 2047)
+// =============================================================================
+
+/**
+ * Decode RFC 2047 MIME encoded-word headers
+ * e.g. =?UTF-8?B?T3LDp2FtZW50bw==?= → "Orçamento"
+ */
+export function decodeMimeHeader(header: string): string {
+  if (!header || !header.includes("=?")) return header;
+
+  try {
+    return header.replace(
+      /=\?([^?]+)\?([BbQq])\?([^?]+)\?=/g,
+      (_match, charset, encoding, text) => {
+        try {
+          const enc = encoding.toUpperCase();
+          if (enc === "B") {
+            // Base64 decode
+            const buffer = Buffer.from(text, "base64");
+            return buffer.toString(charset.toLowerCase() === "utf-8" ? "utf-8" : charset);
+          } else if (enc === "Q") {
+            // Quoted-Printable decode
+            const decoded = text
+              .replace(/_/g, " ")
+              .replace(/=([0-9A-Fa-f]{2})/g, (_: string, hex: string) =>
+                String.fromCharCode(parseInt(hex, 16))
+              );
+            return Buffer.from(decoded, "binary").toString(
+              charset.toLowerCase() === "utf-8" ? "utf-8" : charset
+            );
+          }
+          return text;
+        } catch {
+          return text;
+        }
+      }
+    );
+  } catch {
+    return header;
+  }
+}
+
+// =============================================================================
 // AUTO-CREATE QUOTE FROM BCC
 // =============================================================================
 
@@ -235,7 +278,8 @@ export async function autoCreateQuoteFromInbound(
   }
 
   // 2. Create quote
-  const title = subject ? subject.substring(0, 100) : "Orçamento via BCC";
+  const decodedSubject = subject ? decodeMimeHeader(subject) : null;
+  const title = decodedSubject ? decodedSubject.substring(0, 100) : "Orçamento via BCC";
   const publicId = nanoid();
 
   // Find org owner for ownerUserId
