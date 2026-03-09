@@ -29,6 +29,7 @@ export async function GET() {
     version: process.env.APP_VERSION || "v0.1.0",
     commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || "local",
     timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || "development",
   };
 
   return NextResponse.json(response, {
