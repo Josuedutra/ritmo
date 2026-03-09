@@ -68,6 +68,7 @@ export function TemplatesList({ templates }: TemplatesListProps) {
     body: string;
   }>({ name: "", subject: "", body: "" });
   const [saving, setSaving] = useState(false);
+  const [seeding, setSeeding] = useState(false);
 
   const handleCopyPlaceholder = async (placeholder: string) => {
     const tag = `{{${placeholder}}}`;
@@ -363,10 +364,34 @@ export function TemplatesList({ templates }: TemplatesListProps) {
 
       {templates.length === 0 && (
         <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-[var(--color-muted-foreground)]">
-              Nenhum template encontrado. Execute o seed para criar os templates padrão.
-            </p>
+          <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
+            <p className="text-[var(--color-muted-foreground)]">Nenhum template encontrado.</p>
+            <Button
+              onClick={async () => {
+                setSeeding(true);
+                try {
+                  const res = await fetch("/api/templates/seed-defaults", { method: "POST" });
+                  if (!res.ok) throw new Error("Erro ao criar templates");
+                  const data = await res.json();
+                  toast.success(`${data.data.created} templates criados!`);
+                  router.refresh();
+                } catch {
+                  toast.error("Erro ao criar templates padrão");
+                } finally {
+                  setSeeding(false);
+                }
+              }}
+              disabled={seeding}
+              className="gap-2"
+            >
+              {seeding ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />A criar...
+                </>
+              ) : (
+                "Criar templates padrão"
+              )}
+            </Button>
           </CardContent>
         </Card>
       )}
