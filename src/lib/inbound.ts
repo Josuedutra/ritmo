@@ -446,14 +446,34 @@ export interface AttachmentInfo {
 }
 
 /**
+ * Normalize attachment content type.
+ *
+ * Some email clients (Outlook, Apple Mail) send PDF attachments with
+ * contentType "application/octet-stream" instead of "application/pdf".
+ * When the filename has a .pdf extension, treat it as application/pdf.
+ */
+export function normalizeAttachmentContentType(contentType: string, filename: string): string {
+  if (filename.toLowerCase().endsWith(".pdf")) {
+    return "application/pdf";
+  }
+  return contentType;
+}
+
+/**
  * Validate attachment for processing
  */
 export function validateAttachment(attachment: AttachmentInfo): {
   valid: boolean;
   error?: string;
 } {
+  // Normalize contentType: some clients send application/octet-stream for PDFs
+  const normalizedContentType = normalizeAttachmentContentType(
+    attachment.contentType,
+    attachment.filename
+  );
+
   // Check content type (PDF only for now)
-  if (!attachment.contentType.includes("pdf")) {
+  if (!normalizedContentType.includes("pdf")) {
     return { valid: false, error: "Only PDF attachments are supported" };
   }
 
