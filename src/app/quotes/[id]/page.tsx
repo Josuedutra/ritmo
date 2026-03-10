@@ -4,12 +4,13 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { AppHeader } from "@/components/layout";
 import { Card, CardHeader, CardTitle, CardContent, Badge } from "@/components/ui";
-import { ArrowLeft, Mail, Phone, Building2, CheckCircle2, MessageSquare } from "lucide-react";
+import { ArrowLeft, CheckCircle2, MessageSquare } from "lucide-react";
 import { TimelineWrapper } from "./timeline-wrapper";
 import { QuoteActions } from "./quote-actions";
 import { ProposalSection } from "./proposal-section";
 import { QuoteTagsNotes } from "./quote-tags-notes";
 import { QuoteEditableHeader } from "./quote-editable-header";
+import { ContactCard } from "./contact-card";
 import {
   formatDistanceToNow,
   format,
@@ -267,6 +268,7 @@ export default async function QuoteDetailPage({ params }: PageProps) {
           email: quote.contact.email,
           phone: quote.contact.phone,
           company: quote.contact.company,
+          taxId: quote.contact.taxId ?? null,
         }
       : null,
     proposalFile: quote.proposalFile
@@ -433,47 +435,7 @@ export default async function QuoteDetailPage({ params }: PageProps) {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Contact info */}
-            {quote.contact && (
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Contacto</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 pt-0">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
-                      {quote.contact.name?.charAt(0).toUpperCase() || "?"}
-                    </div>
-                    <div>
-                      <p className="font-medium">{quote.contact.name}</p>
-                      {quote.contact.company && (
-                        <p className="flex items-center gap-1 text-sm text-[var(--color-muted-foreground)]">
-                          <Building2 className="h-3 w-3" />
-                          {quote.contact.company}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  {quote.contact.email && (
-                    <a
-                      href={`mailto:${quote.contact.email}`}
-                      className="flex items-center gap-2 text-sm hover:text-[var(--color-primary)]"
-                    >
-                      <Mail className="h-4 w-4" />
-                      {quote.contact.email}
-                    </a>
-                  )}
-                  {quote.contact.phone && (
-                    <a
-                      href={`tel:${quote.contact.phone}`}
-                      className="flex items-center gap-2 text-sm hover:text-[var(--color-primary)]"
-                    >
-                      <Phone className="h-4 w-4" />
-                      {quote.contact.phone}
-                    </a>
-                  )}
-                </CardContent>
-              </Card>
-            )}
+            {serializedQuote.contact && <ContactCard contact={serializedQuote.contact} />}
 
             {/* Proposal */}
             <ProposalSection quote={serializedQuote} />

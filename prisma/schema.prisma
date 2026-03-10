@@ -272,6 +272,7 @@ model Contact {
   name            String?
   company         String?
   phone           String?
+  taxId           String?  @map("tax_id")
   notes           String?
 
   createdAt       DateTime @default(now()) @map("created_at")
