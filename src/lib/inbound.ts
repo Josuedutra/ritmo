@@ -21,6 +21,7 @@ import { INBOUND_DOMAIN as CONFIG_INBOUND_DOMAIN } from "./config";
 import { prisma } from "./prisma";
 import { generateCadenceEvents } from "./cadence";
 import { trackEvent, ProductEventNames } from "./product-events";
+import { getEntitlements, incrementTrialUsage, incrementQuotesSent } from "./entitlements";
 import { nanoid } from "nanoid";
 
 const log = logger.child({ service: "inbound" });
@@ -304,6 +305,13 @@ export async function autoCreateQuoteFromInbound(
     },
     select: { id: true, publicId: true, title: true },
   });
+
+  // 2b. Increment usage counters (same as mark-sent first-send path)
+  const entitlements = await getEntitlements(organizationId);
+  if (entitlements.tier === "trial") {
+    await incrementTrialUsage(organizationId);
+  }
+  await incrementQuotesSent(organizationId);
 
   // 3. Generate cadence events using sentAt from the email
   const cadenceResult = await generateCadenceEvents({

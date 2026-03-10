@@ -9,7 +9,12 @@ import {
   serverError,
   success,
 } from "@/lib/api-utils";
-import { getEntitlements, incrementTrialUsage, MAX_RESENDS_PER_MONTH } from "@/lib/entitlements";
+import {
+  getEntitlements,
+  incrementTrialUsage,
+  incrementQuotesSent,
+  MAX_RESENDS_PER_MONTH,
+} from "@/lib/entitlements";
 import { trackAhaEvent, trackEvent, ProductEventNames } from "@/lib/product-events";
 
 interface RouteParams {
@@ -249,32 +254,4 @@ function getResendResetAt(quote: { resendResetAt: Date | null }, now: Date): Dat
   const shouldReset = !quote.resendResetAt || quote.resendResetAt < monthStart;
 
   return shouldReset ? now : quote.resendResetAt!;
-}
-
-/**
- * Increment quotes_sent usage counter for billing
- */
-async function incrementQuotesSent(organizationId: string) {
-  const now = new Date();
-  const periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-
-  await prisma.usageCounter.upsert({
-    where: {
-      organizationId_periodStart: {
-        organizationId,
-        periodStart,
-      },
-    },
-    create: {
-      organizationId,
-      periodStart,
-      periodEnd,
-      quotesSent: 1,
-      emailsSent: 0,
-    },
-    update: {
-      quotesSent: { increment: 1 },
-    },
-  });
 }
