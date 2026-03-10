@@ -5,9 +5,9 @@
  * Uses existing baseLayout() and ctaButton() patterns from email-templates.ts.
  *
  * Sequence:
- * 1. Welcome (immediate) — value props + first steps
- * 2. Setup Guide (D+1) — step-by-step guide, suppress if already activated
- * 3. Quota Reminder (D+3) — urgency + benefits, suppress if already activated
+ * 1. Welcome (immediate) — value props + first steps + BCC setup guide
+ * 2. Setup Guide (D+1) — step-by-step guide + BCC guide, suppress if already activated
+ * 3. Reminder (D+3) — competitor framing, suppress if already activated
  * 4. Social Proof (D+7) — case study, always sent
  * 5. Upgrade CTA (D+14) — trial ending, suppress if already paid
  */
@@ -25,6 +25,9 @@ const BRAND = {
   background: "#FFFFFF",
   backgroundAlt: "#F9FAFB",
   border: "#E5E7EB",
+  // Slate palette for neutral alerts (Email 5) — yellow/orange PROHIBITED
+  slateLight: "#F1F5F9",
+  slateBorder: "#CBD5E1",
 };
 
 function baseLayout(content: string): string {
@@ -111,16 +114,41 @@ function helpLine(): string {
   return `<p style="margin: 0 0 0 0; font-size: 14px; color: ${BRAND.textLight}; line-height: 1.6;">Tem alguma dúvida? Responda a este email — lemos tudo.</p>`;
 }
 
+/**
+ * BCC setup guide block — included in emails 1 and 2.
+ * Shows the per-org BCC address and instructions for Gmail + Outlook.
+ */
+function bccGuideBlock(bccAddress: string): string {
+  return `
+        ${divider()}
+        <p style="margin: 0 0 8px 0; font-size: 15px; font-weight: 700; color: ${BRAND.text};">Dica: Capture respostas dos seus clientes automaticamente</p>
+        <p style="margin: 0 0 12px 0; font-size: 14px; color: ${BRAND.text}; line-height: 1.6;">Adicione este endereço em BCC nos emails que envia aos seus clientes — o Ritmo regista automaticamente as respostas:</p>
+
+        <div style="padding: 12px 16px; background-color: ${BRAND.backgroundAlt}; border-radius: 8px; border: 1px solid ${BRAND.border}; margin: 0 0 16px 0;">
+            <p style="margin: 0; font-size: 13px; color: ${BRAND.primary}; font-family: monospace; word-break: break-all;">${bccAddress}</p>
+        </div>
+
+        <p style="margin: 0 0 4px 0; font-size: 13px; font-weight: 700; color: ${BRAND.text};">Gmail:</p>
+        <p style="margin: 0 0 12px 0; font-size: 13px; color: ${BRAND.text}; line-height: 1.6;">Configurações → <strong>Ver todas as definições</strong> → separador <strong>Contas</strong> → edite o seu endereço → adicione <code style="background: ${BRAND.backgroundAlt}; padding: 2px 4px; border-radius: 3px;">${bccAddress}</code> no campo BCC padrão.</p>
+
+        <p style="margin: 0 0 4px 0; font-size: 13px; font-weight: 700; color: ${BRAND.text};">Outlook:</p>
+        <p style="margin: 0; font-size: 13px; color: ${BRAND.text}; line-height: 1.6;">Na janela de composição → menu <strong>Opções</strong> → clique em <strong>BCC</strong> → introduza <code style="background: ${BRAND.backgroundAlt}; padding: 2px 4px; border-radius: 3px;">${bccAddress}</code>. Para padrão: <strong>Ficheiro → Opções → Email → Composição de mensagens</strong>.</p>
+    `.trim();
+}
+
 // ============================================================================
 // Email 1 — Welcome (Immediate)
 // ============================================================================
 
-export function onboardingEmail1(params: { userName?: string }): {
+export function onboardingEmail1(params: { userName?: string; orgShortId?: string }): {
   html: string;
   text: string;
   subject: string;
 } {
   const greeting = params.userName ? `Olá ${params.userName},` : "Olá,";
+  const bccAddress = params.orgShortId
+    ? `all+${params.orgShortId}@inbound.useritmo.pt`
+    : "all+[id-da-sua-empresa]@inbound.useritmo.pt";
 
   const html = baseLayout(`
         ${heading("Bem-vindo ao Ritmo!")}
@@ -164,6 +192,9 @@ export function onboardingEmail1(params: { userName?: string }): {
 
         ${p("É isso. O Ritmo trata do seguimento a partir daí.")}
         ${ctaButton(`${PUBLIC_APP_URL}/dashboard`, "Criar o meu primeiro orçamento →")}
+
+        ${bccGuideBlock(bccAddress)}
+
         ${divider()}
         ${helpLine()}
         ${signoff()}
@@ -189,6 +220,11 @@ O seu próximo passo (demora 3 minutos):
 
 Criar o meu primeiro orçamento: ${PUBLIC_APP_URL}/dashboard
 
+---
+Dica: Capture respostas dos clientes automaticamente
+Adicione este endereço em BCC nos emails que envia aos clientes:
+${bccAddress}
+
 Tem alguma dúvida? Responda a este email — lemos tudo.
 
 — Equipa Ritmo`;
@@ -204,15 +240,18 @@ Tem alguma dúvida? Responda a este email — lemos tudo.
 // Email 2 — Setup Guide (D+1)
 // ============================================================================
 
-export function onboardingEmail2(params: { userName?: string }): {
+export function onboardingEmail2(params: { userName?: string; orgShortId?: string }): {
   html: string;
   text: string;
   subject: string;
 } {
   const greeting = params.userName ? `Olá ${params.userName},` : "Olá,";
+  const bccAddress = params.orgShortId
+    ? `all+${params.orgShortId}@inbound.useritmo.pt`
+    : "all+[id-da-sua-empresa]@inbound.useritmo.pt";
 
   const html = baseLayout(`
-        ${heading("Como criar o seu primeiro orçamento em 3 minutos")}
+        ${heading("Ainda não fez isto no Ritmo?")}
         ${p(greeting)}
         ${p("Ainda bem que se registou no Ritmo. Agora vamos pô-lo a trabalhar para si.")}
         ${p("Se ainda não criou o seu primeiro orçamento, aqui está o guia completo:")}
@@ -233,6 +272,9 @@ export function onboardingEmail2(params: { userName?: string }): {
         ${divider()}
         ${p("É isso. Leva literalmente 3 minutos.")}
         ${ctaButton(`${PUBLIC_APP_URL}/dashboard`, "Começar agora →")}
+
+        ${bccGuideBlock(bccAddress)}
+
         ${divider()}
         <p style="margin: 0 0 0 0; font-size: 14px; color: ${BRAND.textLight}; line-height: 1.6;">Se tiver dúvidas sobre como funciona a cadência automática, responda a este email — explicamos tudo.</p>
         ${signoff()}
@@ -260,12 +302,17 @@ O painel mostra-lhe quais os orçamentos pendentes, enviados e aceites.
 
 Começar agora: ${PUBLIC_APP_URL}/dashboard
 
+---
+Dica: Capture respostas dos clientes automaticamente
+Adicione este endereço em BCC nos emails que envia aos clientes:
+${bccAddress}
+
 — Equipa Ritmo`;
 
   return {
     html,
     text,
-    subject: "Como criar o seu primeiro orçamento em 3 minutos",
+    subject: "Ainda não fez isto no Ritmo? (é mais fácil do que parece)",
   };
 }
 
@@ -281,7 +328,7 @@ export function onboardingEmail3(params: { userName?: string }): {
   const greeting = params.userName ? `Olá ${params.userName},` : "Olá,";
 
   const html = baseLayout(`
-        ${heading("Tem orçamentos em aberto que ainda não estão a ser seguidos?")}
+        ${heading("O seu concorrente já está a seguir os clientes automaticamente")}
         ${p(greeting)}
         ${p("Já enviou algum orçamento esta semana?")}
         ${p("Se sim — existe uma boa probabilidade de que o cliente ainda não respondeu. E existe também uma probabilidade igual de se esquecer de enviar um lembrete.")}
@@ -344,7 +391,7 @@ Activar o seguimento automático: ${PUBLIC_APP_URL}/dashboard
   return {
     html,
     text,
-    subject: "Tem orçamentos em aberto que ainda não estão a ser seguidos?",
+    subject: "O seu concorrente já está a seguir os clientes automaticamente",
   };
 }
 
@@ -449,24 +496,26 @@ export function onboardingEmail5(params: { userName?: string }): {
   const greeting = params.userName ? `Olá ${params.userName},` : "Olá,";
 
   const html = baseLayout(`
-        ${heading("O seu trial do Ritmo termina em breve")}
+        ${heading("Quer continuar a fechar mais orçamentos?")}
         ${p(greeting)}
         ${p("O seu trial do Ritmo está a chegar ao fim.")}
         ${p("Nos últimos 14 dias, teve acesso completo ao seguimento automático de orçamentos. Se usou essa funcionalidade, já sabe o que está em jogo.")}
         ${divider()}
 
         <p style="margin: 0 0 14px 0; font-size: 15px; font-weight: 700; color: ${BRAND.text};">O que acontece quando o trial termina:</p>
-        <table role="presentation" cellspacing="0" cellpadding="0" style="margin: 0 0 20px 0; width: 100%;">
-            <tr><td style="padding: 6px 0; font-size: 15px; color: ${BRAND.text}; line-height: 1.6;">
-                • Os seus orçamentos já criados ficam acessíveis
-            </td></tr>
-            <tr><td style="padding: 6px 0; font-size: 15px; color: ${BRAND.text}; line-height: 1.6;">
-                • O seguimento automático é desactivado
-            </td></tr>
-            <tr><td style="padding: 6px 0; font-size: 15px; color: ${BRAND.text}; line-height: 1.6;">
-                • Passa para o plano gratuito (limite de 5 orçamentos/mês, sem automação)
-            </td></tr>
-        </table>
+        <div style="padding: 14px 16px; background-color: ${BRAND.slateLight}; border-radius: 8px; border: 1px solid ${BRAND.slateBorder}; margin: 0 0 20px 0;">
+            <table role="presentation" cellspacing="0" cellpadding="0" style="width: 100%;">
+                <tr><td style="padding: 4px 0; font-size: 14px; color: ${BRAND.text}; line-height: 1.6;">
+                    • Os seus orçamentos já criados ficam acessíveis
+                </td></tr>
+                <tr><td style="padding: 4px 0; font-size: 14px; color: ${BRAND.text}; line-height: 1.6;">
+                    • O seguimento automático é desactivado
+                </td></tr>
+                <tr><td style="padding: 4px 0; font-size: 14px; color: ${BRAND.text}; line-height: 1.6;">
+                    • Passa para o plano gratuito (limite de 5 orçamentos/mês, sem automação)
+                </td></tr>
+            </table>
+        </div>
 
         ${divider()}
 
@@ -527,6 +576,6 @@ Tem dúvidas? Responda a este email — ajudamos a escolher.
   return {
     html,
     text,
-    subject: "O seu trial do Ritmo termina em breve — continue sem interrupções",
+    subject: "Quer continuar a fechar mais orçamentos? (o próximo passo)",
   };
 }

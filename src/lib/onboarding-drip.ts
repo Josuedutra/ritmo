@@ -87,8 +87,17 @@ export async function sendWelcomeEmail(
       return { success: true };
     }
 
+    // Fetch org shortId for BCC address
+    const org = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { shortId: true },
+    });
+
     // Generate email content
-    const email = onboardingEmail1({ userName: userName || undefined });
+    const email = onboardingEmail1({
+      userName: userName || undefined,
+      orgShortId: org?.shortId || undefined,
+    });
 
     // Send via Resend (direct send, no quote cooldown needed)
     const result = await sendEmail({
@@ -245,6 +254,7 @@ async function processOrgDripEmail(
   const org = await prisma.organization.findUnique({
     where: { id: organizationId },
     select: {
+      shortId: true,
       timezone: true,
       sendWindowStart: true,
       sendWindowEnd: true,
@@ -286,7 +296,10 @@ async function processOrgDripEmail(
   }
 
   // 6. Generate email content
-  const email = getEmailContent(emailNum, { userName: adminUser.name || undefined });
+  const email = getEmailContent(emailNum, {
+    userName: adminUser.name || undefined,
+    orgShortId: org.shortId || undefined,
+  });
   if (!email) {
     return "failed";
   }
@@ -365,7 +378,7 @@ async function checkSuppressCondition(
  */
 function getEmailContent(
   emailNum: number,
-  params: { userName?: string }
+  params: { userName?: string; orgShortId?: string }
 ): { html: string; text: string; subject: string } | null {
   switch (emailNum) {
     case 1:
