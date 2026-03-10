@@ -96,7 +96,7 @@ export function BccEnrichForm({ quoteId, contactName, hasPhone, hasValue }: BccE
                 Guião D+7 gerado
               </span>
             </div>
-            <p className="whitespace-pre-wrap text-sm text-[var(--color-foreground)]">
+            <p className="text-sm whitespace-pre-wrap text-[var(--color-foreground)]">
               {generatedScript}
             </p>
           </div>
@@ -122,7 +122,7 @@ export function BccEnrichForm({ quoteId, contactName, hasPhone, hasValue }: BccE
       </div>
 
       {/* Preview */}
-      <p className="border-border/50 bg-muted/50 dark:bg-muted/20 mb-4 rounded-md border border-dashed px-3 py-2 text-sm italic text-[var(--color-muted-foreground)]">
+      <p className="border-border/50 bg-muted/50 dark:bg-muted/20 mb-4 rounded-md border border-dashed px-3 py-2 text-sm text-[var(--color-muted-foreground)] italic">
         &ldquo;Olá {firstName}, ligo sobre o orçamento de {valuePlaceholder}...&rdquo;
       </p>
 
