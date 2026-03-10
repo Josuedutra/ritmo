@@ -10,6 +10,7 @@ import { QuoteActions } from "./quote-actions";
 import { ProposalSection } from "./proposal-section";
 import { QuoteTagsNotes } from "./quote-tags-notes";
 import { QuoteEditableHeader } from "./quote-editable-header";
+import { BccEnrichForm } from "./bcc-enrich-form";
 import {
   formatDistanceToNow,
   format,
@@ -93,7 +94,7 @@ const STATUS_CONFIG: Record<
   sent: { label: "Enviado", variant: "default" },
   negotiation: { label: "Em negociação", variant: "warning" },
   won: { label: "Ganho", variant: "success" },
-  lost: { label: "Perdido", variant: "destructive" },
+  lost: { label: "Perdido", variant: "secondary" },
 };
 
 const STAGE_CONFIG: Record<string, { label: string; color: string }> = {
@@ -241,6 +242,9 @@ export default async function QuoteDetailPage({ params }: PageProps) {
   const nextAction = getNextAction(quote);
   const quickOutcomes = getQuickOutcomes(quote);
 
+  // BCC enrichment: incomplete when missing phone or value
+  const isIncomplete = !quote.contact?.phone || !quote.value;
+
   // Serialize data for client components
   const serializedQuote = {
     id: quote.id,
@@ -340,6 +344,16 @@ export default async function QuoteDetailPage({ params }: PageProps) {
           <ArrowLeft className="h-4 w-4" />
           Orçamentos
         </Link>
+
+        {/* BCC enrichment: show activation section when phone or value is missing */}
+        {isIncomplete && (
+          <BccEnrichForm
+            quoteId={quote.id}
+            contactName={quote.contact?.name ?? null}
+            hasPhone={!!quote.contact?.phone}
+            hasValue={!!quote.value}
+          />
+        )}
 
         {/* P0-01: Compact Hero Header Card */}
         <Card className="mb-6">
