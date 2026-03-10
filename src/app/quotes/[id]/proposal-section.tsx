@@ -11,6 +11,11 @@ import {
   Input,
   Badge,
   toast,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
 } from "@/components/ui";
 import { UpgradePrompt, UPGRADE_PROMPTS } from "@/components/billing/upgrade-prompt";
 import { formatDistanceToNow } from "date-fns";
@@ -26,6 +31,7 @@ import {
   Check,
   CheckCircle2,
   AlertTriangle,
+  X,
 } from "lucide-react";
 
 // Inbound domain for BCC addresses
@@ -36,6 +42,7 @@ interface Quote {
   publicId: string;
   orgShortId: string | null;
   proposalLink: string | null;
+  value: number | null;
   proposalFile: {
     id: string;
     filename: string;
@@ -62,6 +69,15 @@ export function ProposalSection({ quote }: ProposalSectionProps) {
   const [showLinkEdit, setShowLinkEdit] = useState(false);
   const [loadingUrl, setLoadingUrl] = useState(false);
   const [bccCopied, setBccCopied] = useState(false);
+
+  // PDF viewer dialog state
+  const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+
+  // Value input state
+  const [quoteValue, setQuoteValue] = useState(quote.value);
+  const [valueInput, setValueInput] = useState(String(quote.value ?? ""));
+  const [savingValue, setSavingValue] = useState(false);
 
   // Generate BCC address for this quote (using "all+" for Cloudflare compatibility)
   const bccAddress = quote.orgShortId
@@ -173,6 +189,26 @@ export function ProposalSection({ quote }: ProposalSectionProps) {
     }
   };
 
+  const handleSaveValue = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const parsed = parseFloat(valueInput);
+    if (isNaN(parsed) || parsed < 0) return;
+    setSavingValue(true);
+    try {
+      const res = await fetch(`/api/quotes/${quote.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ value: parsed }),
+      });
+      if (res.ok) {
+        setQuoteValue(parsed);
+        router.refresh();
+      }
+    } finally {
+      setSavingValue(false);
+    }
+  };
+
   const handleOpenProposal = async () => {
     if (quote.proposalFile) {
       setLoadingUrl(true);
@@ -180,7 +216,8 @@ export function ProposalSection({ quote }: ProposalSectionProps) {
         const response = await fetch(`/api/quotes/${quote.id}/proposal/url`);
         const data = await response.json();
         if (data.url) {
-          window.open(data.url, "_blank", "noopener,noreferrer");
+          setPdfUrl(data.url);
+          setPdfViewerOpen(true);
         }
       } catch (error) {
         console.error("Failed to get proposal URL:", error);
@@ -208,222 +245,297 @@ export function ProposalSection({ quote }: ProposalSectionProps) {
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <FileText className="h-4 w-4" />
-            Proposta
-          </CardTitle>
-          {/* P0-02: Status badge when proposal exists */}
-          {isFileExpired && (
-            <Badge variant="destructive" className="gap-1">
-              <AlertTriangle className="h-3 w-3" />
-              Expirado
-            </Badge>
-          )}
-          {hasProposal && !isFileExpired && (
-            <Badge variant="success" className="gap-1">
-              <CheckCircle2 className="h-3 w-3" />
-              Disponível
-            </Badge>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4 pt-0">
-        {/* P0-02: Primary action - Open proposal (if exists) - more prominent */}
-        {hasProposal && (
-          <div className="space-y-2">
-            <Button onClick={handleOpenProposal} disabled={loadingUrl} className="w-full gap-2">
-              <ExternalLink className="h-4 w-4" />
-              {loadingUrl ? "A abrir..." : "Abrir proposta"}
-            </Button>
-            {/* P0-02: Show source info */}
-            <p className="text-center text-xs text-[var(--color-muted-foreground)]">
-              {getProposalSource()}
-              {quote.proposalFile && ` · ${formatFileSize(quote.proposalFile.sizeBytes)}`}
-              {quote.proposalFile &&
-                ` · ${formatDistanceToNow(new Date(quote.proposalFile.createdAt), { addSuffix: true, locale: pt })}`}
-            </p>
-          </div>
-        )}
-
-        {/* Uploaded file info - simplified when proposal exists */}
-        {quote.proposalFile && (
-          <div className="flex items-center justify-between rounded-md bg-[var(--color-muted)]/50 px-3 py-2">
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm">{quote.proposalFile.filename}</p>
+    <>
+      {/* PDF Viewer Dialog */}
+      <Dialog open={pdfViewerOpen} onOpenChange={setPdfViewerOpen}>
+        <DialogContent className="flex h-[90vh] max-w-4xl flex-col p-0">
+          <DialogHeader className="flex-row items-center justify-between border-b px-4 py-3">
+            <DialogTitle className="truncate text-sm font-medium">
+              {quote.proposalFile?.filename ?? "Proposta"}
+            </DialogTitle>
+            <div className="flex items-center gap-2">
+              {/* Value input in dialog header */}
+              {!quoteValue && (
+                <form onSubmit={handleSaveValue} className="flex items-center gap-1.5">
+                  <Input
+                    type="number"
+                    placeholder="0.00"
+                    value={valueInput}
+                    onChange={(e) => setValueInput(e.target.value)}
+                    className="h-7 w-28 text-sm"
+                    step="0.01"
+                    min="0"
+                  />
+                  <span className="text-muted-foreground text-xs">€</span>
+                  <Button type="submit" size="sm" className="h-7 px-2" disabled={savingValue}>
+                    <Save className="h-3.5 w-3.5" />
+                  </Button>
+                </form>
+              )}
+              {quoteValue && (
+                <span className="text-sm font-semibold text-green-600">
+                  {new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(
+                    quoteValue
+                  )}
+                </span>
+              )}
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => window.open(pdfUrl!, "_blank")}
+                title="Abrir em nova aba"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+              </Button>
+              <DialogClose asChild>
+                <Button size="sm" variant="ghost">
+                  <X className="h-4 w-4" />
+                </Button>
+              </DialogClose>
             </div>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleDelete}
-              disabled={deleting}
-              className="h-7 w-7 p-0 text-[var(--color-muted-foreground)] hover:text-red-500"
-              title="Remover"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
+          </DialogHeader>
+          <div className="flex-1 overflow-hidden">
+            {pdfUrl && (
+              <iframe src={pdfUrl} className="h-full w-full border-0" title="Proposta PDF" />
+            )}
           </div>
-        )}
+        </DialogContent>
+      </Dialog>
 
-        {/* External link info */}
-        {quote.proposalLink && !quote.proposalFile && !showLinkEdit && (
-          <div className="flex items-center justify-between rounded-md bg-[var(--color-muted)]/50 px-3 py-2">
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs text-[var(--color-muted-foreground)]">
-                {quote.proposalLink}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <FileText className="h-4 w-4" />
+              Proposta
+            </CardTitle>
+            {/* P0-02: Status badge when proposal exists */}
+            {isFileExpired && (
+              <Badge variant="destructive" className="gap-1">
+                <AlertTriangle className="h-3 w-3" />
+                Expirado
+              </Badge>
+            )}
+            {hasProposal && !isFileExpired && (
+              <Badge variant="success" className="gap-1">
+                <CheckCircle2 className="h-3 w-3" />
+                Disponível
+              </Badge>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4 pt-0">
+          {/* P0-02: Primary action - Open proposal (if exists) - more prominent */}
+          {hasProposal && (
+            <div className="space-y-2">
+              <Button onClick={handleOpenProposal} disabled={loadingUrl} className="w-full gap-2">
+                <ExternalLink className="h-4 w-4" />
+                {loadingUrl ? "A abrir..." : "Abrir proposta"}
+              </Button>
+              {/* P0-02: Show source info */}
+              <p className="text-center text-xs text-[var(--color-muted-foreground)]">
+                {getProposalSource()}
+                {quote.proposalFile && ` · ${formatFileSize(quote.proposalFile.sizeBytes)}`}
+                {quote.proposalFile &&
+                  ` · ${formatDistanceToNow(new Date(quote.proposalFile.createdAt), { addSuffix: true, locale: pt })}`}
               </p>
             </div>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => setShowLinkEdit(true)}
-              className="h-7 px-2 text-xs"
-            >
-              Editar
-            </Button>
-          </div>
-        )}
+          )}
 
-        {/* P1-UPGRADE-PROMPTS: Storage quota exceeded notice */}
-        {quote.ingestStatus === "rejected_quota_exceeded" && (
-          <UpgradePrompt
-            reason="storage_quota"
-            location="proposal_section"
-            variant="inline"
-            {...UPGRADE_PROMPTS.storage_quota}
-          />
-        )}
-
-        {/* P1-UPGRADE-PROMPTS: Expired file notice with retention upsell */}
-        {isFileExpired && (
-          <div className="space-y-3">
-            <UpgradePrompt
-              reason="retention_expired"
-              location="proposal_section"
-              variant="inline"
-              {...UPGRADE_PROMPTS.retention_expired}
-            />
-            <Button
-              variant="outline"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="w-full gap-2"
-            >
-              <Upload className="h-4 w-4" />
-              {uploading ? "A carregar..." : "Carregar novo PDF"}
-            </Button>
-          </div>
-        )}
-
-        {/* No proposal - show add options */}
-        {!hasProposal && !isFileExpired && !showLinkEdit && (
-          <div className="space-y-2">
-            <Button
-              variant="outline"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="w-full gap-2"
-            >
-              <Upload className="h-4 w-4" />
-              {uploading ? "A carregar..." : "Carregar PDF"}
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => setShowLinkEdit(true)}
-              className="w-full gap-2 text-[var(--color-muted-foreground)]"
-            >
-              <LinkIcon className="h-4 w-4" />
-              Adicionar link
-            </Button>
-          </div>
-        )}
-
-        {/* Link editor */}
-        {showLinkEdit && (
-          <div className="space-y-2">
-            <div className="flex gap-2">
-              <Input
-                type="url"
-                placeholder="https://..."
-                value={linkValue}
-                onChange={(e) => setLinkValue(e.target.value)}
-                className="flex-1"
-              />
-              <Button size="sm" onClick={handleSaveLink} disabled={savingLink}>
-                <Save className="h-4 w-4" />
+          {/* Uploaded file info - simplified when proposal exists */}
+          {quote.proposalFile && (
+            <div className="flex items-center justify-between rounded-md bg-[var(--color-muted)]/50 px-3 py-2">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm">{quote.proposalFile.filename}</p>
+              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleDelete}
+                disabled={deleting}
+                className="h-7 w-7 p-0 text-[var(--color-muted-foreground)] hover:text-red-500"
+                title="Remover"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
               </Button>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                setShowLinkEdit(false);
-                setLinkValue(quote.proposalLink || "");
-              }}
-              className="text-xs text-[var(--color-muted-foreground)] hover:underline"
-            >
-              Cancelar
-            </button>
-          </div>
-        )}
+          )}
 
-        {/* Hidden file input */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="application/pdf"
-          onChange={handleUpload}
-          className="hidden"
-        />
-
-        {/* Replace file option (when file exists) */}
-        {quote.proposalFile && (
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="w-full text-center text-xs text-[var(--color-muted-foreground)] hover:underline"
-          >
-            {uploading ? "A carregar..." : "Substituir ficheiro"}
-          </button>
-        )}
-
-        {/* P0-03: Simplified BCC section */}
-        {bccAddress && (
-          <div className="border-t border-[var(--color-border)] pt-4">
-            <div className="flex items-center justify-between gap-2">
+          {/* External link info */}
+          {quote.proposalLink && !quote.proposalFile && !showLinkEdit && (
+            <div className="flex items-center justify-between rounded-md bg-[var(--color-muted)]/50 px-3 py-2">
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium text-[var(--color-muted-foreground)]">
-                  BCC para captura automática
+                <p className="truncate text-xs text-[var(--color-muted-foreground)]">
+                  {quote.proposalLink}
                 </p>
               </div>
               <Button
                 size="sm"
-                variant="outline"
-                onClick={handleCopyBcc}
-                className="h-7 shrink-0 gap-1.5 px-2"
+                variant="ghost"
+                onClick={() => setShowLinkEdit(true)}
+                className="h-7 px-2 text-xs"
               >
-                {bccCopied ? (
-                  <>
-                    <Check className="h-3 w-3 text-green-500" />
-                    <span className="text-xs">Copiado</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="h-3 w-3" />
-                    <span className="text-xs">Copiar</span>
-                  </>
-                )}
+                Editar
               </Button>
             </div>
-            <p className="mt-2 text-xs text-[var(--color-muted-foreground)]">
-              Use no Outlook/Gmail ao enviar o orçamento
-            </p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          )}
+
+          {/* P1-UPGRADE-PROMPTS: Storage quota exceeded notice */}
+          {quote.ingestStatus === "rejected_quota_exceeded" && (
+            <UpgradePrompt
+              reason="storage_quota"
+              location="proposal_section"
+              variant="inline"
+              {...UPGRADE_PROMPTS.storage_quota}
+            />
+          )}
+
+          {/* P1-UPGRADE-PROMPTS: Expired file notice with retention upsell */}
+          {isFileExpired && (
+            <div className="space-y-3">
+              <UpgradePrompt
+                reason="retention_expired"
+                location="proposal_section"
+                variant="inline"
+                {...UPGRADE_PROMPTS.retention_expired}
+              />
+              <Button
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="w-full gap-2"
+              >
+                <Upload className="h-4 w-4" />
+                {uploading ? "A carregar..." : "Carregar novo PDF"}
+              </Button>
+            </div>
+          )}
+
+          {/* No proposal - show add options */}
+          {!hasProposal && !isFileExpired && !showLinkEdit && (
+            <div className="space-y-2">
+              <Button
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="w-full gap-2"
+              >
+                <Upload className="h-4 w-4" />
+                {uploading ? "A carregar..." : "Carregar PDF"}
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => setShowLinkEdit(true)}
+                className="w-full gap-2 text-[var(--color-muted-foreground)]"
+              >
+                <LinkIcon className="h-4 w-4" />
+                Adicionar link
+              </Button>
+            </div>
+          )}
+
+          {/* Link editor */}
+          {showLinkEdit && (
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  type="url"
+                  placeholder="https://..."
+                  value={linkValue}
+                  onChange={(e) => setLinkValue(e.target.value)}
+                  className="flex-1"
+                />
+                <Button size="sm" onClick={handleSaveLink} disabled={savingLink}>
+                  <Save className="h-4 w-4" />
+                </Button>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowLinkEdit(false);
+                  setLinkValue(quote.proposalLink || "");
+                }}
+                className="text-xs text-[var(--color-muted-foreground)] hover:underline"
+              >
+                Cancelar
+              </button>
+            </div>
+          )}
+
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/pdf"
+            onChange={handleUpload}
+            className="hidden"
+          />
+
+          {/* Replace file option (when file exists) */}
+          {quote.proposalFile && (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="w-full text-center text-xs text-[var(--color-muted-foreground)] hover:underline"
+            >
+              {uploading ? "A carregar..." : "Substituir ficheiro"}
+            </button>
+          )}
+
+          {/* P0-03: Simplified BCC section */}
+          {bccAddress && (
+            <div className="border-t border-[var(--color-border)] pt-4">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium text-[var(--color-muted-foreground)]">
+                    BCC para captura automática
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCopyBcc}
+                  className="h-7 shrink-0 gap-1.5 px-2"
+                >
+                  {bccCopied ? (
+                    <>
+                      <Check className="h-3 w-3 text-green-500" />
+                      <span className="text-xs">Copiado</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3 w-3" />
+                      <span className="text-xs">Copiar</span>
+                    </>
+                  )}
+                </Button>
+              </div>
+              <p className="mt-2 text-xs text-[var(--color-muted-foreground)]">
+                Use no Outlook/Gmail ao enviar o orçamento
+              </p>
+              {/* Feature 3: Inline value input below BCC when no value set */}
+              {!quoteValue && (
+                <form onSubmit={handleSaveValue} className="mt-2 flex items-center gap-2">
+                  <Input
+                    type="number"
+                    placeholder="Valor do orçamento (€)"
+                    className="h-8 flex-1 text-sm"
+                    step="0.01"
+                    min="0"
+                    value={valueInput}
+                    onChange={(e) => setValueInput(e.target.value)}
+                  />
+                  <Button type="submit" size="sm" className="h-8 px-3" disabled={savingValue}>
+                    Guardar
+                  </Button>
+                </form>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </>
   );
 }
 
