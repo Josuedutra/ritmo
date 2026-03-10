@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { generateCallScript } from "@/lib/call-script";
 import {
   getApiSession,
   unauthorized,
@@ -93,7 +94,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       "BCC quote completed — enrichment saved"
     );
 
-    // Return updated quote so client can re-check completeness
+    // Trigger D+7 script generation (non-blocking — returns null on failure)
+    let script: string | null = null;
+    const cadenceEvent = quote.cadenceEvents[0];
+    if (cadenceEvent) {
+      script = await generateCallScript(cadenceEvent.id, session.user.organizationId);
+    }
+
     return success({
       quote: {
         id: updatedQuote.id,
@@ -107,6 +114,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             }
           : null,
       },
+      script,
     });
   } catch (error) {
     return serverError(error, "POST /api/quotes/[id]/complete");

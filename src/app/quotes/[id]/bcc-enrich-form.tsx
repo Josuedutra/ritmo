@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui";
-import { Sparkles, Phone, Euro, Loader2, CheckCircle2 } from "lucide-react";
+import { Sparkles, Phone, Euro, Loader2, CheckCircle2, FileText } from "lucide-react";
 
 interface BccEnrichFormProps {
   quoteId: string;
@@ -20,12 +20,13 @@ interface BccEnrichFormProps {
  * Inline enrichment form shown at the top of the quote detail page when
  * a BCC-captured quote is missing phone or value.
  *
- * Once saved, the D+7 guião is unlocked and the "Incompleto" badge disappears.
+ * Once saved, the D+7 guião is generated immediately and shown inline.
  */
 export function BccEnrichForm({ quoteId, contactName, hasPhone, hasValue }: BccEnrichFormProps) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
+  const [generatedScript, setGeneratedScript] = useState<string | null>(null);
   const [phone, setPhone] = useState("");
   const [value, setValue] = useState("");
 
@@ -61,7 +62,11 @@ export function BccEnrichForm({ quoteId, contactName, hasPhone, hasValue }: BccE
         throw new Error(data.error || "Erro ao guardar");
       }
 
+      const data = await res.json();
       setDone(true);
+      if (data.script) {
+        setGeneratedScript(data.script);
+      }
       toast({ title: "Guião D+7 desbloqueado!", description: "Dados guardados com sucesso." });
       // Refresh server components (page re-renders with updated data)
       router.refresh();
@@ -78,14 +83,24 @@ export function BccEnrichForm({ quoteId, contactName, hasPhone, hasValue }: BccE
 
   if (done) {
     return (
-      <div className="mb-6 flex items-center gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3">
-        <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-emerald-500" />
-        <div>
+      <div className="mb-6 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3">
+        <div className="flex items-center gap-3">
+          <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-emerald-500" />
           <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">D+7 pronto</p>
-          <p className="text-xs text-[var(--color-muted-foreground)]">
-            Guião desbloqueado — pode gerar na secção de acções.
-          </p>
         </div>
+        {generatedScript && (
+          <div className="mt-3 rounded-md border border-emerald-500/20 bg-white/50 p-3 dark:bg-black/20">
+            <div className="mb-2 flex items-center gap-1.5">
+              <FileText className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                Guião D+7 gerado
+              </span>
+            </div>
+            <p className="whitespace-pre-wrap text-sm text-[var(--color-foreground)]">
+              {generatedScript}
+            </p>
+          </div>
+        )}
       </div>
     );
   }
