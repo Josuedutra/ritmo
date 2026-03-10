@@ -36,7 +36,10 @@ export default async function TemplatesPage() {
       <AppHeader user={session.user} />
 
       <main className="container-app py-6">
-        <PageHeader title="Templates" description="Gerir templates de email e scripts de chamada" />
+        <PageHeader
+          title="Templates"
+          description="Gerir os emails automáticos enviados aos seus clientes"
+        />
 
         <TemplatesList templates={serializedTemplates} />
       </main>
