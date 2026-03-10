@@ -196,7 +196,9 @@ function SignupForm() {
         <CardHeader className="text-center">
           <h1 className="text-xl font-semibold">Criar conta</h1>
           <p className="text-sm text-[var(--color-muted-foreground)]">
-            Comece o seu trial de 14 dias
+            {referralPartner
+              ? "Crie a sua conta para aceder ao cockpit de parceiro"
+              : "Comece o seu trial de 14 dias"}
           </p>
           {/* Referral partner badge */}
           {referralPartner && (
@@ -311,30 +313,32 @@ function SignupForm() {
               />
             </div>
 
-            {/* Trial benefits */}
-            <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-muted)]/30 p-3">
-              <p className="mb-2 text-xs font-medium text-[var(--color-muted-foreground)]">
-                Incluído no trial:
-              </p>
-              <ul className="space-y-1.5 text-xs text-[var(--color-muted-foreground)]">
-                <li className="flex items-center gap-2">
-                  <Check className="h-3 w-3 text-green-500" />
-                  14 dias de acesso completo
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-3 w-3 text-green-500" />
-                  20 envios de follow-up
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-3 w-3 text-green-500" />
-                  Emails automáticos + BCC
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-3 w-3 text-green-500" />
-                  Sem cartão de crédito
-                </li>
-              </ul>
-            </div>
+            {/* Trial benefits — hidden when signing up via partner referral link */}
+            {!referralPartner && (
+              <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-muted)]/30 p-3">
+                <p className="mb-2 text-xs font-medium text-[var(--color-muted-foreground)]">
+                  Incluído no trial:
+                </p>
+                <ul className="space-y-1.5 text-xs text-[var(--color-muted-foreground)]">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-3 w-3 text-green-500" />
+                    14 dias de acesso completo
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-3 w-3 text-green-500" />
+                    20 envios de follow-up
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-3 w-3 text-green-500" />
+                    Emails automáticos + BCC
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-3 w-3 text-green-500" />
+                    Sem cartão de crédito
+                  </li>
+                </ul>
+              </div>
+            )}
 
             <Button
               type="submit"
@@ -342,7 +346,11 @@ function SignupForm() {
               className="w-full"
               disabled={loading || googleLoading}
             >
-              {loading ? "A criar conta..." : "Começar trial"}
+              {loading
+                ? "A criar conta..."
+                : referralPartner
+                  ? "Criar conta de parceiro"
+                  : "Começar trial"}
             </Button>
           </form>
 
