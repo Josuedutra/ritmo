@@ -239,7 +239,11 @@ export function ProposalSection({ quote }: ProposalSectionProps) {
 
   // Determine proposal source for display
   const getProposalSource = () => {
-    if (quote.proposalFile && !isFileExpired) return "PDF carregado";
+    if (quote.proposalFile && !isFileExpired) {
+      return quote.proposalFile.filename.toLowerCase().endsWith(".pdf")
+        ? "PDF carregado"
+        : "Ficheiro carregado";
+    }
     if (quote.proposalLink) return "Link externo";
     return null;
   };
@@ -296,7 +300,11 @@ export function ProposalSection({ quote }: ProposalSectionProps) {
           </DialogHeader>
           <div className="flex-1 overflow-hidden">
             {pdfUrl && (
-              <iframe src={pdfUrl} className="h-full w-full border-0" title="Proposta PDF" />
+              <iframe
+                src={`https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true`}
+                className="h-full w-full border-0"
+                title="Proposta"
+              />
             )}
           </div>
         </DialogContent>
@@ -346,7 +354,14 @@ export function ProposalSection({ quote }: ProposalSectionProps) {
           {quote.proposalFile && (
             <div className="flex items-center justify-between rounded-md bg-[var(--color-muted)]/50 px-3 py-2">
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm">{quote.proposalFile.filename}</p>
+                <div className="flex items-center gap-2">
+                  <p className="truncate text-sm">{quote.proposalFile.filename}</p>
+                  {!quote.proposalFile.filename.toLowerCase().endsWith(".pdf") && (
+                    <Badge variant="secondary" className="shrink-0 text-xs">
+                      Excel
+                    </Badge>
+                  )}
+                </div>
               </div>
               <Button
                 size="sm"

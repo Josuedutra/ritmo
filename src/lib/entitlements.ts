@@ -62,7 +62,11 @@ export const PLAN_LIMITS = {
 
 // Storage constants
 export const MAX_ATTACHMENT_SIZE_BYTES = 15 * 1024 * 1024; // 15 MB
-export const ALLOWED_MIME_TYPES = ["application/pdf"] as const;
+export const ALLOWED_MIME_TYPES = [
+  "application/pdf",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+  "application/vnd.ms-excel", // .xls
+] as const;
 
 export interface Entitlements {
   // Tier info
@@ -894,12 +898,13 @@ export async function checkStorageGates(
     };
   }
 
-  // Gate 2: MIME type check (only PDF allowed)
-  if (!ALLOWED_MIME_TYPES.includes(mimeType as (typeof ALLOWED_MIME_TYPES)[number])) {
+  // Gate 2: MIME type check (PDF and Excel allowed)
+  const ALLOWED_MIME_SET = new Set(ALLOWED_MIME_TYPES as readonly string[]);
+  if (!ALLOWED_MIME_SET.has(mimeType)) {
     return {
       allowed: false,
       reason: "MIME_TYPE_REJECTED",
-      message: `Tipo de ficheiro não suportado: ${mimeType}. Apenas PDF é permitido.`,
+      message: `Tipo de ficheiro não suportado: ${mimeType}. PDF e Excel são suportados.`,
     };
   }
 
@@ -1030,12 +1035,13 @@ export async function checkAndReserveStorageQuota(
     };
   }
 
-  // Gate 2: MIME type check - no DB needed
-  if (!ALLOWED_MIME_TYPES.includes(mimeType as (typeof ALLOWED_MIME_TYPES)[number])) {
+  // Gate 2: MIME type check - no DB needed (PDF and Excel allowed)
+  const ALLOWED_MIME_SET = new Set(ALLOWED_MIME_TYPES as readonly string[]);
+  if (!ALLOWED_MIME_SET.has(mimeType)) {
     return {
       allowed: false,
       reason: "MIME_TYPE_REJECTED",
-      message: `Tipo de ficheiro não suportado: ${mimeType}. Apenas PDF é permitido.`,
+      message: `Tipo de ficheiro não suportado: ${mimeType}. PDF e Excel são suportados.`,
     };
   }
 

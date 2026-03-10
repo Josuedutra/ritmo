@@ -21,7 +21,12 @@ import { INBOUND_DOMAIN as CONFIG_INBOUND_DOMAIN } from "./config";
 import { prisma } from "./prisma";
 import { generateCadenceEvents } from "./cadence";
 import { trackEvent, ProductEventNames } from "./product-events";
-import { getEntitlements, incrementTrialUsage, incrementQuotesSent } from "./entitlements";
+import {
+  getEntitlements,
+  incrementTrialUsage,
+  incrementQuotesSent,
+  ALLOWED_MIME_TYPES,
+} from "./entitlements";
 import { nanoid } from "nanoid";
 
 const log = logger.child({ service: "inbound" });
@@ -587,13 +592,14 @@ export interface AttachmentInfo {
  * Normalize attachment content type.
  *
  * Some email clients (Outlook, Apple Mail) send PDF attachments with
- * contentType "application/octet-stream" instead of "application/pdf".
- * When the filename has a .pdf extension, treat it as application/pdf.
+ * contentType "application/octet-stream". Normalize based on file extension.
  */
 export function normalizeAttachmentContentType(contentType: string, filename: string): string {
-  if (filename.toLowerCase().endsWith(".pdf")) {
-    return "application/pdf";
-  }
+  const lower = filename.toLowerCase();
+  if (lower.endsWith(".pdf")) return "application/pdf";
+  if (lower.endsWith(".xlsx"))
+    return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+  if (lower.endsWith(".xls")) return "application/vnd.ms-excel";
   return contentType;
 }
 
@@ -604,15 +610,19 @@ export function validateAttachment(attachment: AttachmentInfo): {
   valid: boolean;
   error?: string;
 } {
-  // Normalize contentType: some clients send application/octet-stream for PDFs
+  // Normalize contentType: some clients send application/octet-stream for PDFs/Excel
   const normalizedContentType = normalizeAttachmentContentType(
     attachment.contentType,
     attachment.filename
   );
 
-  // Check content type (PDF only for now)
-  if (!normalizedContentType.includes("pdf")) {
-    return { valid: false, error: "Only PDF attachments are supported" };
+  // Check content type (PDF and Excel supported)
+  const ALLOWED_MIME_SET = new Set(ALLOWED_MIME_TYPES as readonly string[]);
+  if (!ALLOWED_MIME_SET.has(normalizedContentType)) {
+    return {
+      valid: false,
+      error: `Tipo de ficheiro não suportado: ${normalizedContentType}. PDF e Excel são suportados.`,
+    };
   }
 
   // Check size
