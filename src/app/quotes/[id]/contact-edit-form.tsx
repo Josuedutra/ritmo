@@ -59,7 +59,7 @@ export function ContactEditForm({ contact, onSave, onCancel }: ContactEditFormPr
       toast({
         title: "Erro",
         description: err instanceof Error ? err.message : "Erro ao guardar",
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setSaving(false);
