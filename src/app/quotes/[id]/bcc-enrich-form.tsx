@@ -94,11 +94,11 @@ export function BccEnrichForm({ quoteId, contactName, hasPhone, hasValue }: BccE
   const valuePlaceholder = hasValue ? "—" : "[€ —]";
 
   return (
-    <div className="mb-6 rounded-lg border border-orange-500/30 bg-orange-500/8 px-5 py-4">
+    <div className="mb-6 rounded-lg border border-orange-500/40 bg-orange-500/10 px-5 py-4 dark:border-orange-500/30 dark:bg-orange-500/15">
       {/* Header */}
       <div className="mb-3 flex items-center gap-2">
         <Sparkles className="h-4 w-4 text-orange-500" />
-        <span className="text-sm font-semibold text-orange-700 dark:text-orange-400">
+        <span className="text-sm font-semibold text-orange-600 dark:text-orange-300">
           Activar guião D+7
         </span>
         <Badge variant="warning" className="ml-auto h-5 px-2 text-xs">
@@ -107,7 +107,7 @@ export function BccEnrichForm({ quoteId, contactName, hasPhone, hasValue }: BccE
       </div>
 
       {/* Preview */}
-      <p className="mb-4 rounded-md border border-dashed border-orange-300/50 bg-white/40 px-3 py-2 text-sm text-[var(--color-muted-foreground)] italic dark:bg-black/10">
+      <p className="mb-4 rounded-md border border-dashed border-border/50 bg-muted/50 px-3 py-2 text-sm text-[var(--color-muted-foreground)] italic dark:bg-muted/20">
         &ldquo;Olá {firstName}, ligo sobre o orçamento de {valuePlaceholder}...&rdquo;
       </p>
 
