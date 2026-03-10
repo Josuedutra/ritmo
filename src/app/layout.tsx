@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Roboto, Comfortaa } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
-import { FeedbackModal } from "@/components/feedback";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Providers } from "@/components/providers";
 import { CrispWidget } from "@/components/crisp-widget";
@@ -64,7 +63,6 @@ export default function RootLayout({
           <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
             {children}
             <Toaster />
-            <FeedbackModal />
             <CrispWidget />
             <CookieBanner />
           </ThemeProvider>
