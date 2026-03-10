@@ -4,21 +4,12 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { AppHeader } from "@/components/layout";
 import { Card, CardHeader, CardTitle, CardContent, Badge } from "@/components/ui";
-import {
-  ArrowLeft,
-  Mail,
-  Phone,
-  Building2,
-  Calendar,
-  FileText,
-  Clock,
-  CheckCircle2,
-  MessageSquare,
-} from "lucide-react";
+import { ArrowLeft, Mail, Phone, Building2, CheckCircle2, MessageSquare } from "lucide-react";
 import { TimelineWrapper } from "./timeline-wrapper";
 import { QuoteActions } from "./quote-actions";
 import { ProposalSection } from "./proposal-section";
 import { QuoteTagsNotes } from "./quote-tags-notes";
+import { QuoteEditableHeader } from "./quote-editable-header";
 import {
   formatDistanceToNow,
   format,
@@ -336,9 +327,6 @@ export default async function QuoteDetailPage({ params }: PageProps) {
     author: n.author ? { id: n.author.id, name: n.author.name } : null,
   }));
 
-  // Format value for display
-  const formattedValue = quote.value ? `€${quote.value.toNumber().toLocaleString("pt-PT")}` : null;
-
   return (
     <div className="min-h-screen bg-[var(--color-background)]">
       <AppHeader user={session.user} />
@@ -356,74 +344,12 @@ export default async function QuoteDetailPage({ params }: PageProps) {
         {/* P0-01: Compact Hero Header Card */}
         <Card className="mb-6">
           <CardContent className="p-5">
-            {/* Row 1: Title + Status + Value */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-xl font-semibold">{quote.title}</h1>
-                  <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
-                  {nextAction && (
-                    <Badge
-                      variant={nextAction.variant === "warning" ? "warning" : "outline"}
-                      className="gap-1"
-                    >
-                      <Clock className="h-3 w-3" />
-                      {nextAction.label} · {nextAction.timing}
-                    </Badge>
-                  )}
-                  {/* P1-03: Display quick tags */}
-                  {quote.tags.length > 0 &&
-                    quote.tags.map((tag) => (
-                      <Badge key={tag} variant="outline" className="text-xs">
-                        {tag === "urgente"
-                          ? "Urgente"
-                          : tag === "obra"
-                            ? "Obra"
-                            : tag === "manutencao"
-                              ? "Manutenção"
-                              : tag === "it"
-                                ? "IT"
-                                : tag === "residencial"
-                                  ? "Residencial"
-                                  : tag === "comercial"
-                                    ? "Comercial"
-                                    : tag}
-                      </Badge>
-                    ))}
-                </div>
-                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[var(--color-muted-foreground)]">
-                  {quote.reference && (
-                    <span className="flex items-center gap-1">
-                      <FileText className="h-3.5 w-3.5" />
-                      {quote.reference}
-                    </span>
-                  )}
-                  {quote.contact?.company && (
-                    <span className="flex items-center gap-1">
-                      <Building2 className="h-3.5 w-3.5" />
-                      {quote.contact.company}
-                    </span>
-                  )}
-                  {quote.contact?.name && <span>{quote.contact.name}</span>}
-                  {quote.sentAt && (
-                    <span className="flex items-center gap-1">
-                      <Calendar className="h-3.5 w-3.5" />
-                      Enviado {format(new Date(quote.sentAt), "d MMM yyyy", { locale: pt })}
-                    </span>
-                  )}
-                </div>
-              </div>
-              {formattedValue && (
-                <div className="text-right">
-                  <p className="text-2xl font-bold">{formattedValue}</p>
-                  {quote.serviceType && (
-                    <p className="text-sm text-[var(--color-muted-foreground)]">
-                      {quote.serviceType}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
+            {/* Row 1: Title + Status + Value (inline editable) */}
+            <QuoteEditableHeader
+              quote={serializedQuote}
+              statusConfig={statusConfig}
+              nextAction={nextAction}
+            />
 
             {/* P1-01: Quick Outcomes - simplified, removed redundant "Próxima ação" (already in badge) */}
             {quote.businessStatus !== "draft" && (
