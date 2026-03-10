@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { AppHeader } from "@/components/layout";
+import { checkIsPartner } from "@/lib/partner-utils";
 import { Card, CardHeader, CardTitle, CardContent, Badge } from "@/components/ui";
 import { ArrowLeft, Mail, Phone, Building2, CheckCircle2, MessageSquare } from "lucide-react";
 import { TimelineWrapper } from "./timeline-wrapper";
@@ -227,9 +228,10 @@ export default async function QuoteDetailPage({ params }: PageProps) {
   }
 
   const { id } = await params;
-  const [quote, orgShortId] = await Promise.all([
+  const [quote, orgShortId, isPartner] = await Promise.all([
     getQuote(id, session.user.organizationId),
     getOrgShortId(session.user.organizationId),
+    session.user.email ? checkIsPartner(session.user.email) : Promise.resolve(false),
   ]);
 
   if (!quote) {
@@ -329,7 +331,7 @@ export default async function QuoteDetailPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-[var(--color-background)]">
-      <AppHeader user={session.user} />
+      <AppHeader user={session.user} isPartner={isPartner} />
 
       <main className="container-app py-6">
         {/* Back link */}

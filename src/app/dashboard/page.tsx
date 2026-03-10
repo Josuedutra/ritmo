@@ -13,6 +13,7 @@ import { LifecycleBanner } from "@/components/lifecycle";
 import { ScoreboardCard, BenchmarkCard } from "@/components/scoreboard";
 import { getEntitlements, checkSeatLimit, type Entitlements } from "@/lib/entitlements";
 import { TeamTooltip } from "@/components/team-tooltip";
+import { checkIsPartner } from "@/lib/partner-utils";
 
 // Usage Meter Component - shows correct limits based on tier
 function UsageMeter({ entitlements }: { entitlements: Entitlements }) {
@@ -369,14 +370,15 @@ export default async function DashboardPage() {
   // Requirement C: Onboarding gate - redirects to /onboarding if not complete
   const session = await requireOnboardingComplete();
 
-  // Get organization timezone, entitlements, and seat info in parallel
-  const [org, entitlements, seatInfo] = await Promise.all([
+  // Get organization timezone, entitlements, seat info, and partner status in parallel
+  const [org, entitlements, seatInfo, isPartner] = await Promise.all([
     prisma.organization.findUnique({
       where: { id: session.user.organizationId },
       select: { timezone: true },
     }),
     getEntitlements(session.user.organizationId),
     checkSeatLimit(session.user.organizationId),
+    session.user.email ? checkIsPartner(session.user.email) : Promise.resolve(false),
   ]);
 
   const timezone = org?.timezone ?? "Europe/Lisbon";
@@ -384,7 +386,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[var(--color-background)]">
-      <AppHeader user={session.user} />
+      <AppHeader user={session.user} isPartner={isPartner} />
 
       <main className="container-app py-6">
         <PageHeader title="Dashboard" description="Visão geral das suas ações de follow-up">
