@@ -310,9 +310,39 @@ export async function POST(request: NextRequest) {
     }
 
     // =====================================================================
-    // BRANCH: Auto-create quote (generic BCC, no quotePublicId)
+    // BRANCH: Resolve quote (or decide to auto-create)
     // =====================================================================
-    if (!quotePublicId) {
+    // Look up existing quote upfront if quotePublicId was parsed.
+    // Legacy org.bccAddress entries may include a security token as the 3rd
+    // segment (e.g. all+orgShortId+_token@...) that will never match a real
+    // quote publicId — in that case fall back to auto-create rather than
+    // returning "unmatched".
+    let resolvedQuote: {
+      id: string;
+      title: string;
+      proposalLink: string | null;
+      proposalFileId: string | null;
+    } | null = null;
+    if (quotePublicId) {
+      resolvedQuote = await prisma.quote.findFirst({
+        where: { publicId: quotePublicId, organizationId: org.id },
+        select: { id: true, title: true, proposalLink: true, proposalFileId: true },
+      });
+
+      if (!resolvedQuote) {
+        log.warn(
+          { orgShortId, quotePublicId },
+          "Quote not found for BCC address — falling back to auto-create"
+        );
+      }
+    }
+
+    const needsAutoCreate = !quotePublicId || !resolvedQuote;
+
+    // =====================================================================
+    // BRANCH: Auto-create quote (generic BCC or unresolvable quotePublicId)
+    // =====================================================================
+    if (needsAutoCreate) {
       log.info({ orgShortId, originalTo, subject }, "Generic BCC — auto-create quote flow");
 
       // Parse email timestamp for sentAt
@@ -482,45 +512,12 @@ export async function POST(request: NextRequest) {
     }
 
     // =====================================================================
-    // EXISTING FLOW: Attach to existing quote (quotePublicId present)
+    // EXISTING FLOW: Attach to existing quote (quotePublicId present + found)
     // =====================================================================
 
-    // Find quote by publicId within organization
-    const quote = await prisma.quote.findFirst({
-      where: {
-        publicId: quotePublicId,
-        organizationId: org.id,
-      },
-      select: {
-        id: true,
-        title: true,
-        proposalLink: true,
-        proposalFileId: true,
-      },
-    });
-
-    if (!quote) {
-      const ingestion = await prisma.inboundIngestion.create({
-        data: {
-          organizationId: org.id,
-          provider: "cloudflare",
-          providerMessageId: idempotencyKey,
-          bodyChecksum: generateBodyChecksum(emailBodyText || null, bodyHtml || null),
-          rawFrom: from,
-          rawTo: to,
-          rawSubject: subject,
-          rawBodyText: emailBodyText?.substring(0, 10000),
-          status: "unmatched",
-          errorMessage: `Quote not found: ${quotePublicId}`,
-        },
-      });
-
-      log.warn(
-        { id: ingestion.id, orgShortId, quotePublicId },
-        "Unmatched inbound - quote not found"
-      );
-      return NextResponse.json({ status: "unmatched", id: ingestion.id });
-    }
+    // resolvedQuote is guaranteed non-null here (needsAutoCreate would have
+    // been true otherwise and we would have returned above).
+    const quote = resolvedQuote!;
 
     // Create ingestion record (pending processing)
     const ingestion = await prisma.inboundIngestion.create({
