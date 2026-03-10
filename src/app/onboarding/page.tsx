@@ -57,6 +57,7 @@ export default async function OnboardingPage() {
   return (
     <OnboardingWizard
       orgName={org.name}
+      userName={session.user.name || undefined}
       bccEmail={bccEmail}
       hasSmtp={Boolean(org.smtpHost)}
       hasBcc={Boolean(org.bccAddress)}
