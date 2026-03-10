@@ -652,7 +652,7 @@ export async function checkAndIncrementTrialBccCapture(organizationId: string): 
   // Also sets ahaFirstBccCaptureAt only on first capture (when transitioning false -> true)
   try {
     const result = await prisma.$executeRaw`
-            UPDATE "Organization"
+            UPDATE "organizations"
             SET "trial_bcc_captures" = "trial_bcc_captures" + 1,
                 "aha_first_bcc_capture" = true,
                 "aha_first_bcc_capture_at" = CASE
@@ -944,7 +944,7 @@ export async function reserveStorageQuota(
     // Use raw query for conditional update that's race-condition safe
     // This atomically checks AND updates in a single operation
     const result = await prisma.$executeRaw`
-            UPDATE "Organization"
+            UPDATE "organizations"
             SET storage_used_bytes = storage_used_bytes + ${BigInt(sizeBytes)}
             WHERE id = ${organizationId}
             AND storage_used_bytes + ${BigInt(sizeBytes)} <= storage_quota_bytes
@@ -979,7 +979,7 @@ export async function reserveStorageQuota(
       reserved: true,
       rollback: async () => {
         await prisma.$executeRaw`
-                    UPDATE "Organization"
+                    UPDATE "organizations"
                     SET storage_used_bytes = GREATEST(0, storage_used_bytes - ${BigInt(sizeBytes)})
                     WHERE id = ${organizationId}
                 `;
@@ -1098,7 +1098,7 @@ export async function decrementStorageUsage(
 ): Promise<void> {
   // Use raw query to ensure storageUsedBytes never goes negative
   await prisma.$executeRaw`
-        UPDATE "Organization"
+        UPDATE "organizations"
         SET storage_used_bytes = GREATEST(0, storage_used_bytes - ${BigInt(sizeBytes)})
         WHERE id = ${organizationId}
     `;
