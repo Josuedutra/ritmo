@@ -107,7 +107,7 @@ export function BccEnrichForm({ quoteId, contactName, hasPhone, hasValue }: BccE
       </div>
 
       {/* Preview */}
-      <p className="mb-4 rounded-md border border-dashed border-border/50 bg-muted/50 px-3 py-2 text-sm text-[var(--color-muted-foreground)] italic dark:bg-muted/20">
+      <p className="border-border/50 bg-muted/50 dark:bg-muted/20 mb-4 rounded-md border border-dashed px-3 py-2 text-sm text-[var(--color-muted-foreground)] italic">
         &ldquo;Olá {firstName}, ligo sobre o orçamento de {valuePlaceholder}...&rdquo;
       </p>
 
