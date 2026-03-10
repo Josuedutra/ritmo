@@ -218,6 +218,18 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
 
     const formattedValue = quote.value ? `€${quote.value.toLocaleString("pt-PT")}` : null;
 
+    // Try to get cached Claude script for this quote's D+7 action
+    let callScript: string | null = null;
+    try {
+      const res = await fetch(`/api/quotes/${quote.id}/call-script`);
+      if (res.ok) {
+        const data = await res.json();
+        callScript = data.script ?? null;
+      }
+    } catch {
+      // Silently fall back to static text
+    }
+
     const summary = [
       `Cliente: ${quote.contact?.name || "N/A"}`,
       quote.contact?.company ? `Empresa: ${quote.contact.company}` : null,
@@ -226,7 +238,9 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
       `Enviado: ${sentDate}`,
       "",
       "---",
-      `Script: "Bom dia/boa tarde, ${quote.contact?.name || "cliente"}. Daqui fala [Nome] da [Empresa]. Estou a ligar relativamente ao orçamento que enviei para ${quote.title}. Teve oportunidade de analisar? Há alguma questão que possa esclarecer?"`,
+      callScript
+        ? `Guião:\n${callScript}`
+        : `Script: "Bom dia/boa tarde, ${quote.contact?.name || "cliente"}. Daqui fala ${quote.contact?.company ? `[Nome] da ${quote.contact.company}` : "[Nome] da [Empresa]"}. Estou a ligar relativamente ao orçamento que enviei para ${quote.title}. Teve oportunidade de analisar? Há alguma questão que possa esclarecer?"`,
     ]
       .filter(Boolean)
       .join("\n");
@@ -363,7 +377,7 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
               type="button"
               onClick={() => handleStatusChange("negotiation")}
               disabled={loading !== null}
-              className="inline-flex h-7 items-center gap-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 text-xs font-medium text-amber-600 transition-colors hover:bg-amber-500/20 disabled:opacity-50"
+              className="inline-flex h-7 items-center gap-1.5 rounded-md border border-[var(--cta-secondary-border)] bg-[var(--cta-secondary)] px-2.5 text-xs font-medium text-[var(--cta-secondary-foreground)] transition-colors hover:brightness-95 disabled:opacity-50"
             >
               {loading === "negotiation" ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
