@@ -32,11 +32,7 @@ const TAG_CONFIG: Record<string, { label: string; color: string }> = {
   obra: { label: "Obra", color: "text-info border-info bg-info" },
   manutencao: { label: "Manutenção", color: "text-success border-success bg-success" },
   it: { label: "IT", color: "text-purple-600 border-purple-300 bg-purple-500/10" },
-  residencial: {
-    label: "Residencial",
-    color:
-      "text-[var(--cta-secondary-foreground)] border-[var(--cta-secondary-border)] bg-[var(--cta-secondary)]",
-  },
+  residencial: { label: "Residencial", color: "text-amber-600 border-amber-300 bg-amber-500/10" },
   comercial: { label: "Comercial", color: "text-cyan-600 border-cyan-300 bg-cyan-500/10" },
 };
 
@@ -121,6 +117,7 @@ async function getQuotes(organizationId: string, filter: string) {
           id: true,
           name: true,
           email: true,
+          phone: true,
           company: true,
         },
       },
@@ -251,6 +248,8 @@ export default async function QuotesPage({ searchParams }: PageProps) {
               const isNoResponseFilter = filter === "no_response";
               // P1: Get next scheduled action
               const nextAction = quote.cadenceEvents[0] || null;
+              // BCC enrichment: incomplete when missing phone or value
+              const isIncomplete = !quote.contact?.phone || !quote.value;
 
               return (
                 <Card
@@ -287,6 +286,13 @@ export default async function QuotesPage({ searchParams }: PageProps) {
                           <span className="bg-info text-info inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium">
                             <Zap className="h-3 w-3" />
                             {formatNextAction(nextAction)}
+                          </span>
+                        )}
+                        {/* BCC enrichment: incomplete badge */}
+                        {isIncomplete && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-orange-400/50 bg-orange-500/10 px-2 py-0.5 text-xs font-medium text-orange-600 dark:text-orange-400">
+                            <AlertCircle className="h-3 w-3" />
+                            Incompleto
                           </span>
                         )}
                       </div>
