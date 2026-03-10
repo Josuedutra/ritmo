@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Card,
@@ -13,7 +13,19 @@ import {
   Label,
   toast,
 } from "@/components/ui";
-import { Mail, Phone, Pencil, Save, X, Loader2, ChevronDown, ChevronUp, Copy } from "lucide-react";
+import {
+  Mail,
+  Phone,
+  Pencil,
+  Save,
+  X,
+  Loader2,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
 interface Template {
   id: string;
@@ -56,6 +68,7 @@ const PLACEHOLDERS = [
   { name: "quote_reference", description: "Referência do orçamento" },
   { name: "quote_value", description: "Valor do orçamento" },
   { name: "user_name", description: "Nome do utilizador" },
+  { name: "assinatura", description: "Assinatura de email (posição manual)" },
 ];
 
 export function TemplatesList({ templates }: TemplatesListProps) {
@@ -69,6 +82,55 @@ export function TemplatesList({ templates }: TemplatesListProps) {
   }>({ name: "", subject: "", body: "" });
   const [saving, setSaving] = useState(false);
   const [seeding, setSeeding] = useState(false);
+  const [showSignaturePreview, setShowSignaturePreview] = useState(false);
+  const [signatureHtml, setSignatureHtml] = useState<string | null>(null);
+  const [signatureLoading, setSignatureLoading] = useState(false);
+
+  const loadSignaturePreview = async () => {
+    if (signatureHtml !== null) {
+      setShowSignaturePreview((v) => !v);
+      return;
+    }
+    setSignatureLoading(true);
+    try {
+      const [sigRes, logoRes] = await Promise.all([
+        fetch("/api/settings/signature"),
+        fetch("/api/settings/signature/logo"),
+      ]);
+      const sig = sigRes.ok ? await sigRes.json() : null;
+      const logo = logoRes.ok ? await logoRes.json() : null;
+
+      if (!sig?.signatureName) {
+        setSignatureHtml("");
+        setShowSignaturePreview(true);
+        return;
+      }
+
+      const logoImg = logo?.url
+        ? `<td style="padding-right:16px;vertical-align:top;"><img src="${logo.url}" alt="Logo" style="height:48px;width:auto;max-width:120px;" /></td>`
+        : "";
+
+      const html = `
+<table style="border-top:1px solid #e5e7eb;padding-top:16px;margin-top:24px;font-family:Arial,sans-serif;font-size:13px;color:#6b7280;" cellpadding="0" cellspacing="0">
+  <tr>
+    ${logoImg}
+    <td style="vertical-align:top;line-height:1.5;">
+      <p style="margin:0;font-weight:600;color:#111827;font-size:14px;">${sig.signatureName}</p>
+      ${sig.signatureTitle ? `<p style="margin:0;font-size:12px;color:#6b7280;">${sig.signatureTitle}</p>` : ""}
+      ${sig.signaturePhone ? `<p style="margin:4px 0 0;font-size:12px;color:#6b7280;">${sig.signaturePhone}</p>` : ""}
+      ${sig.signatureWebsite ? `<p style="margin:2px 0 0;font-size:12px;"><a href="${sig.signatureWebsite}" style="color:#3b82f6;text-decoration:none;">${sig.signatureWebsite.replace(/^https?:\/\//, "")}</a></p>` : ""}
+    </td>
+  </tr>
+</table>`;
+      setSignatureHtml(html);
+      setShowSignaturePreview(true);
+    } catch {
+      setSignatureHtml("");
+      setShowSignaturePreview(true);
+    } finally {
+      setSignatureLoading(false);
+    }
+  };
 
   const handleCopyPlaceholder = async (placeholder: string) => {
     const tag = `{{${placeholder}}}`;
@@ -332,10 +394,54 @@ export function TemplatesList({ templates }: TemplatesListProps) {
       {/* Email Templates Section */}
       {emailTemplates.length > 0 && (
         <div className="space-y-4">
-          <h2 className="flex items-center gap-2 text-sm font-medium text-[var(--color-muted-foreground)]">
-            <Mail className="h-4 w-4" />
-            Emails automáticos
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-sm font-medium text-[var(--color-muted-foreground)]">
+              <Mail className="h-4 w-4" />
+              Emails automáticos
+            </h2>
+            <button
+              type="button"
+              onClick={loadSignaturePreview}
+              disabled={signatureLoading}
+              className="flex items-center gap-1.5 text-xs font-medium text-[var(--color-primary)] hover:underline disabled:opacity-50"
+            >
+              {signatureLoading ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : showSignaturePreview ? (
+                <EyeOff className="h-3.5 w-3.5" />
+              ) : (
+                <Eye className="h-3.5 w-3.5" />
+              )}
+              Pré-visualização com assinatura
+            </button>
+          </div>
+
+          {showSignaturePreview && (
+            <Card className="border-dashed">
+              <CardContent className="pt-4">
+                <p className="mb-2 text-xs font-medium text-[var(--color-muted-foreground)]">
+                  Prévia — assinatura adicionada automaticamente no final de cada email:
+                </p>
+                {signatureHtml ? (
+                  <div
+                    className="rounded bg-white p-3 dark:bg-[var(--color-card)]"
+                    dangerouslySetInnerHTML={{ __html: signatureHtml }}
+                  />
+                ) : (
+                  <p className="text-xs text-[var(--color-muted-foreground)]">
+                    Nenhuma assinatura configurada.{" "}
+                    <a
+                      href="/settings?tab=signature"
+                      className="text-[var(--color-primary)] underline"
+                    >
+                      Configurar assinatura →
+                    </a>
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           <div className="grid gap-4 md:grid-cols-2">
             {emailTemplates.map((template) => renderTemplateCard(template))}
           </div>

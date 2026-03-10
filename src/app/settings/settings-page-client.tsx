@@ -8,6 +8,7 @@ import { Organization } from "@prisma/client";
 import { EmailSettings } from "@/components/settings/email-settings";
 import { BccSettings } from "@/components/settings/bcc-settings";
 import { GeneralSettings } from "@/components/settings/general-settings";
+import { EmailSignatureForm } from "@/components/settings/email-signature-form";
 import { useRouter, useSearchParams } from "next/navigation";
 
 interface SettingsData {
@@ -109,10 +110,11 @@ export function SettingsPageClient({ data }: SettingsPageClientProps) {
       </Card>
 
       <Tabs defaultValue={defaultTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:w-[500px]">
+        <TabsList className="grid w-full grid-cols-5 lg:w-[620px]">
           <TabsTrigger value="general">Geral</TabsTrigger>
           <TabsTrigger value="email">Email (Envio)</TabsTrigger>
           <TabsTrigger value="bcc">Captura BCC</TabsTrigger>
+          <TabsTrigger value="signature">Assinatura</TabsTrigger>
           <TabsTrigger value="templates">Templates</TabsTrigger>
         </TabsList>
 
@@ -126,6 +128,10 @@ export function SettingsPageClient({ data }: SettingsPageClientProps) {
 
         <TabsContent value="bcc" className="mt-6">
           <BccSettings organization={organization} isFree={isFree} />
+        </TabsContent>
+
+        <TabsContent value="signature" className="mt-6">
+          <EmailSignatureForm organization={organization} />
         </TabsContent>
 
         <TabsContent value="templates" className="mt-6">
