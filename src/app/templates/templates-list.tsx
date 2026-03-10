@@ -13,7 +13,7 @@ import {
   Label,
   toast,
 } from "@/components/ui";
-import { Mail, Phone, Pencil, Save, X, Loader2, ChevronDown, ChevronUp, Copy } from "lucide-react";
+import { Mail, Pencil, Save, X, Loader2, ChevronDown, ChevronUp, Copy } from "lucide-react";
 
 interface Template {
   id: string;
@@ -30,10 +30,7 @@ interface TemplatesListProps {
 }
 
 // Template code to label mapping
-const TEMPLATE_LABELS: Record<
-  string,
-  { label: string; description: string; type: "email" | "call" }
-> = {
+const TEMPLATE_LABELS: Record<string, { label: string; description: string; type: "email" }> = {
   T2: {
     label: "D+1 Follow-up",
     description: "Primeiro email após envio do orçamento",
@@ -41,11 +38,6 @@ const TEMPLATE_LABELS: Record<
   },
   T3: { label: "D+3 Follow-up", description: "Segundo email de acompanhamento", type: "email" },
   T5: { label: "D+14 Fecho", description: "Email de fecho suave", type: "email" },
-  CALL_SCRIPT: {
-    label: "Script D+7",
-    description: "Script para chamada de follow-up",
-    type: "call",
-  },
 };
 
 // Available placeholders
@@ -82,7 +74,6 @@ export function TemplatesList({ templates }: TemplatesListProps) {
 
   // Group templates
   const emailTemplates = templates.filter((t) => TEMPLATE_LABELS[t.code]?.type === "email");
-  const callTemplates = templates.filter((t) => TEMPLATE_LABELS[t.code]?.type === "call");
   const otherTemplates = templates.filter((t) => !TEMPLATE_LABELS[t.code]);
 
   const handleEdit = (template: Template) => {
@@ -137,8 +128,8 @@ export function TemplatesList({ templates }: TemplatesListProps) {
     const info = TEMPLATE_LABELS[template.code];
     const isEditing = editingId === template.id;
     const isExpanded = expandedId === template.id;
-    const Icon = info?.type === "call" ? Phone : Mail;
-    const badgeLabel = info?.type === "call" ? "Chamada" : template.code;
+    const Icon = Mail;
+    const badgeLabel = template.code;
 
     // Clamp body to ~3 lines (roughly 150 chars)
     const previewBody =
@@ -150,13 +141,7 @@ export function TemplatesList({ templates }: TemplatesListProps) {
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-2">
-              <div
-                className={`rounded-md p-2 ${
-                  info?.type === "call"
-                    ? "bg-green-500/10 text-green-500"
-                    : "bg-[var(--color-info-muted)] text-[var(--color-info)]"
-                }`}
-              >
+              <div className="rounded-md bg-[var(--color-info-muted)] p-2 text-[var(--color-info)]">
                 <Icon className="h-4 w-4" />
               </div>
               <div>
@@ -176,35 +161,27 @@ export function TemplatesList({ templates }: TemplatesListProps) {
                 </p>
               </div>
             </div>
-            <Badge
-              variant={
-                info?.type === "call" ? "success" : template.isActive ? "default" : "secondary"
-              }
-            >
-              {badgeLabel}
-            </Badge>
+            <Badge variant={template.isActive ? "default" : "secondary"}>{badgeLabel}</Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
           {isEditing ? (
             <>
-              {info?.type === "email" && (
-                <div className="space-y-1.5">
-                  <Label htmlFor={`subject-${template.id}`} className="text-xs">
-                    Assunto
-                  </Label>
-                  <Input
-                    id={`subject-${template.id}`}
-                    value={editForm.subject}
-                    onChange={(e) => setEditForm((prev) => ({ ...prev, subject: e.target.value }))}
-                    placeholder="Assunto do email"
-                  />
-                </div>
-              )}
+              <div className="space-y-1.5">
+                <Label htmlFor={`subject-${template.id}`} className="text-xs">
+                  Assunto
+                </Label>
+                <Input
+                  id={`subject-${template.id}`}
+                  value={editForm.subject}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, subject: e.target.value }))}
+                  placeholder="Assunto do email"
+                />
+              </div>
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <Label htmlFor={`body-${template.id}`} className="text-xs">
-                    {info?.type === "call" ? "Script" : "Corpo do email"}
+                    Corpo do email
                   </Label>
                   <div className="flex gap-1">
                     {PLACEHOLDERS.slice(0, 3).map((p) => (
@@ -338,19 +315,6 @@ export function TemplatesList({ templates }: TemplatesListProps) {
           </h2>
           <div className="grid gap-4 md:grid-cols-2">
             {emailTemplates.map((template) => renderTemplateCard(template))}
-          </div>
-        </div>
-      )}
-
-      {/* Call Templates Section */}
-      {callTemplates.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="flex items-center gap-2 text-sm font-medium text-[var(--color-muted-foreground)]">
-            <Phone className="h-4 w-4" />
-            Chamadas
-          </h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            {callTemplates.map((template) => renderTemplateCard(template))}
           </div>
         </div>
       )}
