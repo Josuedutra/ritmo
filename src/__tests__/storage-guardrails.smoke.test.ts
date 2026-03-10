@@ -320,7 +320,7 @@ describe("Storage Guardrails Smoke Tests", () => {
     it("should allow PDF and Excel mime types", () => {
       expect(ALLOWED_MIME_TYPES).toContain("application/pdf");
       expect(ALLOWED_MIME_TYPES).toContain(
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       );
       expect(ALLOWED_MIME_TYPES).toContain("application/vnd.ms-excel");
       expect(ALLOWED_MIME_TYPES.length).toBe(3);
