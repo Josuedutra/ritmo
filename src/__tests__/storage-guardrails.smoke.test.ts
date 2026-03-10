@@ -114,13 +114,12 @@ describe("Storage Guardrails Smoke Tests", () => {
   });
 
   /**
-   * Test 2: Non-PDF attachment → MIME rejection
+   * Test 2: Excel attachment → allowed (Excel is in allowlist)
    * Scenario: Excel file (.xlsx)
-   * Expected: allowed: false, reason: MIME_TYPE_REJECTED
-   * Note: The mailgun route will continue to extract link from body
+   * Expected: allowed: true (Excel was added to ALLOWED_MIME_TYPES)
    */
-  describe("Case 2: Non-PDF attachment (Excel) → MIME rejection", () => {
-    it("should reject non-PDF files with MIME_TYPE_REJECTED", async () => {
+  describe("Case 2: Excel attachment → allowed (Excel in allowlist)", () => {
+    it("should allow Excel files since Excel is in the MIME allowlist", async () => {
       const orgId = "org-test-2";
       const fileSize = 500 * 1024; // 500 KB
       const mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
@@ -141,11 +140,7 @@ describe("Storage Guardrails Smoke Tests", () => {
 
       const result = await checkStorageGates(orgId, fileSize, mimeType);
 
-      expect(result.allowed).toBe(false);
-      if (!result.allowed) {
-        expect(result.reason).toBe("MIME_TYPE_REJECTED");
-        expect(result.message).toContain("Tipo de ficheiro não suportado");
-      }
+      expect(result.allowed).toBe(true);
     });
   });
 
@@ -322,8 +317,13 @@ describe("Storage Guardrails Smoke Tests", () => {
       expect(PLAN_LIMITS.enterprise.retentionDays).toBe(730);
     });
 
-    it("should only allow PDF mime type", () => {
-      expect(ALLOWED_MIME_TYPES).toEqual(["application/pdf"]);
+    it("should allow PDF and Excel mime types", () => {
+      expect(ALLOWED_MIME_TYPES).toContain("application/pdf");
+      expect(ALLOWED_MIME_TYPES).toContain(
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      );
+      expect(ALLOWED_MIME_TYPES).toContain("application/vnd.ms-excel");
+      expect(ALLOWED_MIME_TYPES.length).toBe(3);
     });
   });
 });
