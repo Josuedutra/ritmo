@@ -495,6 +495,35 @@ export async function startTrial(organizationId: string): Promise<void> {
 }
 
 /**
+ * Increment quotes_sent usage counter for billing.
+ * Called on every first send (mark-sent route and BCC auto-create).
+ */
+export async function incrementQuotesSent(organizationId: string): Promise<void> {
+  const now = new Date();
+  const periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+  await prisma.usageCounter.upsert({
+    where: {
+      organizationId_periodStart: {
+        organizationId,
+        periodStart,
+      },
+    },
+    create: {
+      organizationId,
+      periodStart,
+      periodEnd,
+      quotesSent: 1,
+      emailsSent: 0,
+    },
+    update: {
+      quotesSent: { increment: 1 },
+    },
+  });
+}
+
+/**
  * Increment trial usage counter.
  * Called when marking a quote as sent during trial.
  */
