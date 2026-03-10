@@ -16,7 +16,6 @@ import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import {
   findBccInRecipients,
-  parseEmailAddress,
   autoCreateQuoteFromInbound,
   extractLinkFromText,
   extractLinkFromHtml,
@@ -26,7 +25,7 @@ import {
   sanitizeForLog,
   maskEmail,
 } from "@/lib/inbound";
-import { createClient } from "@supabase/supabase-js";
+import { uploadAttachment } from "@/lib/storage";
 import {
   canUseBccInbound,
   checkStorageGates,
@@ -49,17 +48,6 @@ const log = logger.child({ route: "api/inbound/cloudflare" });
 
 // Cloudflare Worker shared secret for webhook verification
 const CLOUDFLARE_INBOUND_SECRET = process.env.CLOUDFLARE_INBOUND_SECRET;
-
-// Supabase client for file storage
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-function getStorageClient() {
-  if (!supabaseUrl || !supabaseServiceKey) {
-    return null;
-  }
-  return createClient(supabaseUrl, supabaseServiceKey);
-}
 
 /**
  * Verify Cloudflare Worker webhook signature
@@ -417,23 +405,25 @@ export async function POST(request: NextRequest) {
 
           try {
             const buffer = Buffer.from(attachment.content, "base64");
-            const storage = getStorageClient();
 
-            if (!storage) {
+            const uploadResult = await uploadAttachment(
+              org.id,
+              autoResult.quote.id,
+              attachment.filename,
+              buffer,
+              "application/pdf"
+            );
+
+            if (!uploadResult.success || !uploadResult.path) {
+              log.error(
+                { id: ingestion.id, error: uploadResult.error },
+                "Auto-create: attachment upload failed - rolling back quota"
+              );
               await quotaReservation.rollback();
               continue;
             }
 
-            const storagePath = `proposals/${org.id}/${autoResult.quote.id}/${Date.now()}-${attachment.filename}`;
-            const { error: uploadError } = await storage.storage
-              .from("attachments")
-              .upload(storagePath, buffer, { contentType: "application/pdf", upsert: false });
-
-            if (uploadError) {
-              await quotaReservation.rollback();
-              continue;
-            }
-
+            const storagePath = uploadResult.path;
             const retentionPolicy = await getRetentionPolicy(org.id);
             const attachmentRecord = await prisma.attachment.create({
               data: {
@@ -665,32 +655,25 @@ export async function POST(request: NextRequest) {
           // Decode base64 content
           const buffer = Buffer.from(attachment.content, "base64");
 
-          // Upload to Supabase Storage
-          const storage = getStorageClient();
+          // Upload to Cloudflare R2
+          const uploadResult = await uploadAttachment(
+            org.id,
+            quote.id,
+            attachment.filename,
+            buffer,
+            "application/pdf"
+          );
 
-          if (!storage) {
-            log.warn({ id: ingestion.id }, "Storage not configured - rolling back quota");
-            await quotaReservation.rollback();
-            continue;
-          }
-
-          const storagePath = `proposals/${org.id}/${quote.id}/${Date.now()}-${attachment.filename}`;
-
-          const { error: uploadError } = await storage.storage
-            .from("attachments")
-            .upload(storagePath, buffer, {
-              contentType: "application/pdf",
-              upsert: false,
-            });
-
-          if (uploadError) {
+          if (!uploadResult.success || !uploadResult.path) {
             log.error(
-              { id: ingestion.id, error: uploadError.message },
+              { id: ingestion.id, error: uploadResult.error },
               "Attachment upload failed - rolling back quota"
             );
             await quotaReservation.rollback();
             continue;
           }
+
+          const storagePath = uploadResult.path;
 
           // Get retention policy
           const retentionPolicy = await getRetentionPolicy(org.id);
