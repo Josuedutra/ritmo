@@ -159,6 +159,13 @@ model Organization {
   commStyleClosing     String?   @map("comm_style_closing")  // free text, user's preferred closing line, max 100 chars
   commProfileSetAt     DateTime? @map("comm_profile_set_at") // null = never configured
 
+  // Email signature (appended to all automatic follow-up emails)
+  signatureName       String?   @map("signature_name")
+  signatureTitle      String?   @map("signature_title")
+  signaturePhone      String?   @map("signature_phone")
+  signatureWebsite    String?   @map("signature_website")
+  signatureLogoPath   String?   @map("signature_logo_path") // R2 path: signatures/{orgId}/logo.{ext}
+
   createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @updatedAt @map("updated_at")
 
