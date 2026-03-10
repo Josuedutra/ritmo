@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getEntitlements } from "@/lib/entitlements";
 import { AppHeader, PageHeader } from "@/components/layout";
 import { BillingPageClient } from "./billing-page-client";
+import { checkIsPartner } from "@/lib/partner-utils";
 
 export default async function BillingPage() {
   const session = await auth();
@@ -25,8 +26,11 @@ export default async function BillingPage() {
 
   if (!organization) redirect("/login");
 
-  // Get entitlements (single source of truth)
-  const entitlements = await getEntitlements(organizationId);
+  // Get entitlements and partner status
+  const [entitlements, isPartner] = await Promise.all([
+    getEntitlements(organizationId),
+    session.user.email ? checkIsPartner(session.user.email) : Promise.resolve(false),
+  ]);
 
   // Get only PUBLIC plans for display (hides pro_plus, enterprise)
   const plans = await prisma.plan.findMany({
@@ -117,7 +121,7 @@ export default async function BillingPage() {
 
   return (
     <div className="min-h-screen bg-[var(--color-background)]">
-      <AppHeader user={session.user} />
+      <AppHeader user={session.user} isPartner={isPartner} />
 
       <main className="container-app py-6">
         <PageHeader

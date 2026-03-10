@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { AppHeader, PageHeader } from "@/components/layout";
+import { checkIsPartner } from "@/lib/partner-utils";
 import { Button, Card, Badge } from "@/components/ui";
 import { GenerateActionButton } from "@/components/quotes";
 import { Plus, FileText, Clock, Euro, Building2, AlertCircle, Zap } from "lucide-react";
@@ -183,6 +184,7 @@ export default async function QuotesPage({ searchParams }: PageProps) {
   }
 
   const { filter = "all" } = await searchParams;
+  const isPartner = session.user.email ? await checkIsPartner(session.user.email) : false;
   const [quotes, counts] = await Promise.all([
     getQuotes(session.user.organizationId, filter),
     getQuoteCounts(session.user.organizationId),
@@ -190,7 +192,7 @@ export default async function QuotesPage({ searchParams }: PageProps) {
 
   return (
     <div className="min-h-screen bg-[var(--color-background)]">
-      <AppHeader user={session.user} />
+      <AppHeader user={session.user} isPartner={isPartner} />
 
       <main className="container-app py-6">
         <PageHeader title="Orçamentos" description="Acompanhe orçamentos e follow-ups num só lugar">
