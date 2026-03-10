@@ -201,6 +201,86 @@ export function decodeMimeHeader(header: string): string {
 }
 
 // =============================================================================
+// SALUTATION NAME EXTRACTION
+// =============================================================================
+
+/**
+ * Extract recipient name from email body salutation.
+ *
+ * Tries PT-PT patterns first, then EN patterns.
+ * Returns null if no confident match found.
+ */
+export function extractNameFromSalutation(bodyText: string): string | null {
+  if (!bodyText) return null;
+
+  // Titles to strip before capturing the actual name
+  const TITLE_PREFIX_RE = /^(?:Sr\.?|Sra\.?|Dr\.?|Dra\.?|Eng\.?|Prof\.?)\s+/i;
+
+  // Salutation patterns (PT-PT first, EN fallback)
+  // Each captures 1–3 words after the keyword, stopped by comma/newline/punctuation
+  const PATTERNS = [
+    // PT-PT
+    /(?:^|\n)\s*Caros?\s+([A-ZÀ-Ÿa-zà-ÿ][^\n,!?;]{1,49})/,
+    /(?:^|\n)\s*Prezados?\s+([A-ZÀ-Ÿa-zà-ÿ][^\n,!?;]{1,49})/,
+    /(?:^|\n)\s*Ex\.?mo\.?\s*(?:Sr\.?|Sra\.?)?\s+([A-ZÀ-Ÿa-zà-ÿ][^\n,!?;]{1,49})/,
+    /(?:^|\n)\s*Bom\s+dia[,.]?\s+([A-ZÀ-Ÿa-zà-ÿ][^\n,!?;]{1,49})/,
+    /(?:^|\n)\s*Boa\s+tarde[,.]?\s+([A-ZÀ-Ÿa-zà-ÿ][^\n,!?;]{1,49})/,
+    /(?:^|\n)\s*Olá[,.]?\s+([A-ZÀ-Ÿa-zà-ÿ][^\n,!?;]{1,49})/,
+    // EN
+    /(?:^|\n)\s*Dear\s+([A-ZÀ-Ÿa-zà-ÿ][^\n,!?;]{1,49})/,
+    /(?:^|\n)\s*Hi[,.]?\s+([A-ZÀ-Ÿa-zà-ÿ][^\n,!?;]{1,49})/,
+    /(?:^|\n)\s*Hello[,.]?\s+([A-ZÀ-Ÿa-zà-ÿ][^\n,!?;]{1,49})/,
+  ];
+
+  for (const pattern of PATTERNS) {
+    const match = bodyText.match(pattern);
+    if (!match) continue;
+
+    let candidate = match[1].trim();
+
+    // Strip leading titles (Sr., Dr., etc.)
+    candidate = candidate.replace(TITLE_PREFIX_RE, "").trim();
+
+    // Keep only first 1–3 words
+    const words = candidate.split(/\s+/).slice(0, 3);
+    candidate = words.join(" ").trim();
+
+    // Validate length
+    if (candidate.length >= 2 && candidate.length <= 50) {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Resolve contact name for a BCC-captured email.
+ *
+ * Priority:
+ * 1. Display name from To: header (e.g. "João Silva <joao@empresa.com>")
+ * 2. Salutation name extracted from email body (e.g. "Caro António Silva, ...")
+ * 3. Email local part fallback (current behaviour)
+ */
+export function resolveContactName(
+  displayName: string | null,
+  email: string,
+  bodyText: string | null
+): string {
+  // 1. Display name wins
+  if (displayName && displayName.trim().length > 1) return displayName.trim();
+
+  // 2. Try salutation extraction from body
+  if (bodyText) {
+    const fromSalutation = extractNameFromSalutation(bodyText);
+    if (fromSalutation) return fromSalutation;
+  }
+
+  // 3. Email local part fallback
+  return email.split("@")[0];
+}
+
+// =============================================================================
 // AUTO-CREATE QUOTE FROM BCC
 // =============================================================================
 
@@ -213,6 +293,8 @@ export interface AutoCreateQuoteOptions {
   subject: string | null;
   /** Timestamp of when the email was sent */
   emailSentAt: Date;
+  /** Plain-text email body — used for salutation name extraction when To: has no display name */
+  bodyText?: string | null;
 }
 
 export interface AutoCreateQuoteResult {
@@ -240,6 +322,7 @@ export async function autoCreateQuoteFromInbound(
     originalTo,
     subject,
     emailSentAt,
+    bodyText = null,
   } = options;
 
   // 1. Find or create contact from originalTo
@@ -251,6 +334,9 @@ export async function autoCreateQuoteFromInbound(
     if (firstRecipient) {
       const parsed = parseEmailAddress(firstRecipient);
       if (parsed) {
+        // Resolve best available contact name
+        const resolvedName = resolveContactName(parsed.name, parsed.email, bodyText);
+
         // Try to find existing contact by email in this org
         const existing = await prisma.contact.findFirst({
           where: {
@@ -263,12 +349,12 @@ export async function autoCreateQuoteFromInbound(
         if (existing) {
           contact = existing;
         } else {
-          // Create new contact
+          // Create new contact with resolved name
           const newContact = await prisma.contact.create({
             data: {
               organizationId,
               email: parsed.email,
-              name: parsed.name,
+              name: resolvedName,
             },
             select: { id: true, email: true, name: true },
           });

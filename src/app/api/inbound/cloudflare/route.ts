@@ -351,6 +351,7 @@ export async function POST(request: NextRequest) {
         originalTo: originalTo || null,
         subject: subject || null,
         emailSentAt,
+        bodyText: emailBodyText || null,
       });
 
       // Create ingestion record linked to the new quote
