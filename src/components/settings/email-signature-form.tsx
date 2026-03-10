@@ -78,7 +78,7 @@ export function EmailSignatureForm({ organization }: EmailSignatureFormProps) {
       toast({
         title: "Ficheiro demasiado grande",
         description: "O logo deve ter no máximo 500KB.",
-        variant: "destructive",
+        variant: "error",
       });
       return;
     }
@@ -131,7 +131,7 @@ export function EmailSignatureForm({ organization }: EmailSignatureFormProps) {
       toast({
         title: "Erro ao guardar",
         description: error instanceof Error ? error.message : "Erro desconhecido",
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setSaving(false);

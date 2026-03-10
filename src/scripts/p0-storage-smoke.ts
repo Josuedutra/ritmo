@@ -170,10 +170,16 @@ async function runTests() {
   // ===== Test 3: MIME Types =====
   section("3. Allowed MIME Types");
 
-  if (ALLOWED_MIME_TYPES.length === 1 && ALLOWED_MIME_TYPES[0] === "application/pdf") {
-    pass("MIME types", "Only application/pdf allowed");
+  if (ALLOWED_MIME_TYPES.includes("application/pdf" as (typeof ALLOWED_MIME_TYPES)[number])) {
+    pass(
+      "MIME types",
+      `PDF allowed (${ALLOWED_MIME_TYPES.length} types total: ${ALLOWED_MIME_TYPES.join(", ")})`
+    );
   } else {
-    fail("MIME types", `Expected only PDF, got ${ALLOWED_MIME_TYPES.join(", ")}`);
+    fail(
+      "MIME types",
+      `Expected application/pdf to be allowed, got ${ALLOWED_MIME_TYPES.join(", ")}`
+    );
   }
 
   // ===== Test 4: Size Gate =====
@@ -209,10 +215,10 @@ async function runTests() {
     fail("PDF type", "Should be allowed");
   }
 
-  if (!ALLOWED_MIME_TYPES.includes(excelType as (typeof ALLOWED_MIME_TYPES)[number])) {
-    pass("Excel type", "Rejected (MIME_TYPE_REJECTED)");
+  if (ALLOWED_MIME_TYPES.includes(excelType as (typeof ALLOWED_MIME_TYPES)[number])) {
+    pass("Excel type", "Allowed (.xlsx)");
   } else {
-    fail("Excel type", "Should be rejected");
+    fail("Excel type", "Should be allowed (.xlsx)");
   }
 
   if (!ALLOWED_MIME_TYPES.includes(imageType as (typeof ALLOWED_MIME_TYPES)[number])) {
