@@ -21,6 +21,7 @@ import {
   extractLinkFromText,
   extractLinkFromHtml,
   validateAttachment,
+  normalizeAttachmentContentType,
   generateBodyChecksum,
   sanitizeForLog,
   maskEmail,
@@ -356,9 +357,15 @@ export async function POST(request: NextRequest) {
 
       if (attachments && attachments.length > 0) {
         for (const attachment of attachments) {
+          // Normalize contentType: some clients send application/octet-stream for PDFs
+          const normalizedContentType = normalizeAttachmentContentType(
+            attachment.contentType,
+            attachment.filename
+          );
+
           const validation = validateAttachment({
             filename: attachment.filename,
-            contentType: attachment.contentType,
+            contentType: normalizedContentType,
             size: attachment.size,
           });
 
@@ -367,14 +374,14 @@ export async function POST(request: NextRequest) {
           const storageCheck = await checkStorageGates(
             org.id,
             attachment.size,
-            attachment.contentType
+            normalizedContentType
           );
           if (!storageCheck.allowed) continue;
 
           const quotaReservation = await checkAndReserveStorageQuota(
             org.id,
             attachment.size,
-            attachment.contentType
+            normalizedContentType
           );
           if (!quotaReservation.allowed) continue;
 
@@ -546,9 +553,15 @@ export async function POST(request: NextRequest) {
 
     if (attachments && attachments.length > 0) {
       for (const attachment of attachments) {
+        // Normalize contentType: some clients send application/octet-stream for PDFs
+        const normalizedContentType = normalizeAttachmentContentType(
+          attachment.contentType,
+          attachment.filename
+        );
+
         const attachmentInfo = {
           filename: attachment.filename,
-          contentType: attachment.contentType,
+          contentType: normalizedContentType,
           size: attachment.size,
         };
 
@@ -570,7 +583,7 @@ export async function POST(request: NextRequest) {
         const storageCheck = await checkStorageGates(
           org.id,
           attachment.size,
-          attachment.contentType
+          normalizedContentType
         );
 
         if (!storageCheck.allowed) {
@@ -619,7 +632,7 @@ export async function POST(request: NextRequest) {
         const quotaReservation = await checkAndReserveStorageQuota(
           org.id,
           attachment.size,
-          attachment.contentType
+          normalizedContentType
         );
 
         if (!quotaReservation.allowed) {
