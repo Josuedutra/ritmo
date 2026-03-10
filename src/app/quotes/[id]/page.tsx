@@ -94,7 +94,7 @@ const STATUS_CONFIG: Record<
   sent: { label: "Enviado", variant: "default" },
   negotiation: { label: "Em negociação", variant: "warning" },
   won: { label: "Ganho", variant: "success" },
-  lost: { label: "Perdido", variant: "destructive" },
+  lost: { label: "Perdido", variant: "secondary" },
 };
 
 const STAGE_CONFIG: Record<string, { label: string; color: string }> = {
