@@ -69,8 +69,9 @@ const STATUS_CONFIG: Record<
   warning: {
     label: "Atenção",
     icon: AlertTriangle,
-    className: "bg-yellow-500/10 text-yellow-600 border-yellow-500/30",
-    iconClassName: "text-yellow-500",
+    className:
+      "bg-[var(--color-warning)]/10 text-[var(--color-warning)] border-[var(--color-warning)]/30",
+    iconClassName: "text-[var(--color-warning)]",
   },
 };
 
