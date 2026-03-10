@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
         sendWindowStart: "09:00",
         sendWindowEnd: "18:00",
         emailCooldownHours: 48,
-        bccAddress: "bcc+demo@inbound.ritmo.app",
+        bccAddress: "bcc+demo@inbound.useritmo.pt",
         trialEndsAt,
         trialSentLimit: 20,
         trialSentUsed: 0,

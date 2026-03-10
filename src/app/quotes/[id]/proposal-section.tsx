@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 
 // Inbound domain for BCC addresses
-const INBOUND_DOMAIN = process.env.NEXT_PUBLIC_INBOUND_DOMAIN || "inbound.ritmo.app";
+const INBOUND_DOMAIN = process.env.NEXT_PUBLIC_INBOUND_DOMAIN || "inbound.useritmo.pt";
 
 interface Quote {
   id: string;
