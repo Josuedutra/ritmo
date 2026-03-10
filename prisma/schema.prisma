@@ -153,6 +153,12 @@ model Organization {
   priorityThreshold   Decimal   @default(1000.00) @map("priority_threshold") @db.Decimal(10, 2)  // Value >= this = HIGH
   priorityTags        String[]  @default([]) @map("priority_tags")  // Tags that trigger HIGH priority (e.g. ["Urgente", "Obra"])
 
+  // Communication profile (configured once, used for all call scripts)
+  commStyleTone        String?   @default("directo") @map("comm_style_tone")           // "formal" | "directo" | "consultivo"
+  commStyleDifferential String?  @default("qualidade") @map("comm_style_differential") // "preco" | "qualidade" | "rapidez"
+  commStyleClosing     String?   @map("comm_style_closing")  // free text, user's preferred closing line, max 100 chars
+  commProfileSetAt     DateTime? @map("comm_profile_set_at") // null = never configured
+
   createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @updatedAt @map("updated_at")
 
@@ -392,6 +398,10 @@ model CadenceEvent {
   claimedBy       String?             @map("claimed_by")    // Worker ID
   processedAt     DateTime?           @map("processed_at")
   errorMessage    String?             @map("error_message")
+
+  // Claude-generated call script (cached)
+  generatedScript   String?           @map("generated_script")
+  scriptGeneratedAt DateTime?         @map("script_generated_at")
 
   createdAt       DateTime            @default(now()) @map("created_at")
 

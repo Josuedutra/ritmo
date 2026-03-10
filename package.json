@@ -26,6 +26,7 @@
     "smoke:p0:storage": "tsx src/scripts/p0-storage-smoke.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "@auth/prisma-adapter": "^2.7.4",
     "@aws-sdk/client-s3": "^3.1005.0",
     "@aws-sdk/s3-request-presigner": "^3.1005.0",
