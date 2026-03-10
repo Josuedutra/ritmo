@@ -276,6 +276,7 @@ export async function POST(request: NextRequest) {
         originalTo: to || null,
         subject: subject || null,
         emailSentAt,
+        bodyText: bodyPlain || null,
       });
 
       // Create ingestion record linked to the new quote
