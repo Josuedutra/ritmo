@@ -37,11 +37,11 @@ export function BccEnrichForm({ quoteId, contactName, hasPhone, hasValue }: BccE
     const valueNum = !hasValue ? parseFloat(value.replace(",", ".")) : undefined;
 
     if (!hasPhone && !phoneVal) {
-      toast({ title: "Telefone obrigatório", variant: "destructive" });
+      toast({ title: "Telefone obrigatório", variant: "error" });
       return;
     }
     if (!hasValue && (valueNum === undefined || isNaN(valueNum) || valueNum <= 0)) {
-      toast({ title: "Valor deve ser um número positivo", variant: "destructive" });
+      toast({ title: "Valor deve ser um número positivo", variant: "error" });
       return;
     }
 
@@ -69,7 +69,7 @@ export function BccEnrichForm({ quoteId, contactName, hasPhone, hasValue }: BccE
       toast({
         title: "Erro",
         description: err instanceof Error ? err.message : "Tente novamente",
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setSaving(false);
