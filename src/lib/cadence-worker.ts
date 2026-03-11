@@ -12,6 +12,7 @@
 import { prisma } from "./prisma";
 import { sendCadenceEmail, hasEmailCapability, isEmailSuppressed } from "./email";
 import { logger } from "./logger";
+import { buildEmailSignature } from "./email-signature";
 import type { CadenceEvent, Quote, Contact, Template } from "@prisma/client";
 
 const log = logger.child({ service: "cadence-worker" });
@@ -309,6 +310,17 @@ async function handleEmailEvent(
 
   // Build email content
   const emailContent = buildEmailContent(template, quote, contact);
+
+  // Append email signature (if configured for this org)
+  const signature = await buildEmailSignature(organizationId);
+  if (signature) {
+    // If {assinatura} placeholder is present, replace it; otherwise append at end
+    if (emailContent.body.includes("{assinatura}")) {
+      emailContent.body = emailContent.body.replace("{assinatura}", signature);
+    } else {
+      emailContent.body = emailContent.body + signature;
+    }
+  }
 
   // Send email
   const sendResult = await sendCadenceEmail({

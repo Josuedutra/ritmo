@@ -4,7 +4,16 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, FileText, Mail, Settings, LogOut, Menu, X } from "lucide-react";
+import {
+  LayoutDashboard,
+  FileText,
+  Mail,
+  Settings,
+  LogOut,
+  Menu,
+  X,
+  Briefcase,
+} from "lucide-react";
 import { useState } from "react";
 import { ModeToggle } from "@/components/mode-toggle";
 
@@ -26,9 +35,10 @@ interface AppHeaderProps {
     email: string;
     name?: string | null;
   };
+  isPartner?: boolean;
 }
 
-export function AppHeader({ user }: AppHeaderProps) {
+export function AppHeader({ user, isPartner = false }: AppHeaderProps) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -63,6 +73,20 @@ export function AppHeader({ user }: AppHeaderProps) {
               </Link>
             );
           })}
+          {isPartner && (
+            <Link
+              href="/cockpit/partner"
+              className={cn(
+                "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                pathname.startsWith("/cockpit/partner")
+                  ? "bg-[var(--color-sidebar-accent)] text-[var(--color-foreground)]"
+                  : "text-[var(--color-muted-foreground)] hover:bg-[var(--color-sidebar-accent)] hover:text-[var(--color-foreground)]"
+              )}
+            >
+              <Briefcase className="h-4 w-4" />
+              Parceiro
+            </Link>
+          )}
         </nav>
 
         {/* User Menu */}
@@ -113,6 +137,21 @@ export function AppHeader({ user }: AppHeaderProps) {
               </Link>
             );
           })}
+          {isPartner && (
+            <Link
+              href="/cockpit/partner"
+              onClick={() => setMobileMenuOpen(false)}
+              className={cn(
+                "flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
+                pathname.startsWith("/cockpit/partner")
+                  ? "bg-[var(--color-sidebar-accent)] text-[var(--color-foreground)]"
+                  : "text-[var(--color-muted-foreground)] hover:bg-[var(--color-sidebar-accent)]"
+              )}
+            >
+              <Briefcase className="h-4 w-4" />
+              Parceiro
+            </Link>
+          )}
         </nav>
       )}
     </header>

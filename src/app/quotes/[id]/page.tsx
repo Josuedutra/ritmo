@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { AppHeader } from "@/components/layout";
+import { checkIsPartner } from "@/lib/partner-utils";
 import { Card, CardHeader, CardTitle, CardContent, Badge } from "@/components/ui";
 import { ArrowLeft, Mail, Phone, Building2, CheckCircle2, MessageSquare } from "lucide-react";
 import { TimelineWrapper } from "./timeline-wrapper";
@@ -10,6 +11,7 @@ import { QuoteActions } from "./quote-actions";
 import { ProposalSection } from "./proposal-section";
 import { QuoteTagsNotes } from "./quote-tags-notes";
 import { QuoteEditableHeader } from "./quote-editable-header";
+import { BccEnrichForm } from "./bcc-enrich-form";
 import {
   formatDistanceToNow,
   format,
@@ -93,7 +95,7 @@ const STATUS_CONFIG: Record<
   sent: { label: "Enviado", variant: "default" },
   negotiation: { label: "Em negociação", variant: "warning" },
   won: { label: "Ganho", variant: "success" },
-  lost: { label: "Perdido", variant: "destructive" },
+  lost: { label: "Perdido", variant: "secondary" },
 };
 
 const STAGE_CONFIG: Record<string, { label: string; color: string }> = {
@@ -227,9 +229,10 @@ export default async function QuoteDetailPage({ params }: PageProps) {
   }
 
   const { id } = await params;
-  const [quote, orgShortId] = await Promise.all([
+  const [quote, orgShortId, isPartner] = await Promise.all([
     getQuote(id, session.user.organizationId),
     getOrgShortId(session.user.organizationId),
+    session.user.email ? checkIsPartner(session.user.email) : Promise.resolve(false),
   ]);
 
   if (!quote) {
@@ -240,6 +243,9 @@ export default async function QuoteDetailPage({ params }: PageProps) {
   const stageConfig = STAGE_CONFIG[quote.ritmoStage] || STAGE_CONFIG.idle;
   const nextAction = getNextAction(quote);
   const quickOutcomes = getQuickOutcomes(quote);
+
+  // BCC enrichment: incomplete when missing phone or value
+  const isIncomplete = !quote.contact?.phone || !quote.value;
 
   // Serialize data for client components
   const serializedQuote = {
@@ -329,7 +335,7 @@ export default async function QuoteDetailPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-[var(--color-background)]">
-      <AppHeader user={session.user} />
+      <AppHeader user={session.user} isPartner={isPartner} />
 
       <main className="container-app py-6">
         {/* Back link */}
@@ -340,6 +346,16 @@ export default async function QuoteDetailPage({ params }: PageProps) {
           <ArrowLeft className="h-4 w-4" />
           Orçamentos
         </Link>
+
+        {/* BCC enrichment: show activation section when phone or value is missing */}
+        {isIncomplete && (
+          <BccEnrichForm
+            quoteId={quote.id}
+            contactName={quote.contact?.name ?? null}
+            hasPhone={!!quote.contact?.phone}
+            hasValue={!!quote.value}
+          />
+        )}
 
         {/* P0-01: Compact Hero Header Card */}
         <Card className="mb-6">

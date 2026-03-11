@@ -62,7 +62,11 @@ export const PLAN_LIMITS = {
 
 // Storage constants
 export const MAX_ATTACHMENT_SIZE_BYTES = 15 * 1024 * 1024; // 15 MB
-export const ALLOWED_MIME_TYPES = ["application/pdf"] as const;
+export const ALLOWED_MIME_TYPES = [
+  "application/pdf",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+  "application/vnd.ms-excel", // .xls
+] as const;
 
 export interface Entitlements {
   // Tier info
@@ -652,7 +656,7 @@ export async function checkAndIncrementTrialBccCapture(organizationId: string): 
   // Also sets ahaFirstBccCaptureAt only on first capture (when transitioning false -> true)
   try {
     const result = await prisma.$executeRaw`
-            UPDATE "Organization"
+            UPDATE "organizations"
             SET "trial_bcc_captures" = "trial_bcc_captures" + 1,
                 "aha_first_bcc_capture" = true,
                 "aha_first_bcc_capture_at" = CASE
@@ -894,12 +898,13 @@ export async function checkStorageGates(
     };
   }
 
-  // Gate 2: MIME type check (only PDF allowed)
-  if (!ALLOWED_MIME_TYPES.includes(mimeType as (typeof ALLOWED_MIME_TYPES)[number])) {
+  // Gate 2: MIME type check (PDF and Excel allowed)
+  const ALLOWED_MIME_SET = new Set(ALLOWED_MIME_TYPES as readonly string[]);
+  if (!ALLOWED_MIME_SET.has(mimeType)) {
     return {
       allowed: false,
       reason: "MIME_TYPE_REJECTED",
-      message: `Tipo de ficheiro não suportado: ${mimeType}. Apenas PDF é permitido.`,
+      message: `Tipo de ficheiro não suportado: ${mimeType}. PDF e Excel são suportados.`,
     };
   }
 
@@ -944,7 +949,7 @@ export async function reserveStorageQuota(
     // Use raw query for conditional update that's race-condition safe
     // This atomically checks AND updates in a single operation
     const result = await prisma.$executeRaw`
-            UPDATE "Organization"
+            UPDATE "organizations"
             SET storage_used_bytes = storage_used_bytes + ${BigInt(sizeBytes)}
             WHERE id = ${organizationId}
             AND storage_used_bytes + ${BigInt(sizeBytes)} <= storage_quota_bytes
@@ -979,7 +984,7 @@ export async function reserveStorageQuota(
       reserved: true,
       rollback: async () => {
         await prisma.$executeRaw`
-                    UPDATE "Organization"
+                    UPDATE "organizations"
                     SET storage_used_bytes = GREATEST(0, storage_used_bytes - ${BigInt(sizeBytes)})
                     WHERE id = ${organizationId}
                 `;
@@ -1030,12 +1035,13 @@ export async function checkAndReserveStorageQuota(
     };
   }
 
-  // Gate 2: MIME type check - no DB needed
-  if (!ALLOWED_MIME_TYPES.includes(mimeType as (typeof ALLOWED_MIME_TYPES)[number])) {
+  // Gate 2: MIME type check - no DB needed (PDF and Excel allowed)
+  const ALLOWED_MIME_SET = new Set(ALLOWED_MIME_TYPES as readonly string[]);
+  if (!ALLOWED_MIME_SET.has(mimeType)) {
     return {
       allowed: false,
       reason: "MIME_TYPE_REJECTED",
-      message: `Tipo de ficheiro não suportado: ${mimeType}. Apenas PDF é permitido.`,
+      message: `Tipo de ficheiro não suportado: ${mimeType}. PDF e Excel são suportados.`,
     };
   }
 
@@ -1098,7 +1104,7 @@ export async function decrementStorageUsage(
 ): Promise<void> {
   // Use raw query to ensure storageUsedBytes never goes negative
   await prisma.$executeRaw`
-        UPDATE "Organization"
+        UPDATE "organizations"
         SET storage_used_bytes = GREATEST(0, storage_used_bytes - ${BigInt(sizeBytes)})
         WHERE id = ${organizationId}
     `;

@@ -188,7 +188,7 @@ export function UpgradePrompt({
       variant="outline"
       onClick={handleCtaClick}
       disabled={isLoading}
-      className={`gap-1.5 border-amber-500/50 text-amber-600 hover:bg-amber-500/20 dark:text-amber-400 ${
+      className={`gap-1.5 border-[var(--color-brand-from)]/50 text-[var(--color-brand-from)] hover:bg-[var(--color-brand-from)]/10 ${
         size === "sm" ? "mt-3" : ""
       }`}
     >
@@ -212,9 +212,11 @@ export function UpgradePrompt({
 
   // Variant-specific styles
   const variantStyles = {
-    inline: "rounded-lg border border-amber-500/30 bg-amber-500/10 p-4",
+    inline:
+      "rounded-lg border border-[var(--color-brand-from)]/25 bg-[var(--color-brand-from)]/8 p-4",
     modal: "fixed inset-0 z-50 flex items-center justify-center bg-black/50",
-    banner: "w-full border-b border-amber-500/30 bg-amber-500/10 px-4 py-3",
+    banner:
+      "w-full border-b border-[var(--color-brand-from)]/25 bg-[var(--color-brand-from)]/8 px-4 py-3",
   };
 
   // Inline variant (most common)
@@ -222,9 +224,9 @@ export function UpgradePrompt({
     return (
       <div className={`${variantStyles.inline} ${className}`}>
         <div className="flex items-start gap-3">
-          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[var(--color-brand-from)]" />
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-amber-600 dark:text-amber-400">{title}</p>
+            <p className="text-sm font-medium text-[var(--color-brand-from)]">{title}</p>
             <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">{message}</p>
             {bullets.length > 0 && (
               <ul className="mt-2 space-y-1">
@@ -233,7 +235,7 @@ export function UpgradePrompt({
                     key={index}
                     className="flex items-center gap-2 text-xs text-[var(--color-muted-foreground)]"
                   >
-                    <span className="h-1 w-1 rounded-full bg-amber-500" />
+                    <span className="h-1 w-1 rounded-full bg-[var(--color-brand-from)]" />
                     {bullet}
                   </li>
                 ))}
@@ -242,8 +244,12 @@ export function UpgradePrompt({
             <CtaButton />
           </div>
           {onDismiss && (
-            <button type="button" onClick={onDismiss} className="rounded p-1 hover:bg-amber-500/20">
-              <X className="h-4 w-4 text-amber-500" />
+            <button
+              type="button"
+              onClick={onDismiss}
+              className="rounded p-1 hover:bg-[var(--color-brand-from)]/10"
+            >
+              <X className="h-4 w-4 text-[var(--color-brand-from)]" />
             </button>
           )}
         </div>
@@ -257,9 +263,9 @@ export function UpgradePrompt({
       <div className={`${variantStyles.banner} ${className}`}>
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
+            <AlertTriangle className="h-4 w-4 shrink-0 text-[var(--color-brand-from)]" />
             <p className="text-sm">
-              <span className="font-medium text-amber-600 dark:text-amber-400">{title}</span>
+              <span className="font-medium text-[var(--color-brand-from)]">{title}</span>
               <span className="text-[var(--color-muted-foreground)]"> {message}</span>
             </p>
           </div>
@@ -269,7 +275,7 @@ export function UpgradePrompt({
               variant="outline"
               onClick={handleCtaClick}
               disabled={isLoading}
-              className="gap-1.5 border-amber-500/50 text-amber-600 hover:bg-amber-500/20 dark:text-amber-400"
+              className="gap-1.5 border-[var(--color-brand-from)]/50 text-[var(--color-brand-from)] hover:bg-[var(--color-brand-from)]/10"
             >
               {isLoading ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -285,9 +291,9 @@ export function UpgradePrompt({
               <button
                 type="button"
                 onClick={onDismiss}
-                className="rounded p-1 hover:bg-amber-500/20"
+                className="rounded p-1 hover:bg-[var(--color-brand-from)]/10"
               >
-                <X className="h-4 w-4 text-amber-500" />
+                <X className="h-4 w-4 text-[var(--color-brand-from)]" />
               </button>
             )}
           </div>
@@ -302,8 +308,8 @@ export function UpgradePrompt({
       <div className={variantStyles.modal}>
         <div className="w-full max-w-md rounded-lg bg-[var(--color-background)] p-6 shadow-xl">
           <div className="flex items-start gap-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-500/10">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-brand-from)]/10">
+              <AlertTriangle className="h-5 w-5 text-[var(--color-brand-from)]" />
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-semibold">{title}</h3>
@@ -315,7 +321,7 @@ export function UpgradePrompt({
                       key={index}
                       className="flex items-center gap-2 text-sm text-[var(--color-muted-foreground)]"
                     >
-                      <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-brand-from)]" />
                       {bullet}
                     </li>
                   ))}
