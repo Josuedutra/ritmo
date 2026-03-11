@@ -341,8 +341,43 @@ export async function POST(request: NextRequest) {
       // Get org timezone
       const orgData = await prisma.organization.findUnique({
         where: { id: org.id },
-        select: { timezone: true },
+        select: { timezone: true, bccSubjectKeywords: true },
       });
+
+      // ── BCC Subject Filter ────────────────────────────────────────────────
+      const rawKeywords = (orgData as any)?.bccSubjectKeywords;
+      if (rawKeywords) {
+        const keywords: string[] = JSON.parse(rawKeywords);
+        if (keywords.length > 0) {
+          const subjectLower = (subject || "").toLowerCase();
+          const matches = keywords.some((kw: string) => subjectLower.includes(kw.toLowerCase()));
+          if (!matches) {
+            const filteredIngestion = await prisma.inboundIngestion.create({
+              data: {
+                organizationId: org.id,
+                provider: "cloudflare",
+                providerMessageId: idempotencyKey,
+                bodyChecksum: generateBodyChecksum(emailBodyText || null, bodyHtml || null),
+                rawFrom: from,
+                rawTo: to,
+                rawSubject: subject,
+                status: "filtered",
+                errorMessage: `Subject não corresponde a nenhuma palavra-chave BCC configurada`,
+                processedAt: new Date(),
+              },
+            });
+            log.info(
+              { id: filteredIngestion.id, subject, keywords },
+              "BCC filtered — subject keyword mismatch (Cloudflare)"
+            );
+            return NextResponse.json({
+              status: "filtered",
+              id: filteredIngestion.id,
+            });
+          }
+        }
+      }
+      // ─────────────────────────────────────────────────────────────────────
 
       // Auto-create quote + contact + cadence
       const autoResult = await autoCreateQuoteFromInbound({
