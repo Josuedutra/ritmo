@@ -86,6 +86,7 @@ enum IngestStatus {
   processed
   failed
   unmatched
+  filtered
   rejected_feature_disabled
   rejected_trial_limit
   rejected_size_exceeded
@@ -148,6 +149,9 @@ model Organization {
   // Storage management (P0)
   storageUsedBytes    BigInt    @default(0) @map("storage_used_bytes")
   storageQuotaBytes   BigInt    @default(1073741824) @map("storage_quota_bytes") // 1 GB default
+
+  // BCC subject filter (optional: if set, only capture emails whose subject contains at least one keyword)
+  bccSubjectKeywords  String?   @map("bcc_subject_keywords")  // JSON array: ["orçamento","proposta",...] — null/empty = accept all
 
   // Priority rules (Pro only - configurable threshold and tags)
   priorityThreshold   Decimal   @default(1000.00) @map("priority_threshold") @db.Decimal(10, 2)  // Value >= this = HIGH

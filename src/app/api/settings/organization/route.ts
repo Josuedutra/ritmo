@@ -27,7 +27,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { timezone, sendWindowStart, sendWindowEnd, sector } = body;
+    const { timezone, sendWindowStart, sendWindowEnd, sector, bccSubjectKeywords } = body;
 
     // Basic validation
     if (!timezone) {
@@ -45,6 +45,21 @@ export async function PUT(request: NextRequest) {
     const validSectors = ["AVAC", "MAINTENANCE", "IT", "FACILITIES", "OTHER"];
     const sectorValue = sector && validSectors.includes(sector) ? sector : undefined;
 
+    // Validate and serialize bccSubjectKeywords if provided
+    let bccKeywordsValue: string | null | undefined = undefined;
+    if (bccSubjectKeywords !== undefined) {
+      if (!Array.isArray(bccSubjectKeywords)) {
+        return NextResponse.json(
+          { error: "bccSubjectKeywords deve ser um array" },
+          { status: 400 }
+        );
+      }
+      const keywords = bccSubjectKeywords.filter(
+        (k: unknown) => typeof k === "string" && k.trim().length > 0
+      );
+      bccKeywordsValue = keywords.length > 0 ? JSON.stringify(keywords) : null;
+    }
+
     await prisma.organization.update({
       where: { id: session.user.organizationId },
       data: {
@@ -52,6 +67,7 @@ export async function PUT(request: NextRequest) {
         sendWindowStart: `${String(startHour).padStart(2, "0")}:00`,
         sendWindowEnd: `${String(endHour).padStart(2, "0")}:00`,
         ...(sectorValue && { sector: sectorValue }),
+        ...(bccKeywordsValue !== undefined && { bccSubjectKeywords: bccKeywordsValue }),
       },
     });
 
