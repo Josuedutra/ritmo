@@ -270,36 +270,43 @@ export async function POST(request: NextRequest) {
       });
 
       // ── BCC Subject Filter ────────────────────────────────────────────────
-      // If the org has keywords configured, only capture emails whose subject
-      // contains at least one keyword. Empty/null = accept all (retrocompat).
+      // Default keywords: applied when org has no custom list configured.
+      const DEFAULT_BCC_KEYWORDS = [
+        "orçamento",
+        "proposta",
+        "cotação",
+        "orç",
+        "prop",
+        "quote",
+        "budget",
+        "estimate",
+        "proposal",
+      ];
       const rawKeywords = orgData?.bccSubjectKeywords;
-      if (rawKeywords) {
-        const keywords: string[] = JSON.parse(rawKeywords);
-        if (keywords.length > 0) {
-          const subjectLower = (subject || "").toLowerCase();
-          const matches = keywords.some((kw) => subjectLower.includes(kw.toLowerCase()));
-          if (!matches) {
-            const filteredIngestion = await prisma.inboundIngestion.create({
-              data: {
-                organizationId: org.id,
-                provider: "mailgun",
-                providerMessageId: idempotencyKey,
-                bodyChecksum: generateBodyChecksum(bodyPlain, bodyHtml),
-                rawFrom: from,
-                rawTo: to || recipient,
-                rawSubject: subject,
-                status: "filtered",
-                errorMessage: `Subject não corresponde a nenhuma palavra-chave BCC configurada`,
-                processedAt: new Date(),
-              },
-            });
-            log.info(
-              { id: filteredIngestion.id, subject, keywords },
-              "BCC filtered — subject keyword mismatch"
-            );
-            return NextResponse.json({ status: "filtered", id: filteredIngestion.id });
-          }
-        }
+      const keywords: string[] = rawKeywords ? JSON.parse(rawKeywords) : DEFAULT_BCC_KEYWORDS;
+
+      const subjectLower = (subject || "").toLowerCase();
+      const matches = keywords.some((kw) => subjectLower.includes(kw.toLowerCase()));
+      if (!matches) {
+        const filteredIngestion = await prisma.inboundIngestion.create({
+          data: {
+            organizationId: org.id,
+            provider: "mailgun",
+            providerMessageId: idempotencyKey,
+            bodyChecksum: generateBodyChecksum(bodyPlain, bodyHtml),
+            rawFrom: from,
+            rawTo: to || recipient,
+            rawSubject: subject,
+            status: "filtered",
+            errorMessage: `Subject não corresponde a nenhuma palavra-chave BCC: ${keywords.join(", ")}`,
+            processedAt: new Date(),
+          },
+        });
+        log.info(
+          { id: filteredIngestion.id, subject, keywords, isDefault: !rawKeywords },
+          "BCC filtered — subject keyword mismatch"
+        );
+        return NextResponse.json({ status: "filtered", id: filteredIngestion.id });
       }
       // ─────────────────────────────────────────────────────────────────────
 
