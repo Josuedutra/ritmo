@@ -73,6 +73,7 @@ export function AdminMetricsClient() {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchMetrics();
   }, [range]);
