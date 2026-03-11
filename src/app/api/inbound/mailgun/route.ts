@@ -263,11 +263,45 @@ export async function POST(request: NextRequest) {
       // Parse Mailgun timestamp for sentAt
       const emailSentAt = timestamp ? new Date(parseInt(timestamp, 10) * 1000) : new Date();
 
-      // Get org timezone
+      // Get org timezone and BCC filter config
       const orgData = await prisma.organization.findUnique({
         where: { id: org.id },
-        select: { timezone: true },
+        select: { timezone: true, bccSubjectKeywords: true },
       });
+
+      // ── BCC Subject Filter ────────────────────────────────────────────────
+      // If the org has keywords configured, only capture emails whose subject
+      // contains at least one keyword. Empty/null = accept all (retrocompat).
+      const rawKeywords = orgData?.bccSubjectKeywords;
+      if (rawKeywords) {
+        const keywords: string[] = JSON.parse(rawKeywords);
+        if (keywords.length > 0) {
+          const subjectLower = (subject || "").toLowerCase();
+          const matches = keywords.some((kw) => subjectLower.includes(kw.toLowerCase()));
+          if (!matches) {
+            const filteredIngestion = await prisma.inboundIngestion.create({
+              data: {
+                organizationId: org.id,
+                provider: "mailgun",
+                providerMessageId: idempotencyKey,
+                bodyChecksum: generateBodyChecksum(bodyPlain, bodyHtml),
+                rawFrom: from,
+                rawTo: to || recipient,
+                rawSubject: subject,
+                status: "filtered",
+                errorMessage: `Subject não corresponde a nenhuma palavra-chave BCC configurada`,
+                processedAt: new Date(),
+              },
+            });
+            log.info(
+              { id: filteredIngestion.id, subject, keywords },
+              "BCC filtered — subject keyword mismatch"
+            );
+            return NextResponse.json({ status: "filtered", id: filteredIngestion.id });
+          }
+        }
+      }
+      // ─────────────────────────────────────────────────────────────────────
 
       // In Mailgun, `to` = original To: header (the client), `recipient` = envelope BCC
       const autoResult = await autoCreateQuoteFromInbound({
