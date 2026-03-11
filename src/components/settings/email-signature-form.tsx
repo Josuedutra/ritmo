@@ -236,7 +236,6 @@ export function EmailSignatureForm({ organization }: EmailSignatureFormProps) {
           </Label>
           <div className="flex items-center gap-3">
             {displayLogoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={displayLogoUrl}
                 alt="Logo da assinatura"
@@ -307,7 +306,6 @@ export function EmailSignatureForm({ organization }: EmailSignatureFormProps) {
                     <tr>
                       {displayLogoUrl && (
                         <td style={{ paddingRight: "16px", verticalAlign: "top" }}>
-                          // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={displayLogoUrl}
                             alt="Logo"
