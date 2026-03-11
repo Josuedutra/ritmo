@@ -55,6 +55,7 @@ interface Template {
 
 interface OnboardingWizardProps {
   orgName: string;
+  userName?: string;
   bccEmail: string;
   hasSmtp: boolean;
   hasBcc: boolean;
@@ -76,6 +77,7 @@ const STEPS = [
 
 export function OnboardingWizard({
   orgName,
+  userName,
   bccEmail,
   hasSmtp,
   hasBcc,
@@ -361,7 +363,7 @@ export function OnboardingWizard({
                     <Sparkles className="h-10 w-10 text-white" />
                   </div>
                   <h1 className="mb-2 text-2xl font-bold tracking-tight">
-                    Bem-vindo ao Ritmo, {orgName}.
+                    Bem-vindo ao Ritmo{userName ? `, ${userName}` : ""}!
                   </h1>
                   <p className="mx-auto mb-2 max-w-md leading-relaxed text-[var(--color-muted-foreground)]">
                     Configure a sua conta e comece a automatizar o follow-up dos seus orçamentos.

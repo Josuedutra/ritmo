@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { AppHeader, PageHeader } from "@/components/layout";
+import { checkIsPartner } from "@/lib/partner-utils";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { QuoteForm } from "./quote-form";
@@ -12,9 +13,11 @@ export default async function NewQuotePage() {
     redirect("/login");
   }
 
+  const isPartner = session.user.email ? await checkIsPartner(session.user.email) : false;
+
   return (
     <div className="min-h-screen bg-[var(--color-background)]">
-      <AppHeader user={session.user} />
+      <AppHeader user={session.user} isPartner={isPartner} />
 
       <main className="container-app py-6">
         <Link

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { AppHeader, PageHeader } from "@/components/layout";
+import { checkIsPartner } from "@/lib/partner-utils";
 import { Button, Card, Badge } from "@/components/ui";
 import { GenerateActionButton } from "@/components/quotes";
 import { Plus, FileText, Clock, Euro, Building2, AlertCircle, Zap } from "lucide-react";
@@ -117,6 +118,7 @@ async function getQuotes(organizationId: string, filter: string) {
           id: true,
           name: true,
           email: true,
+          phone: true,
           company: true,
         },
       },
@@ -182,6 +184,7 @@ export default async function QuotesPage({ searchParams }: PageProps) {
   }
 
   const { filter = "all" } = await searchParams;
+  const isPartner = session.user.email ? await checkIsPartner(session.user.email) : false;
   const [quotes, counts] = await Promise.all([
     getQuotes(session.user.organizationId, filter),
     getQuoteCounts(session.user.organizationId),
@@ -189,7 +192,7 @@ export default async function QuotesPage({ searchParams }: PageProps) {
 
   return (
     <div className="min-h-screen bg-[var(--color-background)]">
-      <AppHeader user={session.user} />
+      <AppHeader user={session.user} isPartner={isPartner} />
 
       <main className="container-app py-6">
         <PageHeader title="Orçamentos" description="Acompanhe orçamentos e follow-ups num só lugar">
@@ -247,6 +250,8 @@ export default async function QuotesPage({ searchParams }: PageProps) {
               const isNoResponseFilter = filter === "no_response";
               // P1: Get next scheduled action
               const nextAction = quote.cadenceEvents[0] || null;
+              // BCC enrichment: incomplete when missing phone or value
+              const isIncomplete = !quote.contact?.phone || !quote.value;
 
               return (
                 <Card
@@ -283,6 +288,13 @@ export default async function QuotesPage({ searchParams }: PageProps) {
                           <span className="bg-info text-info inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium">
                             <Zap className="h-3 w-3" />
                             {formatNextAction(nextAction)}
+                          </span>
+                        )}
+                        {/* BCC enrichment: incomplete badge */}
+                        {isIncomplete && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-orange-400/50 bg-orange-500/10 px-2 py-0.5 text-xs font-medium text-orange-600 dark:text-orange-400">
+                            <AlertCircle className="h-3 w-3" />
+                            Incompleto
                           </span>
                         )}
                       </div>

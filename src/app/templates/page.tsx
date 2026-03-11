@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { AppHeader, PageHeader } from "@/components/layout";
 import { TemplatesList } from "./templates-list";
+import { checkIsPartner } from "@/lib/partner-utils";
 
 async function getTemplates(organizationId: string) {
   return prisma.template.findMany({
@@ -18,6 +19,7 @@ export default async function TemplatesPage() {
     redirect("/login");
   }
 
+  const isPartner = session.user.email ? await checkIsPartner(session.user.email) : false;
   const templates = await getTemplates(session.user.organizationId);
 
   // Serialize for client component
@@ -33,10 +35,13 @@ export default async function TemplatesPage() {
 
   return (
     <div className="min-h-screen bg-[var(--color-background)]">
-      <AppHeader user={session.user} />
+      <AppHeader user={session.user} isPartner={isPartner} />
 
       <main className="container-app py-6">
-        <PageHeader title="Templates" description="Gerir templates de email e scripts de chamada" />
+        <PageHeader
+          title="Templates"
+          description="Gerir os emails automáticos enviados aos seus clientes"
+        />
 
         <TemplatesList templates={serializedTemplates} />
       </main>

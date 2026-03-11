@@ -1,6 +1,10 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl as awsGetSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { logger } from "@/lib/logger";
 
 const BUCKET_NAME = "ritmo-attachments";
@@ -143,6 +147,46 @@ export async function deleteFile(path: string): Promise<{ success: boolean; erro
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     log.error({ error: message }, "Delete failed");
+    return { success: false, error: message };
+  }
+}
+
+/**
+ * Download a file from R2 and return it as a Buffer
+ */
+export async function downloadFile(
+  path: string
+): Promise<{ success: boolean; buffer?: Buffer; error?: string }> {
+  const log = logger.child({ service: "storage" });
+  const r2 = getR2Client();
+
+  if (!r2) {
+    return { success: false, error: "Storage not configured" };
+  }
+
+  try {
+    const response = await r2.send(
+      new GetObjectCommand({
+        Bucket: BUCKET_NAME,
+        Key: path,
+      })
+    );
+
+    if (!response.Body) {
+      return { success: false, error: "Empty response from storage" };
+    }
+
+    const chunks: Uint8Array[] = [];
+    for await (const chunk of response.Body as AsyncIterable<Uint8Array>) {
+      chunks.push(chunk);
+    }
+    const buffer = Buffer.concat(chunks);
+
+    log.info({ path, bytes: buffer.length }, "File downloaded from R2");
+    return { success: true, buffer };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    log.error({ error: message, path }, "Download failed");
     return { success: false, error: message };
   }
 }

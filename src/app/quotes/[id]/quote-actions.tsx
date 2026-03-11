@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import { Button, toast } from "@/components/ui";
 import { UpgradePrompt, UPGRADE_PROMPTS } from "@/components/billing/upgrade-prompt";
 import {
@@ -11,14 +10,15 @@ import {
   CheckCircle,
   XCircle,
   Handshake,
-  AlertTriangle,
   ClipboardCopy,
   Loader2,
   X,
   Sparkles,
+  Mail,
 } from "lucide-react";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
+import { SendQuoteModal } from "./send-quote-modal";
 
 // P1-02: Common loss reasons
 const LOSS_REASONS = [
@@ -40,8 +40,12 @@ interface Quote {
   value?: number | null;
   contact?: {
     name?: string | null;
+    email?: string | null;
     company?: string | null;
     phone?: string | null;
+  } | null;
+  proposalFile?: {
+    filename: string;
   } | null;
 }
 
@@ -62,6 +66,8 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
   // P1-02: Loss reason modal state
   const [showLossReasonModal, setShowLossReasonModal] = useState(false);
   const [selectedLossReason, setSelectedLossReason] = useState<string | null>(null);
+  // Send quote modal state
+  const [showSendModal, setShowSendModal] = useState(false);
 
   // P0 Fix: Detect seed example via query param
   const isSeedExample = searchParams.get("seed") === "1";
@@ -218,6 +224,18 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
 
     const formattedValue = quote.value ? `€${quote.value.toLocaleString("pt-PT")}` : null;
 
+    // Try to get cached Claude script for this quote's D+7 action
+    let callScript: string | null = null;
+    try {
+      const res = await fetch(`/api/quotes/${quote.id}/call-script`);
+      if (res.ok) {
+        const data = await res.json();
+        callScript = data.script ?? null;
+      }
+    } catch {
+      // Silently fall back to static text
+    }
+
     const summary = [
       `Cliente: ${quote.contact?.name || "N/A"}`,
       quote.contact?.company ? `Empresa: ${quote.contact.company}` : null,
@@ -226,7 +244,9 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
       `Enviado: ${sentDate}`,
       "",
       "---",
-      `Script: "Bom dia/boa tarde, ${quote.contact?.name || "cliente"}. Daqui fala [Nome] da [Empresa]. Estou a ligar relativamente ao orçamento que enviei para ${quote.title}. Teve oportunidade de analisar? Há alguma questão que possa esclarecer?"`,
+      callScript
+        ? `Guião:\n${callScript}`
+        : `Script: "Bom dia/boa tarde, ${quote.contact?.name || "cliente"}. Daqui fala ${quote.contact?.company ? `[Nome] da ${quote.contact.company}` : "[Nome] da [Empresa]"}. Estou a ligar relativamente ao orçamento que enviei para ${quote.title}. Teve oportunidade de analisar? Há alguma questão que possa esclarecer?"`,
     ]
       .filter(Boolean)
       .join("\n");
@@ -279,23 +299,36 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
 
       {/* P1-02: Primary actions row */}
       <div className="flex flex-wrap gap-2">
-        {/* P0 Fix: Mark as sent (draft only) - renamed CTA with seed highlight */}
+        {/* Enviar orçamento (draft only) — sends from Ritmo, no BCC needed */}
         {isDraft && (
           <div className="flex flex-col gap-1.5">
-            <Button
-              onClick={handleMarkSent}
-              disabled={loading !== null}
-              className={`gap-1.5 ${showSeedHighlight ? "animate-pulse ring-2 ring-[var(--color-primary)] ring-offset-2" : ""}`}
-            >
-              {loading === "send" ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : showSeedHighlight ? (
-                <Sparkles className="h-4 w-4" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
-              {loading === "send" ? "A enviar..." : "Guardar e iniciar follow-up"}
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                onClick={() => setShowSendModal(true)}
+                disabled={loading !== null}
+                className={`gap-1.5 ${showSeedHighlight ? "animate-pulse ring-2 ring-[var(--color-primary)] ring-offset-2" : ""}`}
+              >
+                {showSeedHighlight ? (
+                  <Sparkles className="h-4 w-4" />
+                ) : (
+                  <Mail className="h-4 w-4" />
+                )}
+                Enviar orçamento
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleMarkSent}
+                disabled={loading !== null}
+                className="gap-1.5"
+              >
+                {loading === "send" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+                {loading === "send" ? "A registar..." : "Já enviei (registar)"}
+              </Button>
+            </div>
             <p className="text-xs text-[var(--color-muted-foreground)]">
               Cria D+1/D+3/D+7/D+14 automaticamente. Só o primeiro envio conta.
             </p>
@@ -363,7 +396,7 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
               type="button"
               onClick={() => handleStatusChange("negotiation")}
               disabled={loading !== null}
-              className="inline-flex h-7 items-center gap-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 text-xs font-medium text-amber-600 transition-colors hover:bg-amber-500/20 disabled:opacity-50"
+              className="inline-flex h-7 items-center gap-1.5 rounded-md border border-[var(--cta-secondary-border)] bg-[var(--cta-secondary)] px-2.5 text-xs font-medium text-[var(--cta-secondary-foreground)] transition-colors hover:brightness-95 disabled:opacity-50"
             >
               {loading === "negotiation" ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -400,6 +433,17 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
             Perdido
           </button>
         </div>
+      )}
+
+      {/* Send quote modal */}
+      {showSendModal && (
+        <SendQuoteModal
+          quoteId={quote.id}
+          contactEmail={quote.contact?.email}
+          quoteTitle={quote.title}
+          proposalFile={quote.proposalFile}
+          onClose={() => setShowSendModal(false)}
+        />
       )}
 
       {/* P1-02: Loss reason modal */}
