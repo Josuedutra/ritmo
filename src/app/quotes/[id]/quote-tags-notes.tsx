@@ -18,7 +18,12 @@ import { pt } from "date-fns/locale";
 
 // P1-03: Predefined quick tags
 const QUICK_TAGS = [
-  { id: "urgente", label: "Urgente", color: "text-red-600 border-red-300 bg-red-500/10" },
+  {
+    id: "urgente",
+    label: "Urgente",
+    color:
+      "text-[var(--color-brand-foreground,white)] border-[var(--color-brand-from)]/50 bg-[var(--color-brand-from)]/15 text-[var(--color-brand-from)]",
+  },
   {
     id: "obra",
     label: "Obra",
@@ -34,7 +39,8 @@ const QUICK_TAGS = [
   {
     id: "residencial",
     label: "Residencial",
-    color: "text-amber-600 border-amber-300 bg-amber-500/10",
+    color:
+      "text-[var(--cta-secondary-foreground)] border-[var(--cta-secondary-border)] bg-[var(--cta-secondary)]",
   },
   { id: "comercial", label: "Comercial", color: "text-cyan-600 border-cyan-300 bg-cyan-500/10" },
 ];

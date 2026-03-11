@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button, Badge, Card, CardContent, toast, Textarea } from "@/components/ui";
 import {
@@ -12,7 +12,6 @@ import {
   FileText,
   Clock,
   Building2,
-  Euro,
   CheckCircle2,
   Plus,
   ClipboardCopy,
@@ -21,6 +20,9 @@ import {
   Zap,
   XCircle,
   Loader2,
+  Sparkles,
+  RotateCcw,
+  Settings,
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -56,6 +58,7 @@ export interface ActionCardProps {
   } | null;
   isTask?: boolean;
   taskId?: string;
+  commProfileSetAt?: Date | null;
   onComplete?: (id: string, notes?: string) => Promise<void>;
   onCopyTemplate?: (template: string) => void;
   onStatusChange?: (quoteId: string, status: string) => Promise<void>;
@@ -75,6 +78,7 @@ export function ActionCard({
   template,
   isTask,
   taskId,
+  commProfileSetAt,
   onComplete,
   onCopyTemplate,
   onStatusChange,
@@ -86,8 +90,14 @@ export function ActionCard({
   const [callNotes, setCallNotes] = useState("");
   const [showNotesField, setShowNotesField] = useState(false);
 
+  // Call script state
+  const [callScript, setCallScript] = useState<string | null>(null);
+  const [scriptLoading, setScriptLoading] = useState(false);
+  const [scriptFallback, setScriptFallback] = useState(false);
+
   const isHigh = priority === "HIGH";
   const isCall = type === "call";
+  const isCallD7 = eventType === "call_d7";
   const Icon = isCall ? Phone : Mail;
   const hasProposal = quote.proposalLink || quote.hasProposalFile;
 
@@ -122,12 +132,41 @@ export function ActionCard({
       : processedTemplate
     : null;
 
-  // Call script bullets
+  // Call script bullets (static fallback)
   const callScriptBullets = [
     `Confirmar se recebeu o orçamento`,
     `Perguntar se tem dúvidas`,
     `Propor próximo passo`,
   ];
+
+  // Fetch Claude call script on mount for D+7 call events
+  const fetchCallScript = async () => {
+    if (!isCallD7) return;
+    setScriptLoading(true);
+    try {
+      const res = await fetch(`/api/actions/${id}/call-script`, { method: "POST" });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.script) {
+          setCallScript(data.script);
+        } else if (data.fallback) {
+          setScriptFallback(true);
+        }
+      }
+    } catch {
+      // Silently fall back to static bullets
+      setScriptFallback(true);
+    } finally {
+      setScriptLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isCallD7) {
+      fetchCallScript();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCallD7, id]);
 
   const handleCopyTemplate = async () => {
     if (!processedTemplate) return;
@@ -158,7 +197,9 @@ export function ActionCard({
       "",
       "---",
       isCall
-        ? `Script: "Bom dia/boa tarde, ${contact?.name || "cliente"}. Daqui fala [Nome] da [Empresa]. Estou a ligar relativamente ao orçamento que enviei há cerca de uma semana para ${quote.title}. Teve oportunidade de analisar? Há alguma questão que possa esclarecer?"`
+        ? callScript
+          ? `Guião:\n${callScript}`
+          : `Script: "Bom dia/boa tarde, ${contact?.name || "cliente"}. Daqui fala [Nome] da [Empresa]. Estou a ligar relativamente ao orçamento que enviei há cerca de uma semana para ${quote.title}. Teve oportunidade de analisar? Há alguma questão que possa esclarecer?"`
         : `Objetivo: Follow-up ${stageLabel} para ${quote.title}`,
     ]
       .filter(Boolean)
@@ -216,9 +257,9 @@ export function ActionCard({
     }
   };
 
-  // P0-07: Priority HIGH styling - amber accent, subtle but noticeable
+  // P0-07: Priority HIGH styling - brand-aligned subtle accent
   const cardClasses = isHigh
-    ? "border-amber-500/50 bg-gradient-to-r from-amber-500/5 to-transparent shadow-[inset_0_0_0_1px_rgba(245,158,11,0.1)]"
+    ? "border-[var(--color-brand-from)]/30 bg-gradient-to-r from-[var(--color-brand-from)]/5 to-transparent"
     : "hover:border-[var(--color-border-hover)]";
 
   return (
@@ -226,7 +267,7 @@ export function ActionCard({
       <CardContent className="p-4">
         {/* P0-07: High priority indicator bar */}
         {isHigh && (
-          <div className="mb-3 flex items-center gap-2 text-amber-600">
+          <div className="mb-3 flex items-center gap-2 text-[var(--color-priority-high)]">
             <AlertTriangle className="h-4 w-4" />
             <span className="text-xs font-medium">Prioritário — requer atenção</span>
           </div>
@@ -240,7 +281,7 @@ export function ActionCard({
               className={`shrink-0 rounded-lg p-2.5 ${
                 isCall
                   ? isHigh
-                    ? "bg-amber-500/15 text-amber-600"
+                    ? "bg-[var(--color-brand-from)]/15 text-[var(--color-brand-from)]"
                     : "bg-green-500/10 text-green-500"
                   : "bg-[var(--color-info-muted)] text-[var(--color-info)]"
               }`}
@@ -311,20 +352,71 @@ export function ActionCard({
           </div>
         )}
 
-        {/* P0-06: Call script bullets */}
+        {/* P0-06 / Claude: Call script */}
         {isCall && (
           <div className="mt-3 rounded-md bg-[var(--color-muted)]/50 p-3">
-            <p className="mb-2 text-xs font-medium text-[var(--color-muted-foreground)]">
-              Script rápido:
-            </p>
-            <ul className="space-y-1">
-              {callScriptBullets.map((bullet, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm">
-                  <span className="text-[var(--color-primary)]">•</span>
-                  {bullet}
-                </li>
-              ))}
-            </ul>
+            {/* Onboarding nudge if comm profile not configured */}
+            {isCallD7 && !commProfileSetAt && (
+              <div className="mb-2 flex items-center gap-2 text-xs text-[var(--color-muted-foreground)]">
+                <Settings className="h-3.5 w-3.5 shrink-0" />
+                <span>
+                  <Link
+                    href="/settings?tab=comm-style"
+                    className="font-medium underline underline-offset-2 hover:text-[var(--color-foreground)]"
+                  >
+                    Configura o teu estilo de comunicação
+                  </Link>{" "}
+                  para guiões mais precisos.
+                </span>
+              </div>
+            )}
+
+            {/* Loading skeleton */}
+            {isCallD7 && scriptLoading && (
+              <div className="flex items-center gap-2 text-xs text-[var(--color-muted-foreground)]">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />A preparar guião...
+              </div>
+            )}
+
+            {/* Claude-generated script */}
+            {isCallD7 && !scriptLoading && callScript && (
+              <>
+                <div className="mb-2 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-[var(--color-muted-foreground)]">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Guião personalizado:
+                  </div>
+                  <button
+                    type="button"
+                    onClick={fetchCallScript}
+                    className="flex items-center gap-1 text-xs text-[var(--color-muted-foreground)] hover:underline"
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                    Regenerar
+                  </button>
+                </div>
+                <pre className="font-sans text-xs leading-relaxed whitespace-pre-wrap">
+                  {callScript}
+                </pre>
+              </>
+            )}
+
+            {/* Static fallback (no API key or non-D7) */}
+            {(!isCallD7 || (!scriptLoading && !callScript)) && (
+              <>
+                <p className="mb-2 text-xs font-medium text-[var(--color-muted-foreground)]">
+                  Script rápido:
+                </p>
+                <ul className="space-y-1">
+                  {callScriptBullets.map((bullet, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm">
+                      <span className="text-[var(--color-primary)]">•</span>
+                      {bullet}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
           </div>
         )}
 

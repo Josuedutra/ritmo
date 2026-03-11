@@ -351,6 +351,7 @@ export async function POST(request: NextRequest) {
         originalTo: originalTo || null,
         subject: subject || null,
         emailSentAt,
+        bodyText: emailBodyText || null,
       });
 
       // Create ingestion record linked to the new quote
@@ -411,7 +412,7 @@ export async function POST(request: NextRequest) {
               autoResult.quote.id,
               attachment.filename,
               buffer,
-              "application/pdf"
+              normalizedContentType
             );
 
             if (!uploadResult.success || !uploadResult.path) {
@@ -429,7 +430,7 @@ export async function POST(request: NextRequest) {
               data: {
                 organizationId: org.id,
                 filename: attachment.filename,
-                contentType: "application/pdf",
+                contentType: normalizedContentType,
                 sizeBytes: BigInt(attachment.size),
                 storagePath,
                 expiresAt: retentionPolicy.expiresAt,
@@ -661,7 +662,7 @@ export async function POST(request: NextRequest) {
             quote.id,
             attachment.filename,
             buffer,
-            "application/pdf"
+            normalizedContentType
           );
 
           if (!uploadResult.success || !uploadResult.path) {
@@ -683,7 +684,7 @@ export async function POST(request: NextRequest) {
             data: {
               organizationId: org.id,
               filename: attachment.filename,
-              contentType: "application/pdf",
+              contentType: normalizedContentType,
               sizeBytes: BigInt(attachment.size),
               storagePath,
               expiresAt: retentionPolicy.expiresAt,

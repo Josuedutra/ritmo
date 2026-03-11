@@ -244,25 +244,26 @@ describe("P0 Storage Guardrails Smoke Tests", () => {
    * When only extracting links (no PDF), storage should not change
    */
   describe("T4: Link-only inbound", () => {
-    it("should verify ALLOWED_MIME_TYPES only includes PDF", () => {
-      expect(ALLOWED_MIME_TYPES).toEqual(["application/pdf"]);
-      expect(ALLOWED_MIME_TYPES.length).toBe(1);
+    it("should verify ALLOWED_MIME_TYPES includes PDF and Excel types", () => {
+      expect(ALLOWED_MIME_TYPES).toContain("application/pdf");
+      expect(ALLOWED_MIME_TYPES).toContain(
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      );
+      expect(ALLOWED_MIME_TYPES).toContain("application/vnd.ms-excel");
+      expect(ALLOWED_MIME_TYPES.length).toBe(3);
     });
 
-    it("should reject Excel files at MIME gate level", async () => {
+    it("should allow Excel files at MIME gate level", async () => {
       const orgId = "org-excel-test";
       const fileSize = 500 * 1024; // 500 KB
       const mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
       const result = await checkAndReserveStorageQuota(orgId, fileSize, mimeType);
 
-      expect(result.allowed).toBe(false);
-      if (!result.allowed) {
-        expect(result.reason).toBe("MIME_TYPE_REJECTED");
-      }
+      expect(result.allowed).toBe(true);
 
-      // Storage should NOT be affected for rejected MIME types
-      expect(mockPrisma.$executeRaw).not.toHaveBeenCalled();
+      // Storage quota should be reserved for allowed Excel files
+      expect(mockPrisma.$executeRaw).toHaveBeenCalled();
     });
 
     it("should not increment storage for link extraction", () => {
