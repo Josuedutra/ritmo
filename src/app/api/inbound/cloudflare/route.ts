@@ -348,12 +348,18 @@ export async function POST(request: NextRequest) {
       // Default keywords: applied when org has no custom list configured.
       // Covers common PT/EN quote-related subjects out of the box.
       const DEFAULT_BCC_KEYWORDS = [
-        "orçamento", "proposta", "cotação", "orç", "prop",
-        "quote", "budget", "estimate", "proposal",
+        "orçamento",
+        "proposta",
+        "cotação",
+        "orç",
+        "prop",
+        "quote",
+        "budget",
+        "estimate",
+        "proposal",
       ];
       const rawKeywords = (orgData as any)?.bccSubjectKeywords;
-      const keywords: string[] =
-        rawKeywords ? JSON.parse(rawKeywords) : DEFAULT_BCC_KEYWORDS;
+      const keywords: string[] = rawKeywords ? JSON.parse(rawKeywords) : DEFAULT_BCC_KEYWORDS;
 
       const subjectLower = (subject || "").toLowerCase();
       const matches = keywords.some((kw: string) => subjectLower.includes(kw.toLowerCase()));
