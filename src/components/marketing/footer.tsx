@@ -22,6 +22,9 @@ export function Footer() {
           <Link href="/cookies" className="transition-colors hover:text-black">
             Cookies
           </Link>
+          <Link href="/suporte" className="transition-colors hover:text-black">
+            Suporte
+          </Link>
           <a href="#" className="termly-display-preferences transition-colors hover:text-black">
             Preferências de Consentimento
           </a>
