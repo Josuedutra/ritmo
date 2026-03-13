@@ -14,7 +14,7 @@ export const metadata = {
 
 const faqItems = [
   {
-    question: "Como criar a minha primeira cobrança?",
+    question: "Como criar o meu primeiro orçamento?",
     answer:
       'Aceda ao painel, clique em "Novo Orçamento", preencha os dados do cliente (nome, email, empresa) e os detalhes do orçamento (valor, referência). Pode anexar a proposta em PDF ou adicionar um link. Depois de guardar, marque como "Enviado" quando enviar ao cliente.',
     category: "Onboarding",
@@ -46,7 +46,7 @@ const faqItems = [
   {
     question: "Os meus dados estão seguros?",
     answer:
-      "Sim. Utilizamos encriptação TLS em todas as comunicações, os dados são armazenados em servidores na UE (Neon PostgreSQL), e seguimos as melhores práticas de segurança do RGPD. Consulte a nossa Política de Privacidade para mais detalhes.",
+      "Sim. Utilizamos encriptação TLS em todas as comunicações, os dados são armazenados em servidores na União Europeia, e seguimos as melhores práticas de segurança do RGPD. Consulte a nossa Política de Privacidade para mais detalhes.",
     category: "Segurança",
   },
   {
@@ -66,6 +66,18 @@ const faqItems = [
     answer:
       "Oferecemos um trial de 14 dias sem cartão para que possa avaliar o serviço. Após a subscrição, não efetuamos reembolsos por períodos não utilizados. O cancelamento impede cobranças futuras e mantém o acesso até ao fim do período pago.",
     category: "Billing",
+  },
+  {
+    question: "O Ritmo cumpre o RGPD? Que responsabilidades tenho como utilizador?",
+    answer:
+      "Sim. O Ritmo actua como subprocessador dos seus dados: os dados dos seus clientes ficam sob a sua responsabilidade (você é o responsável pelo tratamento), e o Ritmo apenas os processa para lhe prestar o serviço. Dispomos de um DPA (Data Processing Agreement) disponível mediante pedido. Consulte a nossa Política de Privacidade para os detalhes completos.",
+    category: "Segurança",
+  },
+  {
+    question: "Posso importar os meus clientes e orçamentos existentes?",
+    answer:
+      "Pode importar contactos em formato CSV a partir de Definições → Utilizadores. Para migração de dados históricos (orçamentos, histórico de comunicação), contacte-nos por email — ajudamos a preparar o ficheiro de importação no formato correcto. O processo leva menos de 30 minutos para a maioria das PME.",
+    category: "Onboarding",
   },
   {
     question: "Como contacto o suporte?",
@@ -88,19 +100,19 @@ export default function SuportePage() {
         </Link>
 
         {/* Page Title */}
-        <h1 className="mb-2 text-3xl font-bold">Centro de Ajuda</h1>
+        <h1 className="mb-2 text-3xl font-bold">Suporte Ritmo</h1>
         <p className="mb-12 text-[var(--color-muted-foreground)]">
-          Encontre respostas às perguntas mais frequentes ou contacte-nos directamente.
+          Estamos disponíveis de segunda a sexta, das 9h às 18h. Respondemos em menos de 4 horas.
         </p>
 
         {/* SLA / Contact Section */}
         <section className="mb-16 rounded-lg border border-[var(--color-border)] bg-[var(--color-muted)]/20 p-8">
           <h2 className="mb-6 text-xl font-semibold text-[var(--color-foreground)]">
-            Suporte Ritmo
+            Fale connosco
           </h2>
           <p className="mb-6 leading-relaxed text-[var(--color-muted-foreground)]">
-            Estamos aqui para ajudar. Respondemos a todos os pedidos em horário útil (Seg-Sex,
-            9h-18h) com um tempo médio de resposta inferior a 4 horas.
+            Respondemos a todos os pedidos dentro do horário útil. Tempo médio de primeira resposta:
+            menos de 4 horas.
           </p>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -153,8 +165,9 @@ export default function SuportePage() {
           <div className="mt-6 flex items-start gap-3 rounded-md border border-[var(--color-border)] bg-[var(--color-background)] p-4">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
             <p className="text-sm text-[var(--color-muted-foreground)]">
-              <strong className="text-[var(--color-foreground)]">Emergências</strong> (plataforma em
-              baixo, problema de pagamento): indique &quot;URGENTE&quot; no assunto do email.
+              <strong className="text-[var(--color-foreground)]">Para situações urgentes</strong>{" "}
+              (plataforma indisponível, problema de pagamento): envie email com &quot;URGENTE&quot;
+              no assunto — respondemos em menos de 1 hora.
             </p>
           </div>
         </section>
@@ -185,7 +198,7 @@ export default function SuportePage() {
               <tbody className="text-[var(--color-muted-foreground)]">
                 <tr className="border-b border-[var(--color-border)]">
                   <td className="px-4 py-3 font-medium text-red-600">P0 — Crítico</td>
-                  <td className="px-4 py-3">Plataforma indisponível, dados comprometidos</td>
+                  <td className="px-4 py-3">Plataforma indisponível ou dados comprometidos</td>
                   <td className="px-4 py-3">&lt; 1 hora</td>
                   <td className="px-4 py-3">&lt; 4 horas</td>
                 </tr>
@@ -205,7 +218,9 @@ export default function SuportePage() {
                   <td className="px-4 py-3 font-medium text-[var(--color-muted-foreground)]">
                     P3 — Baixo
                   </td>
-                  <td className="px-4 py-3">Dúvida, pedido de feature, cosmético</td>
+                  <td className="px-4 py-3">
+                    Questão geral, sugestão de funcionalidade, problema cosmético
+                  </td>
                   <td className="px-4 py-3">&lt; 24 horas úteis</td>
                   <td className="px-4 py-3">&lt; 5 dias úteis</td>
                 </tr>
