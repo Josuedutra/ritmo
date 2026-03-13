@@ -58,34 +58,10 @@ export async function POST(request: NextRequest) {
   log.info({ period }, "Starting commission calculation");
 
   try {
-    // Find all CONVERTED attributions with active subscriptions
+    // Find all CONVERTED attributions
     const attributions = await prisma.referralAttribution.findMany({
       where: {
         status: "CONVERTED",
-        organization: {
-          subscription: {
-            status: "active",
-          },
-        },
-      },
-      include: {
-        partner: true,
-        organization: {
-          select: {
-            id: true,
-            name: true,
-            users: {
-              take: 1,
-              orderBy: { createdAt: "asc" },
-              select: { id: true },
-            },
-            subscription: {
-              include: {
-                plan: true,
-              },
-            },
-          },
-        },
       },
     });
 
@@ -96,12 +72,37 @@ export async function POST(request: NextRequest) {
     const errors: string[] = [];
 
     for (const attribution of attributions) {
-      const { organization, partner } = attribution;
+      const { organizationId, partnerId } = attribution;
 
-      // Guard: org must have a subscription with a plan
+      // Fetch the organization with subscription and primary user
+      const organization = await prisma.organization.findUnique({
+        where: { id: organizationId },
+        select: {
+          id: true,
+          name: true,
+          users: {
+            take: 1,
+            orderBy: { createdAt: "asc" },
+            select: { id: true },
+          },
+          subscription: {
+            include: {
+              plan: true,
+            },
+          },
+        },
+      });
+
+      if (!organization) {
+        log.warn({ organizationId }, "Organization not found — skipping");
+        skipped++;
+        continue;
+      }
+
+      // Guard: org must have an active subscription with a plan
       const subscription = organization.subscription;
-      if (!subscription || !subscription.plan) {
-        log.warn({ organizationId: organization.id }, "No active subscription/plan — skipping");
+      if (!subscription || subscription.status !== "active" || !subscription.plan) {
+        log.warn({ organizationId }, "No active subscription/plan — skipping");
         skipped++;
         continue;
       }
@@ -109,13 +110,12 @@ export async function POST(request: NextRequest) {
       // Guard: org must have at least one user for clientId
       const primaryUser = organization.users[0];
       if (!primaryUser) {
-        log.warn({ organizationId: organization.id }, "No users found — skipping");
+        log.warn({ organizationId }, "No users found — skipping");
         skipped++;
         continue;
       }
 
       const clientId = primaryUser.id;
-      const partnerId = attribution.partnerId;
 
       // Check idempotency: skip if commission already exists for this period
       const existing = await prisma.partnerCommission.findUnique({
