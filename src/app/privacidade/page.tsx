@@ -20,8 +20,7 @@ export default function PrivacidadePage() {
 
         <h1 className="mb-2 text-3xl font-bold">Política de Privacidade</h1>
         <p className="mb-8 text-[var(--color-muted-foreground)]">
-          <strong className="text-[var(--color-foreground)]">Última atualização:</strong> Fevereiro
-          2026
+          <strong className="text-[var(--color-foreground)]">Última atualização:</strong> Março 2026
         </p>
 
         <div className="prose prose-invert max-w-none space-y-8 text-[var(--color-muted-foreground)]">
@@ -292,6 +291,57 @@ export default function PrivacidadePage() {
               Comissão Europeia (Art. 46.º RGPD). Todos os subprocessadores estão localizados nos
               EUA — as transferências são efetuadas ao abrigo de SCC.
             </p>
+            <div className="mt-6 rounded-lg border border-[var(--color-border)] bg-[var(--color-muted)]/20 p-4">
+              <h3 className="mb-3 text-lg font-medium text-[var(--color-foreground)]">
+                5.1 Acordo de Processamento de Dados (DPA)
+              </h3>
+              <p className="mb-3">
+                Quando utiliza o Ritmo para gerir orçamentos e cobranças dos seus clientes, o Ritmo
+                atua como <strong className="text-[var(--color-foreground)]">Processador</strong>{" "}
+                dos dados pessoais dos seus clientes, sendo a sua empresa o{" "}
+                <strong className="text-[var(--color-foreground)]">
+                  Responsável pelo Tratamento
+                </strong>{" "}
+                desses dados (Art. 28.º RGPD).
+              </p>
+              <p className="mb-3">Neste contexto, o Ritmo compromete-se a:</p>
+              <ul className="mb-3 list-disc space-y-1 pl-6">
+                <li>
+                  Tratar os dados pessoais apenas segundo as instruções documentadas do Responsável
+                </li>
+                <li>
+                  Garantir que as pessoas autorizadas a tratar os dados estão sujeitas a obrigações
+                  de confidencialidade
+                </li>
+                <li>
+                  Implementar as medidas técnicas e organizativas adequadas (conforme secção 7)
+                </li>
+                <li>
+                  Não recorrer a outro subprocessador sem autorização prévia por escrito — a lista
+                  acima constitui a autorização geral; alterações serão notificadas com 30 dias de
+                  antecedência
+                </li>
+                <li>Assistir o Responsável no cumprimento dos direitos dos titulares dos dados</li>
+                <li>
+                  Eliminar ou devolver todos os dados pessoais após o término da prestação de
+                  serviços, a pedido do Responsável
+                </li>
+                <li>
+                  Disponibilizar ao Responsável todas as informações necessárias para demonstrar o
+                  cumprimento das obrigações do Art. 28.º RGPD
+                </li>
+              </ul>
+              <p className="text-sm">
+                Clientes com plano pago podem solicitar um DPA formal assinado contactando{" "}
+                <a
+                  href="mailto:privacidade@useritmo.pt"
+                  className="text-[var(--color-primary)] hover:underline"
+                >
+                  privacidade@useritmo.pt
+                </a>
+                .
+              </p>
+            </div>
           </section>
 
           {/* 6. Retenção */}
