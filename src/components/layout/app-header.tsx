@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   Briefcase,
+  HelpCircle,
 } from "lucide-react";
 import { useState } from "react";
 import { ModeToggle } from "@/components/mode-toggle";
@@ -152,6 +153,17 @@ export function AppHeader({ user, isPartner = false }: AppHeaderProps) {
               Parceiro
             </Link>
           )}
+          <Link
+            href="/suporte"
+            onClick={() => setMobileMenuOpen(false)}
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm",
+              pathname === "/suporte" ? "bg-accent text-accent-foreground" : "hover:bg-accent/50"
+            )}
+          >
+            <HelpCircle className="h-4 w-4" />
+            Suporte
+          </Link>
         </nav>
       )}
     </header>
