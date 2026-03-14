@@ -198,7 +198,7 @@ function SignupForm() {
           <p className="text-sm text-[var(--color-muted-foreground)]">
             {referralPartner
               ? "Crie a sua conta para aceder ao cockpit de parceiro"
-              : "14 dias grátis. Sem cartão. Cancela quando quiser."}
+              : "Acompanhe todos os seus orçamentos sem resposta. 14 dias grátis, sem cartão."}
           </p>
           {/* Referral partner badge */}
           {referralPartner && (
@@ -400,7 +400,7 @@ export default function SignupPage() {
             href="/login"
             className="text-sm text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
           >
-            Já tem conta? Entrar
+            Já tem conta? Iniciar sessão
           </Link>
         </div>
       </header>

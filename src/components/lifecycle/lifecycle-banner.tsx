@@ -89,7 +89,7 @@ export function LifecycleBanner() {
                 <p
                   className={`mt-1 text-xs ${isUrgent ? "text-orange-300/70" : "text-[var(--color-info)]/70"}`}
                 >
-                  Captura BCC utilizada. Atualize para capturas ilimitadas.
+                  Captura BCC esgotada. Actualize para nunca perder uma proposta.
                 </p>
               )}
               <Link
@@ -117,7 +117,8 @@ export function LifecycleBanner() {
             <AlertTriangle className="mt-0.5 h-5 w-5 text-[var(--color-muted-foreground)]" />
             <div>
               <p className="text-sm font-medium">
-                Modo manual · {entitlements.quotesUsed}/{entitlements.quotesLimit} envios este mês
+                Plano Free — follow-up manual · {entitlements.quotesUsed}/{entitlements.quotesLimit}{" "}
+                envios este mês
               </p>
               <Link
                 href="/settings/billing"

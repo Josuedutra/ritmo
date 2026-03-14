@@ -556,8 +556,9 @@ export function OnboardingWizard({
                           </Badge>
                         </div>
                         <p className="mt-2 text-sm leading-relaxed text-[var(--color-muted-foreground)]">
-                          Comece já. Os emails saem do servidor Ritmo com remetente
-                          noreply@useritmo.pt. Pode ligar o seu próprio domínio mais tarde.
+                          Comece já. Os emails saem com remetente noreply@useritmo.pt — adequado
+                          para testar. Para enviar com o seu próprio email
+                          (comercial@suaempresa.pt), ligue o SMTP nas definições.
                         </p>
                       </div>
                     </div>
