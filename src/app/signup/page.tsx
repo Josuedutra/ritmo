@@ -194,11 +194,11 @@ function SignupForm() {
     <div className="w-full max-w-sm space-y-6">
       <Card>
         <CardHeader className="text-center">
-          <h1 className="text-xl font-semibold">Criar conta</h1>
+          <h1 className="text-xl font-semibold">Comece a recuperar orçamentos hoje.</h1>
           <p className="text-sm text-[var(--color-muted-foreground)]">
             {referralPartner
               ? "Crie a sua conta para aceder ao cockpit de parceiro"
-              : "Comece o seu trial de 14 dias"}
+              : "14 dias grátis. Sem cartão. Cancela quando quiser."}
           </p>
           {/* Referral partner badge */}
           {referralPartner && (
@@ -350,7 +350,7 @@ function SignupForm() {
                 ? "A criar conta..."
                 : referralPartner
                   ? "Criar conta de parceiro"
-                  : "Começar trial"}
+                  : "Criar conta grátis"}
             </Button>
           </form>
 

@@ -54,7 +54,7 @@ export function PremiumHeader() {
           </Link>
           <Link href="/signup">
             <Button className="rounded-full bg-white px-6 text-black transition-colors hover:bg-zinc-200">
-              Começar trial
+              Experimentar grátis
             </Button>
           </Link>
         </div>

@@ -42,7 +42,7 @@ export function LandingHeader() {
             </Button>
           </Link>
           <Link href="/signup">
-            <Button size="sm">Começar trial</Button>
+            <Button size="sm">Experimentar grátis</Button>
           </Link>
         </div>
 
@@ -78,7 +78,7 @@ export function LandingHeader() {
                 </Button>
               </Link>
               <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>
-                <Button className="w-full">Começar trial</Button>
+                <Button className="w-full">Experimentar grátis</Button>
               </Link>
             </div>
           </nav>
