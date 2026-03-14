@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { logger, AppLogger } from "@/lib/logger";
 import { isBusinessDay, isWithinSendWindow } from "@/lib/business-days";
 import { toZonedTime } from "date-fns-tz";
-import { endOfDay, startOfDay } from "date-fns";
+import { endOfDay, startOfDay, subDays } from "date-fns";
 import { sendCadenceEmail, hasEmailCapability, isEmailSuppressed } from "@/lib/email";
 import { canUseAutoEmail } from "@/lib/entitlements";
 import {
@@ -212,6 +212,10 @@ async function processOrganization(
   const todayStart = startOfDay(nowInTz);
   const todayEnd = endOfDay(nowInTz);
 
+  // Catch-up window: also process overdue events from the last 14 days
+  // This handles cases where the cron was misconfigured or skipped (e.g. send window mismatch)
+  const catchupStart = subDays(todayStart, 14);
+
   // Claim a batch of events using atomic update
   // This ensures idempotency - only one worker can claim each event
   const claimedEvents = await prisma.$queryRaw<{ id: string }[]>`
@@ -224,7 +228,7 @@ async function processOrganization(
             SELECT id FROM cadence_events
             WHERE organization_id = ${org.id}
             AND status = 'scheduled'
-            AND scheduled_for >= ${todayStart}
+            AND scheduled_for >= ${catchupStart}
             AND scheduled_for <= ${todayEnd}
             LIMIT ${BATCH_SIZE}
             FOR UPDATE SKIP LOCKED
