@@ -41,8 +41,7 @@ export function RoiCalculator() {
   const effectiveMargin =
     selectedPlan === "pro" ? Math.min(margin + PRO_AUTOMATION_BONUS_PP, 95) : margin;
 
-  const monthlyProfit =
-    ticket * (effectiveMargin / 100) * proposals * (selectedPlan === "pro" ? teamSize : 1);
+  const monthlyProfit = ticket * (effectiveMargin / 100) * proposals;
 
   const monthlyCost = PLAN_COSTS[selectedPlan][isAnnual ? "annual" : "monthly"];
 
