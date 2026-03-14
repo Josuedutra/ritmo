@@ -98,9 +98,9 @@ function LoginForm() {
   return (
     <Card className="w-full max-w-sm">
       <CardHeader className="text-center">
-        <h1 className="text-xl font-semibold">Iniciar sessão</h1>
+        <h1 className="text-xl font-semibold">Bem-vindo de volta.</h1>
         <p className="text-sm text-[var(--color-muted-foreground)]">
-          Entre com as suas credenciais
+          Os seus orçamentos estão à sua espera.
         </p>
       </CardHeader>
 

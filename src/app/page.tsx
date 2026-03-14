@@ -121,7 +121,9 @@ function PricingToggleSection() {
               </motion.span>
               <span className="text-sm font-medium text-zinc-500">/mês</span>
             </div>
-            <p className="mb-6 text-sm text-zinc-600">Para testar o essencial, em modo manual.</p>
+            <p className="mb-6 text-sm text-zinc-600">
+              Para perceber como funciona, sem comprometer nada.
+            </p>
             <ul className="mb-6 flex-grow space-y-3 text-sm">
               <li className="flex items-start gap-2 text-zinc-600">
                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
@@ -145,7 +147,7 @@ function PricingToggleSection() {
                 variant="outline"
                 className="h-10 w-full rounded-full border-zinc-300 text-sm hover:bg-zinc-50"
               >
-                Continuar grátis
+                Começar no Free
               </Button>
             </Link>
           </div>
@@ -281,7 +283,7 @@ function PricingToggleSection() {
               <span className="text-2xl font-bold text-zinc-900">Sob consulta</span>
             </div>
             <p className="mb-6 text-sm text-zinc-600">
-              Para operações maiores e requisitos especiais.
+              Para empresas com processos próprios e volume acima de 250 orçamentos/mês.
             </p>
             <ul className="mb-6 flex-grow space-y-3 text-sm">
               <li className="flex items-start gap-2 text-zinc-600">
@@ -310,7 +312,7 @@ function PricingToggleSection() {
                 variant="outline"
                 className="h-10 w-full rounded-full border-zinc-300 text-sm hover:bg-zinc-50"
               >
-                Falar connosco
+                Solicitar demonstração
               </Button>
             </a>
           </div>
@@ -464,7 +466,7 @@ export default function LandingPage() {
             </Link>
             <Link href="/signup">
               <Button className="rounded-full bg-black px-6 font-medium text-white hover:bg-zinc-800">
-                Começar Trial
+                Experimentar grátis
               </Button>
             </Link>
           </div>
@@ -506,7 +508,7 @@ export default function LandingPage() {
                       size="lg"
                       className="h-14 rounded-full bg-gradient-to-r from-blue-400 to-emerald-400 px-10 text-lg text-white shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 hover:from-blue-500 hover:to-emerald-500 hover:shadow-xl"
                     >
-                      Começar trial grátis
+                      Começar grátis — sem cartão
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                   </Link>
@@ -577,7 +579,7 @@ export default function LandingPage() {
 
                   <Link href="/signup">
                     <Button className="mt-4 h-12 rounded-full bg-white px-8 font-medium text-zinc-900 hover:bg-zinc-100">
-                      Começar agora
+                      Quero acompanhar os meus orçamentos
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
@@ -1098,7 +1100,7 @@ export default function LandingPage() {
           <div className="relative z-10 container mx-auto max-w-4xl text-center">
             <h2 className="mb-8 text-5xl font-medium tracking-tighter md:text-7xl">Comece hoje.</h2>
             <p className="mx-auto mb-12 max-w-2xl text-xl text-zinc-400">
-              Em 10 minutos está a enviar e acompanhar follow-ups.
+              Em 10 minutos está a acompanhar todos os seus orçamentos sem resposta.
             </p>
 
             <div className="mb-4 flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -1107,7 +1109,7 @@ export default function LandingPage() {
                   size="lg"
                   className="h-16 rounded-full bg-gradient-to-r from-blue-400 to-emerald-400 px-12 text-lg font-bold text-white shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 hover:from-blue-500 hover:to-emerald-500 hover:shadow-xl"
                 >
-                  Começar trial grátis
+                  Começar grátis hoje
                 </Button>
               </Link>
               <Link href="/signup?provider=google">
