@@ -103,7 +103,4 @@ export default withSentryConfig(nextConfig, {
 
   // Automatically tree-shake Sentry logger statements in production
   disableLogger: true,
-
-  // Hides source maps from generated client bundles
-  hideSourceMaps: true,
 });
