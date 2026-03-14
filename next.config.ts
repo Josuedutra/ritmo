@@ -96,10 +96,10 @@ export default withSentryConfig(nextConfig, {
   // Suppress build output noise
   silent: !process.env.CI,
 
-  // Upload source maps to Sentry for readable stack traces
-  // Disabled if DSN is not set (e.g., local dev without Sentry)
-  disableServerWebpackPlugin: !process.env.SENTRY_DSN,
-  disableClientWebpackPlugin: !process.env.NEXT_PUBLIC_SENTRY_DSN,
+  // Disable source map upload when DSN is not set (local dev / CI without Sentry)
+  sourcemaps: {
+    disable: !process.env.SENTRY_DSN,
+  },
 
   // Automatically tree-shake Sentry logger statements in production
   disableLogger: true,
