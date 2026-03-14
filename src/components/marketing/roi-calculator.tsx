@@ -31,7 +31,7 @@ export function RoiCalculator() {
   const [bucketIdx, setBucketIdx] = useState(0);
   const [customTicket, setCustomTicket] = useState(1000);
   const [margin, setMargin] = useState(20);
-  const [proposals, setProposals] = useState(3);
+  const [proposals, setProposals] = useState(15);
   const [selectedPlan, setSelectedPlan] = useState<"starter" | "pro">("pro");
   const [teamSize, setTeamSize] = useState(1);
   const [isAnnual] = useState(false);
@@ -159,7 +159,7 @@ export function RoiCalculator() {
         {/* Proposals stepper */}
         <div className="mb-6">
           <label className="mb-3 block text-sm font-medium text-zinc-700">
-            Propostas recuperadas por mês:{" "}
+            Orçamentos enviados por mês:{" "}
             <span className="font-bold text-blue-600">{proposals}</span>
           </label>
           <div className="flex items-center gap-4">
@@ -171,7 +171,7 @@ export function RoiCalculator() {
             </button>
             <span className="w-8 text-center text-xl font-bold text-zinc-900">{proposals}</span>
             <button
-              onClick={() => handleChange("proposals", Math.min(10, proposals + 1))}
+              onClick={() => handleChange("proposals", Math.min(50, proposals + 1))}
               className="h-10 w-10 rounded-full border border-zinc-300 text-lg font-bold text-zinc-600 hover:border-zinc-400"
             >
               +
