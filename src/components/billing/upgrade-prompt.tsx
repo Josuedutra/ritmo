@@ -364,16 +364,20 @@ export function UpgradePrompt({
 // P1.1-02: Punchy PT-PT copy (1-liner + max 2 bullets)
 export const UPGRADE_PROMPTS = {
   send_limit: {
-    title: "Limite de envios atingido",
-    message: "Atingiu o limite de envios deste plano.",
-    bullets: ["Aumente o limite mensal", "Desbloqueie automação e relatórios"],
+    title: "Envios esgotados este mês",
+    message: "Tem orçamentos por seguir mas não pode enviar mais follow-ups.",
+    bullets: ["Retome o follow-up imediatamente", "Desbloqueie emails automáticos + relatórios"],
     ctaLabel: "Ver planos",
   },
   storage_quota: {
-    title: "Armazenamento cheio",
-    message: "Sem espaço para guardar novas propostas.",
-    bullets: ["Mais armazenamento", "Histórico mais longo"],
-    ctaLabel: "Aumentar espaço",
+    title: "Não é possível guardar esta proposta",
+    message:
+      "O seu espaço de armazenamento está cheio. Novas propostas não ficam associadas ao orçamento.",
+    bullets: [
+      "Guarde todas as propostas sem limite",
+      "Consulte o histórico quando precisar de fazer follow-up",
+    ],
+    ctaLabel: "Aumentar plano",
   },
   retention_expired: {
     title: "Proposta expirada",

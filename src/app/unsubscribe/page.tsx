@@ -19,12 +19,12 @@ export default async function UnsubscribePage({ searchParams }: PageProps) {
             <div className="bg-success mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
               <CheckCircle className="text-success h-8 w-8" />
             </div>
-            <CardTitle>Subscrição cancelada</CardTitle>
+            <CardTitle>Email removido com sucesso</CardTitle>
           </CardHeader>
           <CardContent className="text-center">
             <p className="text-[var(--color-muted-foreground)]">
-              O seu email foi removido da nossa lista. Não receberá mais emails de follow-up
-              automáticos.
+              O seu endereço de email foi removido da lista de follow-up automático. Não receberá
+              mais emails desta sequência.
             </p>
           </CardContent>
         </Card>

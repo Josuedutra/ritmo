@@ -148,8 +148,8 @@ function BillingSuccessContent() {
     <SystemPageLayout
       icon={<Check className="h-10 w-10 text-white" />}
       iconBg="bg-green-500"
-      title="Plano ativado"
-      subtitle="A sua subscrição está ativa. Pode continuar a usar o Ritmo."
+      title={subscription ? `Bem-vindo ao ${subscription.planName}.` : "Plano activado"}
+      subtitle="A sua subscrição está activa. Crie o próximo orçamento e veja o follow-up automático em acção."
     >
       {/* Subscription summary */}
       {subscription && (

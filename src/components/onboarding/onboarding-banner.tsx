@@ -56,9 +56,9 @@ export function OnboardingBanner({ isAdmin }: OnboardingBannerProps) {
           <Sparkles className="h-5 w-5 text-[var(--color-primary)]" />
         </div>
         <div>
-          <p className="font-medium">Complete a configuração da sua conta</p>
+          <p className="font-medium">A sua conta precisa de 3 minutos para estar pronta.</p>
           <p className="text-sm text-[var(--color-muted-foreground)]">
-            Configure templates, email e BCC para começar a usar o Ritmo.
+            Configure templates e email para que o Ritmo comece a fazer follow-up automaticamente.
           </p>
         </div>
       </div>

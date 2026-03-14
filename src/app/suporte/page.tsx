@@ -46,7 +46,7 @@ const faqItems = [
   {
     question: "Os meus dados estão seguros?",
     answer:
-      "Sim. Utilizamos encriptação TLS em todas as comunicações, os dados são armazenados em servidores na União Europeia, e seguimos as melhores práticas de segurança do RGPD. Consulte a nossa Política de Privacidade para mais detalhes.",
+      "Sim. Utilizamos encriptação TLS em todas as comunicações, os dados são armazenados com subprocessadores europeus e americanos certificados (SCC/RGPD), conforme detalhado na nossa Política de Privacidade, e seguimos as melhores práticas de segurança do RGPD.",
     category: "Segurança",
   },
   {
@@ -70,7 +70,7 @@ const faqItems = [
   {
     question: "O Ritmo cumpre o RGPD? Que responsabilidades tenho como utilizador?",
     answer:
-      "Sim. O Ritmo actua como subprocessador dos seus dados: os dados dos seus clientes ficam sob a sua responsabilidade (você é o responsável pelo tratamento), e o Ritmo apenas os processa para lhe prestar o serviço. Dispomos de um DPA (Data Processing Agreement) disponível mediante pedido. Consulte a nossa Política de Privacidade para os detalhes completos.",
+      "Sim. O Ritmo actua como subprocessador dos seus dados: os dados dos seus clientes ficam sob a sua responsabilidade (o utilizador é o responsável pelo tratamento), e o Ritmo apenas os processa para lhe prestar o serviço. Dispomos de um DPA (Data Processing Agreement) disponível mediante pedido. Consulte a nossa Política de Privacidade para os detalhes completos.",
     category: "Segurança",
   },
   {
