@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 /**
  * Security Headers Configuration (P0 Security Hardening)
@@ -87,4 +88,19 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  // Sentry organization and project (matches sentry.client/server.config.ts)
+  org: "ritmo",
+  project: "javascript-nextjs_ritmo",
+
+  // Suppress build output noise
+  silent: !process.env.CI,
+
+  // Disable source map upload when DSN is not set (local dev / CI without Sentry)
+  sourcemaps: {
+    disable: !process.env.SENTRY_DSN,
+  },
+
+  // Automatically tree-shake Sentry logger statements in production
+  disableLogger: true,
+});
