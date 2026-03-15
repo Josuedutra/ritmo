@@ -135,7 +135,7 @@ export default function PartnersPage() {
                 name: "Que tipo de clientes beneficia mais do Ritmo?",
                 acceptedAnswer: {
                   "@type": "Answer",
-                  text: "PMEs que vendem por orçamento ou proposta — consultores, arquitectos, empresas de IT, construção, instalações, agências. Qualquer cliente que envie mais de 5 propostas por mês e não tenha sistema de follow-up estruturado.",
+                  text: "PMEs que vendem por orçamento ou proposta — consultores, arquitetos, empresas de TI, construção, instalações, agências. Qualquer cliente que envie mais de 5 propostas por mês e não tenha sistema de follow-up estruturado.",
                 },
               },
               {
@@ -167,7 +167,7 @@ export default function PartnersPage() {
                 name: "O que acontece se um cliente cancelar?",
                 acceptedAnswer: {
                   "@type": "Answer",
-                  text: "A comissão é proporcional ao tempo em que o cliente manteve o plano activo. Se cancelar, deixa de haver comissão desse cliente — sem penalizações para si.",
+                  text: "A comissão é proporcional ao tempo em que o cliente manteve o plano ativo. Se cancelar, deixa de haver comissão desse cliente — sem penalizações para si.",
                 },
               },
               {
@@ -253,7 +253,7 @@ export default function PartnersPage() {
               </span>
               <span className="flex items-center gap-1.5">
                 <Check className="h-4 w-4 text-emerald-500" />
-                Acesso ao pipeline dos seus clientes
+                Acesso ao painel de parceiro (em breve)
               </span>
             </div>
           </div>
@@ -594,7 +594,7 @@ export default function PartnersPage() {
                     },
                     {
                       q: "Que tipo de clientes beneficia mais do Ritmo?",
-                      a: "PMEs que vendem por orçamento ou proposta — consultores, arquitectos, empresas de IT, construção, instalações, agências. Qualquer cliente que envie mais de 5 propostas por mês e não tenha sistema de follow-up estruturado.",
+                      a: "PMEs que vendem por orçamento ou proposta — consultores, arquitetos, empresas de TI, construção, instalações, agências. Qualquer cliente que envie mais de 5 propostas por mês e não tenha sistema de follow-up estruturado.",
                     },
                     {
                       q: "O Ritmo substitui o CRM dos meus clientes?",
@@ -610,7 +610,7 @@ export default function PartnersPage() {
                     },
                     {
                       q: "O que acontece se um cliente cancelar?",
-                      a: "A comissão é proporcional ao tempo em que o cliente manteve o plano activo. Se cancelar, deixa de haver comissão desse cliente — sem penalizações para si.",
+                      a: "A comissão é proporcional ao tempo em que o cliente manteve o plano ativo. Se cancelar, deixa de haver comissão desse cliente — sem penalizações para si.",
                     },
                     {
                       q: "Posso ver o pipeline de propostas dos meus clientes?",

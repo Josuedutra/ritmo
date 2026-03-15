@@ -35,7 +35,7 @@ export function CookieBanner() {
     <div className="fixed right-0 bottom-0 left-0 z-50 p-4 sm:p-6">
       <div className="mx-auto max-w-2xl rounded-xl border border-zinc-200 bg-white p-4 shadow-lg sm:flex sm:items-center sm:justify-between sm:gap-4">
         <p className="mb-3 text-sm text-zinc-600 sm:mb-0">
-          Usamos apenas cookies essenciais para autenticação e segurança.{" "}
+          Utilizamos apenas cookies essenciais para autenticação e segurança.{" "}
           <Link href="/cookies" className="font-medium text-zinc-900 underline hover:text-black">
             Saiba mais
           </Link>

@@ -62,7 +62,7 @@ export default function ForgotPasswordPage() {
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary)]/10">
               <Mail className="h-6 w-6 text-[var(--color-primary)]" />
             </div>
-            <h1 className="text-xl font-semibold">Esqueceu a password?</h1>
+            <h1 className="text-xl font-semibold">Esqueceu-se da password?</h1>
             <p className="text-sm text-[var(--color-muted-foreground)]">
               Introduza o seu email e enviamos instruções para repor a password.
             </p>
@@ -83,8 +83,8 @@ export default function ForgotPasswordPage() {
                   <div>
                     <p className="font-medium">Email enviado!</p>
                     <p className="mt-1 text-xs opacity-80">
-                      Se o email existir na nossa base de dados, receberá instruções para repor a
-                      password.
+                      Verifique a sua caixa de entrada — se tiver conta, receberá o link de
+                      recuperação em breve.
                     </p>
                   </div>
                 </div>

@@ -98,9 +98,9 @@ function LoginForm() {
   return (
     <Card className="w-full max-w-sm">
       <CardHeader className="text-center">
-        <h1 className="text-xl font-semibold">Bem-vindo de volta.</h1>
+        <h1 className="text-xl font-semibold">Entrar no Ritmo.</h1>
         <p className="text-sm text-[var(--color-muted-foreground)]">
-          Os seus orçamentos estão à sua espera.
+          Os seus orçamentos estão à espera de follow-up.
         </p>
       </CardHeader>
 
@@ -162,7 +162,7 @@ function LoginForm() {
                 href="/forgot-password"
                 className="text-xs text-[var(--color-primary)] hover:underline"
               >
-                Esqueci a password
+                Esqueci-me da password
               </Link>
             </div>
             <div className="relative">

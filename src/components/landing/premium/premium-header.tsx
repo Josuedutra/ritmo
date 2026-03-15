@@ -25,7 +25,7 @@ export function PremiumHeader() {
       <div className="container mx-auto flex h-16 items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-2">
           {/* Logo Icon or SVG */}
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 font-bold text-white">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-blue-500 to-emerald-500 font-bold text-white">
             R
           </div>
           <span className="bg-gradient-to-r from-white to-white/70 bg-clip-text text-xl font-bold text-transparent">
