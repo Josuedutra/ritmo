@@ -363,21 +363,21 @@ export default function PartnersPage() {
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {/* Highlight benefit */}
-              <div className="flex flex-col justify-between rounded-2xl bg-zinc-900 p-8 text-white md:col-span-2 lg:col-span-1 lg:row-span-2">
+              <div className="flex flex-col justify-between rounded-2xl border border-zinc-200 bg-zinc-50 p-8 md:col-span-2 lg:col-span-1 lg:row-span-2">
                 <div>
-                  <span className="bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-6xl font-bold tracking-tighter text-transparent md:text-7xl">
+                  <span className="bg-gradient-to-r from-blue-500 to-emerald-500 bg-clip-text text-6xl font-bold tracking-tighter text-transparent md:text-7xl">
                     20%
                   </span>
-                  <h3 className="mt-4 text-2xl font-semibold">Comissão recorrente</h3>
-                  <p className="mt-4 leading-relaxed text-zinc-400">
+                  <h3 className="mt-4 text-2xl font-semibold text-zinc-900">Comissão recorrente</h3>
+                  <p className="mt-4 leading-relaxed text-zinc-600">
                     Recebe 20% da subscrição mensal de cada cliente referenciado, mês após mês,
                     enquanto mantiver o plano.
                   </p>
                 </div>
-                <div className="mt-8 rounded-xl bg-zinc-800 p-4">
-                  <p className="text-sm text-zinc-300">
-                    <strong className="text-white">Exemplo:</strong> 10 clientes no plano Starter
-                    (€39/mês) = <strong className="text-emerald-400">€78/mês</strong> sem esforço
+                <div className="mt-8 rounded-xl bg-white p-4 shadow-sm">
+                  <p className="text-sm text-zinc-600">
+                    <strong className="text-zinc-900">Exemplo:</strong> 10 clientes no plano Starter
+                    (€39/mês) = <strong className="text-emerald-600">€78/mês</strong> sem esforço
                     adicional.
                   </p>
                 </div>
@@ -815,14 +815,14 @@ export default function PartnersPage() {
         </section>
 
         {/* ─── SECTION 9: CTA FINAL ─── */}
-        <section className="relative overflow-hidden bg-black px-6 py-32 text-white">
+        <section className="relative overflow-hidden bg-zinc-50 px-6 py-32">
           <div className="pointer-events-none absolute top-0 left-1/2 h-[400px] w-[800px] -translate-x-1/2 bg-gradient-to-b from-blue-500/10 via-emerald-500/5 to-transparent blur-3xl" />
 
           <div className="relative z-10 container mx-auto max-w-4xl text-center">
-            <h2 className="mb-8 text-4xl leading-[1] font-medium tracking-tighter md:text-6xl">
+            <h2 className="mb-8 text-4xl leading-[1] font-medium tracking-tighter text-zinc-900 md:text-6xl">
               Os seus clientes já estão a perder orçamentos. Ajude-os hoje.
             </h2>
-            <p className="mx-auto mb-12 max-w-2xl text-xl leading-relaxed text-zinc-400">
+            <p className="mx-auto mb-12 max-w-2xl text-xl leading-relaxed text-zinc-600">
               O Ritmo é a ferramenta que garante que cada proposta enviada tem follow-up no timing
               certo. E a comissão recorrente é o seu reconhecimento por ter colocado os seus
               clientes no caminho certo.
