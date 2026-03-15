@@ -552,7 +552,7 @@ export default function LandingPage() {
         {/* WORKS WITH WHAT YOU USE */}
         <section className="mb-[-1px] border-y border-zinc-100 bg-zinc-50 px-6 py-24">
           <div className="container mx-auto max-w-6xl">
-            <div className="group relative overflow-hidden rounded-3xl bg-zinc-900 shadow-2xl ring-1 ring-white/10">
+            <div className="group relative overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-2xl">
               {/* Animated Background Gradients */}
               <div className="pointer-events-none absolute top-0 right-0 h-[600px] w-[600px] translate-x-1/4 -translate-y-1/2 rounded-full bg-blue-500/10 blur-[100px]" />
               <div className="pointer-events-none absolute bottom-0 left-0 h-[500px] w-[500px] -translate-x-1/4 translate-y-1/3 rounded-full bg-emerald-500/5 blur-[80px]" />
@@ -561,16 +561,16 @@ export default function LandingPage() {
                 {/* Left: Text Content */}
                 <div className="space-y-8 text-left">
                   <div className="space-y-4">
-                    <h2 className="text-3xl leading-[1.1] font-medium tracking-tighter text-white md:text-5xl">
-                      <span className="bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                    <h2 className="text-3xl leading-[1.1] font-medium tracking-tighter text-zinc-900 md:text-5xl">
+                      <span className="bg-gradient-to-r from-blue-500 to-emerald-500 bg-clip-text text-transparent">
                         Funciona com o que
                       </span>{" "}
                       <br />
-                      <span className="bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                      <span className="bg-gradient-to-r from-blue-500 to-emerald-500 bg-clip-text text-transparent">
                         já utiliza.
                       </span>
                     </h2>
-                    <p className="max-w-md text-lg leading-relaxed text-zinc-400">
+                    <p className="max-w-md text-lg leading-relaxed text-zinc-600">
                       Sem CRM pesado. Sem mudar processos. <br />
                       Simplesmente conecte o Ritmo ao seu fluxo de trabalho habitual e deixe o
                       follow-up connosco.
@@ -578,7 +578,7 @@ export default function LandingPage() {
                   </div>
 
                   <Link href="/signup">
-                    <Button className="mt-4 h-12 rounded-full bg-white px-8 font-medium text-zinc-900 hover:bg-zinc-100">
+                    <Button className="mt-4 h-12 rounded-full bg-zinc-900 px-8 font-medium text-white hover:bg-zinc-800">
                       Quero acompanhar os meus orçamentos
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
@@ -589,9 +589,9 @@ export default function LandingPage() {
                 <div className="relative flex h-[450px] w-full items-center justify-center perspective-[1000px]">
                   {/* Orbits */}
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="absolute h-[220px] w-[220px] animate-[spin_40s_linear_infinite] rounded-full border border-white/5" />
-                    <div className="absolute h-[340px] w-[340px] animate-[spin_60s_linear_infinite_reverse] rounded-full border border-white/5" />
-                    <div className="absolute h-[460px] w-[460px] animate-[spin_80s_linear_infinite] rounded-full border border-white/5 opacity-40" />
+                    <div className="absolute h-[220px] w-[220px] animate-[spin_40s_linear_infinite] rounded-full border border-zinc-200" />
+                    <div className="absolute h-[340px] w-[340px] animate-[spin_60s_linear_infinite_reverse] rounded-full border border-zinc-200" />
+                    <div className="absolute h-[460px] w-[460px] animate-[spin_80s_linear_infinite] rounded-full border border-zinc-200 opacity-40" />
                   </div>
 
                   {/* Center Hub - 3D R Logo */}
@@ -618,7 +618,7 @@ export default function LandingPage() {
                       alt="Ritmo"
                       width={120}
                       height={120}
-                      className="object-contain mix-blend-lighten"
+                      className="object-contain"
                     />
                   </motion.div>
 
@@ -745,7 +745,7 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="w-full md:w-[70%]">
-                  <div className="hover:shadow-3xl relative aspect-[16/10] transform overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-900 shadow-2xl transition-all duration-700 hover:-translate-y-1">
+                  <div className="hover:shadow-3xl relative aspect-[16/10] transform overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-100 shadow-2xl transition-all duration-700 hover:-translate-y-1">
                     <Image
                       src="/landing_step1_v2.png"
                       alt="Register Quote"
@@ -774,7 +774,7 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="w-full md:w-[70%]">
-                  <div className="hover:shadow-3xl relative aspect-[16/10] transform overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-900 shadow-2xl transition-all duration-700 hover:-translate-y-1">
+                  <div className="hover:shadow-3xl relative aspect-[16/10] transform overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-100 shadow-2xl transition-all duration-700 hover:-translate-y-1">
                     <Image
                       src="/landing_step2_v2.png"
                       alt="Send as Usual"
@@ -804,7 +804,7 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="w-full md:w-[70%]">
-                  <div className="hover:shadow-3xl relative aspect-[16/10] transform overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-900 shadow-2xl transition-all duration-700 hover:-translate-y-1">
+                  <div className="hover:shadow-3xl relative aspect-[16/10] transform overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-100 shadow-2xl transition-all duration-700 hover:-translate-y-1">
                     <Image
                       src="/landing_step3_v2.png"
                       alt="Action Today"
@@ -875,7 +875,7 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <div className="group relative aspect-[16/10] transform overflow-hidden rounded-3xl border border-zinc-200/50 bg-black shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] transition-all duration-700 hover:scale-[1.01]">
+              <div className="group relative aspect-[16/10] transform overflow-hidden rounded-3xl border border-zinc-200 bg-zinc-50 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] transition-all duration-700 hover:scale-[1.01]">
                 {/* Video/Animation Loop */}
                 <video
                   src="/workflow_demo.webm"
@@ -1094,12 +1094,14 @@ export default function LandingPage() {
         </section>
 
         {/* BOTTOM CTA */}
-        <section className="relative overflow-hidden bg-black px-6 py-32 text-white">
+        <section className="relative overflow-hidden bg-zinc-50 px-6 py-32">
           {/* Subtle gradient glow */}
           <div className="pointer-events-none absolute top-0 left-1/2 h-[400px] w-[800px] -translate-x-1/2 bg-gradient-to-b from-blue-500/10 via-emerald-500/5 to-transparent blur-3xl" />
           <div className="relative z-10 container mx-auto max-w-4xl text-center">
-            <h2 className="mb-8 text-5xl font-medium tracking-tighter md:text-7xl">Comece hoje.</h2>
-            <p className="mx-auto mb-12 max-w-2xl text-xl text-zinc-400">
+            <h2 className="mb-8 text-5xl font-medium tracking-tighter text-zinc-900 md:text-7xl">
+              Comece hoje.
+            </h2>
+            <p className="mx-auto mb-12 max-w-2xl text-xl text-zinc-600">
               Em 10 minutos está a acompanhar todos os seus orçamentos sem resposta.
             </p>
 
@@ -1116,7 +1118,7 @@ export default function LandingPage() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="h-16 gap-3 rounded-full border-zinc-600 px-12 text-lg font-bold text-white transition-transform hover:scale-105 hover:bg-zinc-800"
+                  className="h-16 gap-3 rounded-full border-zinc-300 px-12 text-lg font-bold text-zinc-900 transition-transform hover:scale-105 hover:bg-zinc-100"
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none">
                     <path
