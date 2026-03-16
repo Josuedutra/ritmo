@@ -28,6 +28,7 @@ const REJECTED_STATUSES = [
   "rejected_size_exceeded",
   "rejected_mime_type",
   "rejected_quota_exceeded",
+  "rejected_trial_limit",
 ] as const;
 
 export async function GET(request: NextRequest) {
