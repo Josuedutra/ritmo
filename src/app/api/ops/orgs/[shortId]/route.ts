@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 type Params = { params: Promise<{ shortId: string }> };
 
-/** GET /api/ops/orgs/[shortId] — inspect org trial counters */
+/** GET /api/ops/orgs/[shortId] — inspect org trial counters and recent inbound activity */
 export async function GET(request: NextRequest, { params }: Params) {
   const authError = validateOpsToken(request);
   if (authError) return authError;
@@ -37,7 +37,24 @@ export async function GET(request: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "Organization not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ org });
+  // Recent ingestions for this org (last 50)
+  const ingestions = await prisma.inboundIngestion.findMany({
+    where: { organizationId: org.id },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+    select: {
+      id: true,
+      status: true,
+      provider: true,
+      rawFrom: true,
+      rawSubject: true,
+      errorMessage: true,
+      createdAt: true,
+      processedAt: true,
+    },
+  });
+
+  return NextResponse.json({ org, ingestions });
 }
 
 /** PATCH /api/ops/orgs/[shortId] — update trial counters */
