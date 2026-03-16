@@ -252,12 +252,12 @@ export function ProposalSection({ quote }: ProposalSectionProps) {
     <>
       {/* PDF Viewer Dialog */}
       <Dialog open={pdfViewerOpen} onOpenChange={setPdfViewerOpen}>
-        <DialogContent className="flex h-[90vh] max-w-4xl flex-col p-0">
-          <DialogHeader className="flex-row items-center justify-between border-b px-4 py-3">
-            <DialogTitle className="truncate text-sm font-medium">
+        <DialogContent className="flex h-dvh w-full flex-col gap-0 p-0 sm:h-[90vh] sm:max-w-4xl sm:rounded-lg [&>button:last-child]:hidden">
+          <DialogHeader className="flex-row items-center justify-between border-b px-4 py-3 space-y-0">
+            <DialogTitle className="min-w-0 flex-1 truncate text-sm font-medium pr-2">
               {quote.proposalFile?.filename ?? "Proposta"}
             </DialogTitle>
-            <div className="flex items-center gap-2">
+            <div className="flex shrink-0 items-center gap-2">
               {/* Value input in dialog header */}
               {!quoteValue && (
                 <form onSubmit={handleSaveValue} className="flex items-center gap-1.5">
@@ -266,7 +266,7 @@ export function ProposalSection({ quote }: ProposalSectionProps) {
                     placeholder="0.00"
                     value={valueInput}
                     onChange={(e) => setValueInput(e.target.value)}
-                    className="h-7 w-28 text-sm"
+                    className="h-7 w-24 text-sm"
                     step="0.01"
                     min="0"
                   />
@@ -298,7 +298,7 @@ export function ProposalSection({ quote }: ProposalSectionProps) {
               </DialogClose>
             </div>
           </DialogHeader>
-          <div className="flex-1 overflow-hidden">
+          <div className="min-h-0 flex-1">
             {pdfUrl && (
               <iframe
                 src={`https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true`}
