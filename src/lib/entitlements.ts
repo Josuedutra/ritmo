@@ -24,8 +24,8 @@ export const TRIAL_MAX_USERS = 2;
 export const TRIAL_DURATION_DAYS = 14;
 export const MAX_RESENDS_PER_MONTH = 2;
 
-// Trial "aha moment" limits
-export const TRIAL_BCC_INBOUND_LIMIT = 1; // 1 BCC capture for "aha moment"
+// Trial BCC inbound limit (same as overall trial limit)
+export const TRIAL_BCC_INBOUND_LIMIT = 20;
 
 // Plan limits (single source of truth for UI consistency)
 // Storage quotas and retention aligned with P0-STO-FIX-01 decisions
@@ -271,7 +271,7 @@ export function calculateEntitlements(
     // Trial gets starter-level storage
     storageQuotaBytes = PLAN_LIMITS.starter.storageQuotaBytes;
     retentionDays = PLAN_LIMITS.starter.retentionDays;
-    trialBccCaptureLimit = TRIAL_BCC_INBOUND_LIMIT; // 1 capture for aha moment
+    trialBccCaptureLimit = TRIAL_BCC_INBOUND_LIMIT;
   } else {
     // Free tier - limited, no automation
     tier = "free";
@@ -542,7 +542,7 @@ export async function incrementTrialUsage(organizationId: string): Promise<void>
 
 /**
  * Check if trial can use BCC inbound capture.
- * Trial gets 1 capture for "aha moment".
+ * Trial gets 20 captures (same as overall trial limit).
  * Returns: { allowed, isFirstCapture, reason }
  *
  * Note: For atomic check+increment, use checkAndIncrementTrialBccCapture() instead.
