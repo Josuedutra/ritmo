@@ -133,7 +133,7 @@ model Organization {
   trialEndsAt         DateTime? @map("trial_ends_at")     // null = no trial or trial expired
   trialSentLimit      Int       @default(20) @map("trial_sent_limit")  // Max quotes during trial
   trialSentUsed       Int       @default(0) @map("trial_sent_used")    // Quotes sent during trial
-  trialBccCaptures    Int       @default(0) @map("trial_bcc_captures") // BCC inbound captures during trial (limit: 1)
+  trialBccCaptures    Int       @default(0) @map("trial_bcc_captures") // BCC inbound captures during trial (limit: 20)
 
   // Feature flags (determines automation capabilities)
   autoEmailEnabled    Boolean   @default(false) @map("auto_email_enabled")  // Can use AUTO_EMAIL mode in cron
