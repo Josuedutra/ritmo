@@ -253,8 +253,8 @@ export function ProposalSection({ quote }: ProposalSectionProps) {
       {/* PDF Viewer Dialog */}
       <Dialog open={pdfViewerOpen} onOpenChange={setPdfViewerOpen}>
         <DialogContent className="flex h-dvh w-full flex-col gap-0 p-0 sm:h-[90vh] sm:max-w-4xl sm:rounded-lg [&>button:last-child]:hidden">
-          <DialogHeader className="flex-row items-center justify-between border-b px-4 py-3 space-y-0">
-            <DialogTitle className="min-w-0 flex-1 truncate text-sm font-medium pr-2">
+          <DialogHeader className="flex-row items-center justify-between space-y-0 border-b px-4 py-3">
+            <DialogTitle className="min-w-0 flex-1 truncate pr-2 text-sm font-medium">
               {quote.proposalFile?.filename ?? "Proposta"}
             </DialogTitle>
             <div className="flex shrink-0 items-center gap-2">
