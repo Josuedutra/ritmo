@@ -24,6 +24,7 @@ import {
   generateBodyChecksum,
   sanitizeForLog,
   maskEmail,
+  matchesBccKeywords,
 } from "@/lib/inbound";
 import { uploadAttachment } from "@/lib/storage";
 import {
@@ -361,8 +362,7 @@ export async function POST(request: NextRequest) {
       const rawKeywords = (orgData as any)?.bccSubjectKeywords;
       const keywords: string[] = rawKeywords ? JSON.parse(rawKeywords) : DEFAULT_BCC_KEYWORDS;
 
-      const subjectLower = (subject || "").toLowerCase();
-      const matches = keywords.some((kw: string) => subjectLower.includes(kw.toLowerCase()));
+      const matches = matchesBccKeywords(subject, emailBodyText, keywords);
       if (!matches) {
         const filteredIngestion = await prisma.inboundIngestion.create({
           data: {

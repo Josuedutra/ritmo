@@ -206,6 +206,61 @@ export function decodeMimeHeader(header: string): string {
 }
 
 // =============================================================================
+// BCC KEYWORD FILTER
+// =============================================================================
+
+// Forward/reply prefixes to strip before keyword matching (PT + EN)
+const SUBJECT_PREFIXES = /^(fwd?|fw|re|res|enc|rv|tr|aw|wg|sv|vs)\s*:\s*/i;
+
+/**
+ * Strip common forward/reply prefixes from a subject line (recursive).
+ * e.g. "Fwd: Re: Orçamento" → "Orçamento"
+ */
+function stripSubjectPrefixes(subject: string): string {
+  let s = subject.trim();
+  let prev: string;
+  do {
+    prev = s;
+    s = s.replace(SUBJECT_PREFIXES, "").trim();
+  } while (s !== prev);
+  return s;
+}
+
+/**
+ * Check if an inbound email matches the BCC keyword filter.
+ *
+ * Matching strategy (in order):
+ * 1. Decode MIME-encoded subject, strip Fwd:/Re: prefixes → check keywords
+ * 2. Fallback: check plain-text body for keywords (handles subjects that
+ *    arrive truncated or encoded incorrectly by some email clients)
+ *
+ * Returns true if the email should be captured, false if it should be filtered.
+ */
+export function matchesBccKeywords(
+  subject: string | null | undefined,
+  bodyText: string | null | undefined,
+  keywords: string[]
+): boolean {
+  const kwLower = keywords.map((k) => k.toLowerCase());
+
+  // 1. Subject check (decode MIME, strip prefixes)
+  const rawSubject = subject || "";
+  const decodedSubject = decodeMimeHeader(rawSubject);
+  const cleanSubject = stripSubjectPrefixes(decodedSubject).toLowerCase();
+  if (cleanSubject && kwLower.some((kw) => cleanSubject.includes(kw))) {
+    return true;
+  }
+
+  // 2. Body fallback — first 500 chars to avoid scanning huge bodies
+  const bodySnippet = (bodyText || "").slice(0, 500).toLowerCase();
+  if (bodySnippet && kwLower.some((kw) => bodySnippet.includes(kw))) {
+    return true;
+  }
+
+  return false;
+}
+
+// =============================================================================
 // SALUTATION NAME EXTRACTION
 // =============================================================================
 
