@@ -99,8 +99,8 @@ export function OnboardingWizard({
   // Verificar captura modal state
   const [verifyModalOpen, setVerifyModalOpen] = useState(false);
   const [verifyStatus, setVerifyStatus] = useState<
-    "idle" | "loading" | "success" | "not_found" | "trial_limit" | "error"
-  >("idle");
+    "loading" | "success" | "not_found" | "trial_limit" | "error"
+  >("loading");
   const [verifyData, setVerifyData] = useState<{ receivedAt?: string; subject?: string } | null>(
     null
   );
@@ -134,7 +134,7 @@ export function OnboardingWizard({
   };
 
   const resetVerifyModal = () => {
-    setVerifyStatus("idle");
+    setVerifyStatus("loading");
     setVerifyData(null);
   };
 
@@ -212,12 +212,35 @@ export function OnboardingWizard({
     toast.success("Opção alterada para envio via Ritmo");
   };
 
+  // Map step index to onboarding state key (null = no state key for this step)
+  const STEP_STATE_KEYS: Array<"templates" | "smtp" | "bcc" | "firstQuote" | null> = [
+    null, // 0: welcome — no state key
+    "templates", // 1: templates
+    "smtp", // 2: smtp
+    "bcc", // 3: bcc
+    null, // 4: complete — tracked separately via PUT
+  ];
+
+  const trackStepCompleted = (stepIndex: number) => {
+    const stateKey = STEP_STATE_KEYS[stepIndex];
+    if (!stateKey) return;
+    // Fire-and-forget — non-blocking; triggers trackEvent server-side
+    fetch("/api/onboarding", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ step: stateKey, completed: true }),
+    }).catch(() => {
+      // Silently ignore tracking errors
+    });
+  };
+
   const nextStep = () => {
     if (currentStep === 2 && !canAdvanceFromSmtp()) {
       toast.error("Configure o SMTP ou selecione envio via Ritmo para continuar.");
       return;
     }
     if (currentStep < STEPS.length - 1) {
+      trackStepCompleted(currentStep);
       setCurrentStep(currentStep + 1);
     }
   };
@@ -737,7 +760,13 @@ export function OnboardingWizard({
                     open={verifyModalOpen}
                     onOpenChange={(open) => {
                       setVerifyModalOpen(open);
-                      if (!open) resetVerifyModal();
+                      if (open) {
+                        // Auto-trigger verify on open — eliminate idle state click
+                        resetVerifyModal();
+                        handleVerifyCapture();
+                      } else {
+                        resetVerifyModal();
+                      }
                     }}
                   >
                     <DialogTrigger asChild>
@@ -755,22 +784,6 @@ export function OnboardingWizard({
                       </DialogHeader>
 
                       <div className="py-4">
-                        {/* Idle State */}
-                        {verifyStatus === "idle" && (
-                          <div className="text-center">
-                            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-muted)]">
-                              <Search className="h-8 w-8 text-[var(--color-muted-foreground)]" />
-                            </div>
-                            <p className="mb-6 text-sm text-[var(--color-muted-foreground)]">
-                              Clique para verificar se já recebemos algum email BCC da sua conta.
-                            </p>
-                            <Button onClick={handleVerifyCapture} className="gap-2">
-                              <Search className="h-4 w-4" />
-                              Verificar agora
-                            </Button>
-                          </div>
-                        )}
-
                         {/* Loading State */}
                         {verifyStatus === "loading" && (
                           <div className="py-8 text-center">
