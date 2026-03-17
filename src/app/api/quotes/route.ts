@@ -165,6 +165,18 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // S4-04: Track first_quote_created for funnel metrics (check if this is the first)
+    const quoteCount = await prisma.quote.count({
+      where: { organizationId: session.user.organizationId },
+    });
+    if (quoteCount === 1) {
+      trackEvent(ProductEventNames.FIRST_QUOTE_CREATED, {
+        organizationId: session.user.organizationId,
+        userId: session.user.id,
+        props: { quoteId: quote.id },
+      });
+    }
+
     return success(quote, 201);
   } catch (error) {
     return serverError(error, "POST /api/quotes");

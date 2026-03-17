@@ -258,6 +258,28 @@ export async function GET(request: NextRequest) {
     }
 
     // =========================================================================
+    // 4. Product Funnel Metrics (S4-04: 5 core events)
+    // =========================================================================
+    const FUNNEL_EVENTS = [
+      "user_signed_up",
+      "onboarding_completed",
+      "first_quote_created",
+      "first_cadence_activated",
+      "aha_moment",
+    ];
+
+    const funnelCounts: Record<string, number> = {};
+    try {
+      for (const eventName of FUNNEL_EVENTS) {
+        funnelCounts[eventName] = await prisma.productEvent.count({
+          where: { name: eventName },
+        });
+      }
+    } catch {
+      log.warn({ requestId }, "ProductEvent table not available for funnel metrics");
+    }
+
+    // =========================================================================
     // Build Response
     // =========================================================================
     const healthy = alerts.length === 0;
@@ -286,6 +308,7 @@ export async function GET(request: NextRequest) {
           lastPurge: lastPurgeTime?.toISOString() || null,
           isStale: cronStale,
         },
+        productFunnel: funnelCounts,
       },
       thresholds: THRESHOLDS,
     };
