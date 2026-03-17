@@ -23,6 +23,7 @@ import type { Prisma } from "@prisma/client";
 export const ProductEventNames = {
   SIGNUP_COMPLETED: "signup_completed",
   ONBOARDING_STARTED: "onboarding_started",
+  ONBOARDING_STEP_COMPLETED: "onboarding_step_completed",
   ONBOARDING_COMPLETED: "onboarding_completed",
   QUOTE_NEW_OPENED: "quote_new_opened",
   QUOTE_CREATED: "quote_created",

@@ -115,6 +115,13 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Track step completion event (non-blocking)
+    trackEvent(ProductEventNames.ONBOARDING_STEP_COMPLETED, {
+      organizationId: session.user.organizationId,
+      userId: session.user.id,
+      props: { step, completed },
+    });
+
     return success({ state: newState });
   } catch (error) {
     return serverError(error, "POST /api/onboarding");
