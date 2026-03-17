@@ -107,7 +107,10 @@ export function addBusinessDays(
     }
   }
 
-  return current;
+  // Convert back to proper UTC: toZonedTime produces a Date whose UTC value
+  // equals the local time representation (fake UTC). fromZonedTime reverses
+  // this so callers receive a real UTC Date.
+  return fromZonedTime(current, timezone);
 }
 
 /**
