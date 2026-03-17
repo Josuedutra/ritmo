@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { addBusinessDays } from "@/lib/business-days";
 import { Decimal } from "@prisma/client/runtime/library";
 import type { CallPriority, Prisma } from "@prisma/client";
+import { fromZonedTime, toZonedTime } from "date-fns-tz";
 
 // Cadence event types and their business day offsets
 const CADENCE_SCHEDULE = [
@@ -52,7 +53,24 @@ export async function generateCadenceEvents(options: GenerateCadenceOptions) {
 
   // Create cadence events
   const events = CADENCE_SCHEDULE.map((schedule) => {
-    const scheduledFor = addBusinessDays(sentAt, schedule.daysOffset, timezone);
+    // addBusinessDays returns the correct business day in UTC.
+    // Normalize to 09:00 in the org timezone so the cron (runs 09:00 UTC)
+    // always finds the event regardless of what time the quote was sent.
+    const targetDay = addBusinessDays(sentAt, schedule.daysOffset, timezone);
+    const targetZoned = toZonedTime(targetDay, timezone);
+    // Build 09:00 local on that date then convert to UTC
+    const scheduledFor = fromZonedTime(
+      new Date(
+        targetZoned.getFullYear(),
+        targetZoned.getMonth(),
+        targetZoned.getDate(),
+        9,
+        0,
+        0,
+        0
+      ),
+      timezone
+    );
 
     return {
       organizationId,
