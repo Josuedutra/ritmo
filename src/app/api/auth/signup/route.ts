@@ -170,6 +170,11 @@ export async function POST(request: NextRequest) {
         hasReferral: !!referralPayload,
       },
     });
+    // S4-04: Core funnel event
+    trackEvent(ProductEventNames.USER_SIGNED_UP, {
+      organizationId: result.organization.id,
+      userId: result.user.id,
+    });
 
     // Send onboarding welcome email (non-blocking)
     sendWelcomeEmail(

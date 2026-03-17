@@ -180,6 +180,17 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         cadenceResult.eventsCreated,
         isSeedExample
       );
+      // S4-04: Core funnel events — first cadence activated + aha moment
+      trackEvent(ProductEventNames.FIRST_CADENCE_ACTIVATED, {
+        organizationId: session.user.organizationId,
+        userId: session.user.id,
+        props: { quoteId: id, cadenceEventsCreated: cadenceResult.eventsCreated },
+      });
+      trackEvent(ProductEventNames.AHA_MOMENT, {
+        organizationId: session.user.organizationId,
+        userId: session.user.id,
+        props: { quoteId: id, isSeedExample },
+      });
     } else {
       // Track resend event
       trackEvent(ProductEventNames.MARK_SENT_SUCCESS, {

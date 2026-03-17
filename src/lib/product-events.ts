@@ -61,6 +61,11 @@ export const ProductEventNames = {
   SCOREBOARD_VIEWED: "scoreboard_viewed",
   // Manual send tracking (Free tier)
   MANUAL_SEND_MARKED: "manual_send_marked",
+  // S4-04: Core funnel events
+  USER_SIGNED_UP: "user_signed_up",
+  FIRST_QUOTE_CREATED: "first_quote_created",
+  FIRST_CADENCE_ACTIVATED: "first_cadence_activated",
+  AHA_MOMENT: "aha_moment",
 } as const;
 
 export type ProductEventName = (typeof ProductEventNames)[keyof typeof ProductEventNames];
