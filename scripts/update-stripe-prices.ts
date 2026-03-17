@@ -9,8 +9,8 @@
  *
  * Prerequisites:
  * 1. Create products in Stripe Dashboard (Live mode):
- *    - Starter: €39/month
- *    - Pro: €99/month
+ *    - Starter: €19/month
+ *    - Pro: €49/month
  * 2. Copy the price IDs (price_1Abc...) and paste below
  * 3. Run this script
  */
@@ -53,7 +53,7 @@ async function main() {
     console.log("\n📝 Instructions:");
     console.log("  1. Open Stripe Dashboard (Live mode)");
     console.log("  2. Go to Products → Create product");
-    console.log("  3. Create Starter (€39/mo) and Pro (€99/mo)");
+    console.log("  3. Create Starter (€19/mo) and Pro (€49/mo)");
     console.log("  4. Copy the price_xxx IDs");
     console.log("  5. Paste them in LIVE_PRICE_IDS above");
     console.log("  6. Run this script again\n");

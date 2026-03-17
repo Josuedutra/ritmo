@@ -377,7 +377,7 @@ export default function PartnersPage() {
                 <div className="mt-8 rounded-xl bg-white p-4 shadow-sm">
                   <p className="text-sm text-zinc-600">
                     <strong className="text-zinc-900">Exemplo:</strong> 10 clientes no plano Starter
-                    (€39/mês) = <strong className="text-emerald-600">€78/mês</strong> sem esforço
+                    (€19/mês) = <strong className="text-emerald-600">€38/mês</strong> sem esforço
                     adicional.
                   </p>
                 </div>
@@ -480,19 +480,19 @@ export default function PartnersPage() {
                         </span>
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm font-semibold text-zinc-900">€39/mês</td>
+                    <td className="px-6 py-4 text-sm font-semibold text-zinc-900">€19/mês</td>
                     <td className="hidden px-6 py-4 text-sm text-zinc-500 sm:table-cell">
                       Negócio individual, automação completa
                     </td>
-                    <td className="px-6 py-4 text-sm font-semibold text-emerald-600">€7,80/mês</td>
+                    <td className="px-6 py-4 text-sm font-semibold text-emerald-600">€3,80/mês</td>
                   </tr>
                   <tr className="transition-colors hover:bg-zinc-50/50">
                     <td className="px-6 py-4 text-sm font-medium text-zinc-900">Pro</td>
-                    <td className="px-6 py-4 text-sm font-semibold text-zinc-900">€99/mês</td>
+                    <td className="px-6 py-4 text-sm font-semibold text-zinc-900">€49/mês</td>
                     <td className="hidden px-6 py-4 text-sm text-zinc-500 sm:table-cell">
                       Equipas, volume maior, relatórios
                     </td>
-                    <td className="px-6 py-4 text-sm font-semibold text-emerald-600">€19,80/mês</td>
+                    <td className="px-6 py-4 text-sm font-semibold text-emerald-600">€9,80/mês</td>
                   </tr>
                 </tbody>
               </table>
