@@ -141,15 +141,22 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Process each organization
-    for (const org of organizations) {
-      const orgResult = await processOrganization(org, workerId, log);
-      result.processed += orgResult.processed;
-      result.tasksCreated += orgResult.tasksCreated;
-      result.skipped += orgResult.skipped;
-      result.deferred += orgResult.deferred;
-      result.cancelled += orgResult.cancelled;
-      result.failed += orgResult.failed;
+    // Process organizations in parallel batches (concurrency=10)
+    // FOR UPDATE SKIP LOCKED in processOrganization ensures no double-processing
+    const CONCURRENCY = 10;
+    for (let i = 0; i < organizations.length; i += CONCURRENCY) {
+      const batch = organizations.slice(i, i + CONCURRENCY);
+      const batchResults = await Promise.all(
+        batch.map((org) => processOrganization(org, workerId, log))
+      );
+      for (const orgResult of batchResults) {
+        result.processed += orgResult.processed;
+        result.tasksCreated += orgResult.tasksCreated;
+        result.skipped += orgResult.skipped;
+        result.deferred += orgResult.deferred;
+        result.cancelled += orgResult.cancelled;
+        result.failed += orgResult.failed;
+      }
     }
   } catch (error) {
     result.success = false;
