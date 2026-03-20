@@ -93,8 +93,12 @@ describe("E2E: Cadence Flow", () => {
       expect(cronContent).toContain("isBusinessDay");
     });
 
-    it("deve verificar janela de envio", () => {
-      expect(cronContent).toContain("isWithinSendWindow");
+    it("deve verificar janela de envio (via sendCadenceEmail)", () => {
+      // A janela de envio é verificada dentro de sendCadenceEmail (email.ts),
+      // não mais como early-return em processOrganization — permite processar
+      // eventos em atraso (catch-up) mesmo fora da janela do cron.
+      const emailContent = readFile("src/lib/email.ts");
+      expect(emailContent).toContain("isWithinSendWindow");
     });
 
     it("deve cancelar eventos se quote mudou status", () => {
