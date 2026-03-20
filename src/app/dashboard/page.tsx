@@ -230,12 +230,13 @@ async function getDashboardData(organizationId: string, timezone: string) {
         body: true,
       },
     }),
-    // P0-06: Next scheduled action (after today)
+    // P0-06: Next scheduled action (after today) — exclude won/lost quotes
     prisma.cadenceEvent.findFirst({
       where: {
         organizationId,
         scheduledFor: { gt: todayEnd },
         status: "scheduled",
+        quote: { businessStatus: { notIn: ["won", "lost"] } },
       },
       select: {
         id: true,
