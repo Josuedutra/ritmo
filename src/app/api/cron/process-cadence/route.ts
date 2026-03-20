@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logger, AppLogger } from "@/lib/logger";
-import { isBusinessDay, isWithinSendWindow } from "@/lib/business-days";
+import { isBusinessDay } from "@/lib/business-days";
 import { toZonedTime } from "date-fns-tz";
 import { endOfDay, startOfDay, subDays } from "date-fns";
 import { sendCadenceEmail, hasEmailCapability, isEmailSuppressed } from "@/lib/email";
@@ -203,28 +203,33 @@ async function processOrganization(
   const now = new Date();
   const nowInTz = toZonedTime(now, org.timezone);
 
-  // Check if today is a business day
-  if (!isBusinessDay(nowInTz)) {
-    log.info({ orgId: org.id }, "Skipping: not a business day");
-    return result;
-  }
-
-  // Check if within send window
-  if (!isWithinSendWindow(org.sendWindowStart, org.sendWindowEnd, org.timezone)) {
-    log.info({ orgId: org.id }, "Skipping: outside send window");
-    return result;
-  }
-
   // Get today's boundaries
   const todayStart = startOfDay(nowInTz);
   const todayEnd = endOfDay(nowInTz);
 
+  // Skip processing on non-business days — but still process overdue catch-up events
+  // (overdue events are always processed regardless of current day)
+  const isTodayBusinessDay = isBusinessDay(nowInTz);
+
   // Catch-up window: also process overdue events from the last 14 days
-  // This handles cases where the cron was misconfigured or skipped (e.g. send window mismatch)
+  // This handles cases where the cron was misconfigured or skipped
   const catchupStart = subDays(todayStart, 14);
 
-  // Claim a batch of events using atomic update
-  // This ensures idempotency - only one worker can claim each event
+  // Reset deferred events that are due for retry (overdue or today)
+  // Deferred events were previously blocked by send window or cooldown; retry them now
+  await prisma.cadenceEvent.updateMany({
+    where: {
+      organizationId: org.id,
+      status: "deferred",
+      scheduledFor: { lte: now },
+    },
+    data: { status: "scheduled" },
+  });
+
+  // Claim a batch of events using atomic update.
+  // - Overdue events (scheduled_for < todayStart): always claim, even on weekends/holidays
+  // - Today's events (scheduled_for >= todayStart): only claim on business days
+  // This ensures missed events are always caught up without blocking the catch-up on non-business days.
   const claimedEvents = await prisma.$queryRaw<{ id: string }[]>`
         UPDATE cadence_events
         SET
@@ -236,7 +241,10 @@ async function processOrganization(
             WHERE organization_id = ${org.id}
             AND status = 'scheduled'
             AND scheduled_for >= ${catchupStart}
-            AND scheduled_for <= ${todayEnd}
+            AND (
+                scheduled_for < ${todayStart}
+                OR (scheduled_for <= ${todayEnd} AND ${isTodayBusinessDay} = true)
+            )
             LIMIT ${BATCH_SIZE}
             FOR UPDATE SKIP LOCKED
         )
