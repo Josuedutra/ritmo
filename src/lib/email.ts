@@ -298,15 +298,23 @@ export async function sendCadenceEmail(params: SendEmailParams): Promise<SendEma
   const { organizationId, quoteId, cadenceEventId, templateId, to, subject, body, html, replyTo } =
     params;
 
-  // Check 48h cooldown per quote
-  const cooldown = await checkEmailCooldown(quoteId);
-  if (!cooldown.allowed) {
-    log.info({ quoteId, hoursRemaining: cooldown.hoursRemaining }, "Email deferred - 48h cooldown");
-    return {
-      success: false,
-      deferred: true,
-      error: `Email cooldown: wait ${cooldown.hoursRemaining}h`,
-    };
+  // Check 48h cooldown per quote — skip for scheduled cadence events.
+  // Cadence events (email_d1, email_d3, email_d14) are already spaced by the schedule;
+  // applying the cooldown based on actual send time causes D+3 to be blocked when
+  // D+1 was sent late (e.g. D+1 sent at 16:47, D+3 due at 09:00 two days later = ~40h gap).
+  if (!cadenceEventId) {
+    const cooldown = await checkEmailCooldown(quoteId);
+    if (!cooldown.allowed) {
+      log.info(
+        { quoteId, hoursRemaining: cooldown.hoursRemaining },
+        "Email deferred - 48h cooldown"
+      );
+      return {
+        success: false,
+        deferred: true,
+        error: `Email cooldown: wait ${cooldown.hoursRemaining}h`,
+      };
+    }
   }
 
   // Check suppression
