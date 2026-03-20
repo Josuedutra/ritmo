@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { cancelPendingCadence } from "@/lib/cadence";
 import {
   getApiSession,
   unauthorized,
@@ -148,6 +149,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         },
       },
     });
+
+    // Cancel all pending cadence events when quote is marked as won or lost
+    if (rest.businessStatus === "won" || rest.businessStatus === "lost") {
+      await cancelPendingCadence(id, "status_changed");
+    }
 
     return success(quote);
   } catch (error) {
