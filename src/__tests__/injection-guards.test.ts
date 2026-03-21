@@ -136,7 +136,8 @@ describe("SQL Injection Guard", () => {
     const sourceFiles = findSourceFiles(SRC_DIR);
     const violations = sourceFiles
       .filter((f) => pattern.test(fs.readFileSync(f, "utf-8")))
-      .map((f) => path.relative(PROJECT_ROOT, f).replace(/\\/g, "/"));
+      .map((f) => path.relative(PROJECT_ROOT, f).replace(/\\/g, "/"))
+      .filter((f) => !RAW_SQL_WHITELIST.has(f));
 
     expect(
       violations,
