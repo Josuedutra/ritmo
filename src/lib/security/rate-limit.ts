@@ -260,6 +260,9 @@ export const RateLimitConfigs = {
   /** Signup: 10 requests per 10 minutes per IP - fail-closed for anti-abuse */
   signup: { limit: 10, windowSec: 600, failMode: "fail-closed" as const },
 
+  /** OAuth referral: 20 requests per 10 minutes per IP - fail-closed for anti-abuse */
+  oauthReferral: { limit: 20, windowSec: 600, failMode: "fail-closed" as const },
+
   /** Inbound webhook: 60 per 5 min per IP - fail-closed for anti-abuse */
   inboundPerIp: { limit: 60, windowSec: 300, failMode: "fail-closed" as const },
   /** Inbound per org: 200 per 60 min - fail-closed */
