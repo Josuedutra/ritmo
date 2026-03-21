@@ -120,6 +120,29 @@ describe("SQL Injection Guard", () => {
 
     expect(stale).toHaveLength(0);
   });
+
+  it("ZERO files use $queryRawUnsafe (always unsafe — no exceptions)", () => {
+    const pattern = /\$queryRawUnsafe/;
+    const sourceFiles = findSourceFiles(SRC_DIR);
+    const violations = sourceFiles
+      .filter((f) => pattern.test(fs.readFileSync(f, "utf-8")))
+      .map((f) => path.relative(PROJECT_ROOT, f).replace(/\\/g, "/"));
+
+    expect(violations, `$queryRawUnsafe found in: ${violations.join(", ")}`).toHaveLength(0);
+  });
+
+  it("ZERO files use $executeRaw with string interpolation (always unsafe — no exceptions)", () => {
+    const pattern = /\$executeRaw`[^`]*\$\{/;
+    const sourceFiles = findSourceFiles(SRC_DIR);
+    const violations = sourceFiles
+      .filter((f) => pattern.test(fs.readFileSync(f, "utf-8")))
+      .map((f) => path.relative(PROJECT_ROOT, f).replace(/\\/g, "/"));
+
+    expect(
+      violations,
+      `Unsafe $executeRaw interpolation found in: ${violations.join(", ")}`
+    ).toHaveLength(0);
+  });
 });
 
 // ---------------------------------------------------------------------------
