@@ -530,19 +530,19 @@ export function onboardingEmail5(params: { userName?: string }): {
             </tr>
             <tr>
                 <td style="padding: 10px 12px; font-size: 14px; color: ${BRAND.text}; border: 1px solid ${BRAND.border};"><strong>Starter</strong></td>
-                <td style="padding: 10px 12px; font-size: 14px; color: ${BRAND.text}; border: 1px solid ${BRAND.border};">€19/mês</td>
+                <td style="padding: 10px 12px; font-size: 14px; color: ${BRAND.text}; border: 1px solid ${BRAND.border};">€39/mês</td>
                 <td style="padding: 10px 12px; font-size: 14px; color: ${BRAND.text}; border: 1px solid ${BRAND.border};">80</td>
                 <td style="padding: 10px 12px; font-size: 14px; color: ${BRAND.accent}; border: 1px solid ${BRAND.border}; font-weight: 600;">Incluída</td>
             </tr>
             <tr>
                 <td style="padding: 10px 12px; font-size: 14px; color: ${BRAND.text}; border: 1px solid ${BRAND.border};"><strong>Pro</strong></td>
-                <td style="padding: 10px 12px; font-size: 14px; color: ${BRAND.text}; border: 1px solid ${BRAND.border};">€49/mês</td>
+                <td style="padding: 10px 12px; font-size: 14px; color: ${BRAND.text}; border: 1px solid ${BRAND.border};">€99/mês</td>
                 <td style="padding: 10px 12px; font-size: 14px; color: ${BRAND.text}; border: 1px solid ${BRAND.border};">250</td>
                 <td style="padding: 10px 12px; font-size: 14px; color: ${BRAND.accent}; border: 1px solid ${BRAND.border}; font-weight: 600;">Incluída</td>
             </tr>
         </table>
 
-        ${p(`O plano Starter cobre a maioria dos negócios independentes e equipas pequenas. <strong>€0,63 por dia</strong> para nunca mais perder um orçamento por falta de seguimento.`)}
+        ${p(`O plano Starter cobre a maioria dos negócios independentes e equipas pequenas. <strong>€1,30 por dia</strong> para nunca mais perder um orçamento por falta de seguimento.`)}
 
         ${ctaButton(`${PUBLIC_APP_URL}/settings/billing`, "Escolher o meu plano →")}
         ${divider()}
@@ -562,10 +562,10 @@ O que acontece quando o trial termina:
 - Passa para o plano gratuito (limite de 5 orçamentos/mês, sem automação)
 
 Continue a trabalhar da mesma forma:
-- Starter: €19/mês — 80 orçamentos/mês — Automação incluída
-- Pro: €49/mês — 250 orçamentos/mês — Automação incluída
+- Starter: €39/mês — 80 orçamentos/mês — Automação incluída
+- Pro: €99/mês — 250 orçamentos/mês — Automação incluída
 
-O plano Starter cobre a maioria dos negócios independentes. €0,63 por dia para nunca mais perder um orçamento por falta de seguimento.
+O plano Starter cobre a maioria dos negócios independentes. €1,30 por dia para nunca mais perder um orçamento por falta de seguimento.
 
 Escolher o meu plano: ${PUBLIC_APP_URL}/settings/billing
 

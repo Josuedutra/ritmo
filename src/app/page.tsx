@@ -51,8 +51,8 @@ function SignedOutToast() {
 
 const pricing = {
   free: { monthly: 0, annual: 0 },
-  starter: { monthly: 19, annual: 15.2 },
-  pro: { monthly: 49, annual: 39.2 },
+  starter: { monthly: 39, annual: 31.2 },
+  pro: { monthly: 99, annual: 79.2 },
 } as const;
 
 function formatPrice(price: number): string {
