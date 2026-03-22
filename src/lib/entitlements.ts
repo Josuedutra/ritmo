@@ -40,14 +40,14 @@ export const PLAN_LIMITS = {
   starter: {
     monthlyQuotes: 80,
     maxUsers: 2,
-    price: 1900,
+    price: 3900,
     storageQuotaBytes: 5 * 1024 * 1024 * 1024,
     retentionDays: 180,
   }, // 5 GB, 180 days
   pro: {
     monthlyQuotes: 250,
     maxUsers: 5,
-    price: 4900,
+    price: 9900,
     storageQuotaBytes: 20 * 1024 * 1024 * 1024,
     retentionDays: 365,
   }, // 20 GB, 365 days

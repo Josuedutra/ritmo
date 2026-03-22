@@ -21,14 +21,14 @@ const PLANS: Plan[] = [
   {
     id: "starter",
     name: "Starter",
-    price: "€19/mês",
+    price: "€39/mês",
     limit: "80 envios/mês",
     features: ["Emails automáticos (D+1, D+3)", "Captura por BCC", "Até 2 utilizadores"],
   },
   {
     id: "pro",
     name: "Pro",
-    price: "€49/mês",
+    price: "€99/mês",
     limit: "250 envios/mês",
     features: ["Tudo do Starter", "Benchmark por setor", "Até 5 utilizadores"],
   },
