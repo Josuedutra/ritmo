@@ -185,7 +185,11 @@ export function QuoteForm() {
               placeholder="Ex: Proposta de consultoria Q1"
               required
               autoFocus
+              className={!title.trim() && title !== "" ? "border-red-500" : ""}
             />
+            {!title.trim() && title !== "" && (
+              <p className="mt-1 text-xs text-red-500">O título é obrigatório</p>
+            )}
           </div>
 
           {/* Patch A: Contacto inline - nome obrigatório + email/telefone opcionais */}
@@ -323,7 +327,7 @@ export function QuoteForm() {
           {/* Patch D: CTA primário - "Guardar e iniciar follow-up" */}
           <Button
             onClick={() => handleSubmit("send")}
-            disabled={loading !== null || !clientName.trim()}
+            disabled={loading !== null || !clientName.trim() || !title.trim()}
             className="w-full gap-1.5"
             size="lg"
           >
@@ -354,7 +358,7 @@ export function QuoteForm() {
           <Button
             variant="ghost"
             onClick={() => handleSubmit("save")}
-            disabled={loading !== null || !clientName.trim()}
+            disabled={loading !== null || !clientName.trim() || !title.trim()}
             className="w-full gap-1.5"
           >
             {loading === "save" ? (
