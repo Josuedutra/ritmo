@@ -667,6 +667,12 @@ export function OnboardingWizard({
               </CardContent>
               {renderFooter({
                 nextDisabled: smtpChoice === "own" && !hasSmtp,
+                customActions:
+                  smtpChoice === "own" && !hasSmtp ? (
+                    <Button variant="outline" onClick={handleUseRitmoFallback} className="gap-2">
+                      Usar Ritmo por agora
+                    </Button>
+                  ) : undefined,
               })}
             </>
           )}
