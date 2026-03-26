@@ -281,7 +281,7 @@ export function ActionsList({
             Todas as ações de hoje foram concluídas
           </p>
 
-          {nextAction && (
+          {nextAction ? (
             <div className="mt-6">
               <p className="mb-2 text-xs font-medium text-[var(--color-muted-foreground)]">
                 Próxima ação
@@ -301,6 +301,15 @@ export function ActionsList({
                   </span>
                 </div>
                 <ArrowRight className="h-4 w-4 text-[var(--color-muted-foreground)]" />
+              </Link>
+            </div>
+          ) : (
+            <div className="mt-6">
+              <Link href="/quotes/new">
+                <Button variant="outline" className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Novo orçamento
+                </Button>
               </Link>
             </div>
           )}
