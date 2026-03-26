@@ -697,16 +697,21 @@ model FeedbackItem {
   organizationId  String?  @map("organization_id")
   userId          String?  @map("user_id")
 
-  type            String   // bug | feature | other
+  type            String   // bug | feature | other | nps
   message         String   @db.Text
   page            String?  // Current page path when submitted
   userAgent       String?  @map("user_agent")
+
+  // NPS fields (type="nps")
+  npsScore        Int?     @map("nps_score")    // 0-10
+  npsSegment      String?  @map("nps_segment")  // detractor | passive | promoter
 
   status          String   @default("new") // new | reviewed | resolved
 
   createdAt       DateTime @default(now()) @map("created_at")
 
   @@index([organizationId, createdAt])
+  @@index([npsSegment, createdAt])
   @@map("feedback_items")
 }
 
