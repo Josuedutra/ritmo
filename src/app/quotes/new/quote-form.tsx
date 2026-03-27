@@ -14,12 +14,20 @@ import {
   toast,
 } from "@/components/ui";
 import { Send, Save, Loader2, Info } from "lucide-react";
+import { NpsWidget } from "@/components/feedback/feedback-modal";
+import { useNpsWidget } from "@/hooks/use-nps-widget";
 
 // Removed contacts prop - now using inline contact creation
 export function QuoteForm() {
   const router = useRouter();
   const [loading, setLoading] = useState<"save" | "send" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const {
+    isOpen: npsOpen,
+    triggerContext: npsTriggerContext,
+    triggerNps,
+    closeNps,
+  } = useNpsWidget();
 
   // Form state - Patch A: simplified inline contact with separate fields
   const [title, setTitle] = useState("");
@@ -151,6 +159,12 @@ export function QuoteForm() {
         action === "send" ? "Orçamento enviado!" : "Orçamento guardado!",
         action === "send" ? "Cadência de follow-up iniciada" : "Pode continuar a editar"
       );
+
+      // NPS trigger: show on 5th quote created (rate-limited to 1/session)
+      if (quote.quoteCount === 5) {
+        triggerNps("quote_created_5");
+      }
+
       router.push(`/quotes/${quote.id}`);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro ao guardar orçamento";
@@ -163,6 +177,9 @@ export function QuoteForm() {
 
   return (
     <div className="max-w-2xl space-y-6">
+      {/* NPS Widget */}
+      <NpsWidget open={npsOpen} onClose={closeNps} triggerContext={npsTriggerContext} />
+
       {/* Main form - single column, simplified */}
       <Card>
         <CardHeader>
