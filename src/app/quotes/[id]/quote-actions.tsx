@@ -19,6 +19,8 @@ import {
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { SendQuoteModal } from "./send-quote-modal";
+import { NpsWidget } from "@/components/feedback/feedback-modal";
+import { useNpsWidget } from "@/hooks/use-nps-widget";
 
 // P1-02: Common loss reasons
 const LOSS_REASONS = [
@@ -57,6 +59,12 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState<string | null>(null);
+  const {
+    isOpen: npsOpen,
+    triggerContext: npsTriggerContext,
+    triggerNps,
+    closeNps,
+  } = useNpsWidget();
   const [limitError, setLimitError] = useState<{
     message: string;
     limit: number;
@@ -127,6 +135,9 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
 
       // P0 Fix: Show enhanced toast for Aha moment
       toast.success("Orçamento enviado!", "Cadência iniciada: D+1, D+3, D+7, D+14");
+
+      // NPS trigger: show after first proposal sent (rate-limited to 1/session)
+      triggerNps("proposal_sent");
 
       // Remove seed query param and refresh
       if (isSeedExample) {
@@ -286,6 +297,9 @@ export function QuoteActions({ quote }: QuoteActionsProps) {
 
   return (
     <div className="space-y-3">
+      {/* NPS Widget */}
+      <NpsWidget open={npsOpen} onClose={closeNps} triggerContext={npsTriggerContext} />
+
       {/* P1-UPGRADE-PROMPTS: Send limit / payment error */}
       {limitError && (
         <UpgradePrompt

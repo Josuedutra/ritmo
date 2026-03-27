@@ -177,7 +177,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    return success(quote, 201);
+    return success({ ...quote, quoteCount }, 201);
   } catch (error) {
     return serverError(error, "POST /api/quotes");
   }

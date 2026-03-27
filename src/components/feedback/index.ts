@@ -1,1 +1,1 @@
-export { FeedbackModal } from "./feedback-modal";
+export { FeedbackModal, NpsWidget } from "./feedback-modal";
