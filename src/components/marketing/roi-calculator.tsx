@@ -3,8 +3,8 @@ import { useState } from "react";
 import Link from "next/link";
 
 const PLAN_COSTS = {
-  starter: { monthly: 19, annual: 15.2 },
-  pro: { monthly: 49, annual: 39.2 },
+  starter: { monthly: 39, annual: 31.2 },
+  pro: { monthly: 99, annual: 79.2 },
 };
 
 const PRO_AUTOMATION_BONUS_PP = 5;
@@ -85,7 +85,7 @@ export function RoiCalculator() {
                 : "border-zinc-300 text-zinc-600 hover:border-zinc-400"
             }`}
           >
-            Starter — €19/mês
+            Starter — €39/mês
           </button>
           <button
             onClick={() => setSelectedPlan("pro")}
@@ -95,7 +95,7 @@ export function RoiCalculator() {
                 : "border-zinc-300 text-zinc-600 hover:border-zinc-400"
             }`}
           >
-            Pro — €49/mês · automações avançadas + equipa
+            Pro — €99/mês · automações avançadas + equipa
           </button>
         </div>
 
@@ -263,7 +263,7 @@ export function RoiCalculator() {
             }
             className="block w-full rounded-xl bg-blue-600 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-blue-500"
           >
-            Começar agora — planos a partir de €19/mês
+            Começar agora — planos a partir de €39/mês
           </Link>
 
           <p className="mt-4 text-center text-xs text-zinc-400">

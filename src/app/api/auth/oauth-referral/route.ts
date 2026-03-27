@@ -16,8 +16,25 @@ import {
   decodeCookiePayload,
   isReferralCookieValid,
 } from "@/app/api/referrals/capture/route";
+import {
+  rateLimit,
+  getClientIp,
+  RateLimitConfigs,
+  rateLimitedResponse,
+} from "@/lib/security/rate-limit";
 
 export async function POST(request: NextRequest) {
+  // Security: Rate limiting — anti-abuse for OAuth referral attribution
+  const ip = getClientIp(request);
+  const rateLimitResult = await rateLimit({
+    key: `oauth-referral:${ip}`,
+    ...RateLimitConfigs.oauthReferral,
+  });
+
+  if (!rateLimitResult.allowed) {
+    return rateLimitedResponse(rateLimitResult.retryAfterSec);
+  }
+
   try {
     const session = await auth();
     if (!session?.user?.id || !session.user.organizationId) {
