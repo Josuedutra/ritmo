@@ -66,6 +66,11 @@ export const ProductEventNames = {
   FIRST_QUOTE_CREATED: "first_quote_created",
   FIRST_CADENCE_ACTIVATED: "first_cadence_activated",
   AHA_MOMENT: "aha_moment",
+  // S6-03: Conversion funnel events (trial→paid)
+  PRICING_VIEWED: "pricing_viewed",
+  UPGRADE_CTA_CLICKED: "upgrade_cta_clicked",
+  CHECKOUT_STARTED: "checkout_started",
+  SUBSCRIPTION_CREATED: "subscription_created",
 } as const;
 
 export type ProductEventName = (typeof ProductEventNames)[keyof typeof ProductEventNames];
