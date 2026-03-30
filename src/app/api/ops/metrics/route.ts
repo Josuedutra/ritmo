@@ -300,7 +300,8 @@ export async function GET(request: NextRequest) {
       // conversion_rate = checkout_started / pricing_viewed (as percentage)
       const pricingViewed = conversionFunnelCounts["pricing_viewed"] ?? 0;
       const checkoutStarted = conversionFunnelCounts["checkout_started"] ?? 0;
-      conversionRate = pricingViewed > 0 ? Math.round((checkoutStarted / pricingViewed) * 100) : null;
+      conversionRate =
+        pricingViewed > 0 ? Math.round((checkoutStarted / pricingViewed) * 100) : null;
     } catch {
       log.warn({ requestId }, "ProductEvent table not available for conversion funnel");
     }
