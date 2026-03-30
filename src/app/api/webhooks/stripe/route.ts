@@ -312,6 +312,15 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, log: Ap
     { organizationId, planId: finalPlanId, storageQuotaBytes },
     "Subscription created from checkout - storage quota synced"
   );
+
+  // S6-03: Track subscription_created funnel event
+  trackEvent(ProductEventNames.SUBSCRIPTION_CREATED, {
+    organizationId,
+    props: {
+      planId: finalPlanId,
+      checkoutSessionId: session.id,
+    },
+  });
 }
 
 // =============================================================================
