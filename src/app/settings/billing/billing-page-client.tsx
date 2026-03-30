@@ -103,7 +103,11 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
     fetch("/api/tracking/upgrade-prompt", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ event: "pricing_viewed", reason: "billing_page", location: "settings/billing" }),
+      body: JSON.stringify({
+        event: "pricing_viewed",
+        reason: "billing_page",
+        location: "settings/billing",
+      }),
     }).catch(() => {});
   }, []);
 
@@ -173,7 +177,12 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
     fetch("/api/tracking/upgrade-prompt", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ event: "upgrade_cta_clicked", reason: "checkout", location: "settings/billing", recommendedPlanKey: planId }),
+      body: JSON.stringify({
+        event: "upgrade_cta_clicked",
+        reason: "checkout",
+        location: "settings/billing",
+        recommendedPlanKey: planId,
+      }),
     }).catch(() => {});
 
     try {
