@@ -98,6 +98,19 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
     }
   }, [success, canceled, router, pathname]);
 
+  // S6-03: Track pricing_viewed when billing page mounts
+  useEffect(() => {
+    fetch("/api/tracking/upgrade-prompt", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        event: "pricing_viewed",
+        reason: "billing_page",
+        location: "settings/billing",
+      }),
+    }).catch(() => {});
+  }, []);
+
   // Usage calculation
   const usagePercentage =
     entitlements.effectivePlanLimit > 0
@@ -159,6 +172,19 @@ export function BillingPageClient({ data }: BillingPageClientProps) {
     }
 
     setLoading(planId);
+
+    // S6-03: Track upgrade_cta_clicked funnel event
+    fetch("/api/tracking/upgrade-prompt", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        event: "upgrade_cta_clicked",
+        reason: "checkout",
+        location: "settings/billing",
+        recommendedPlanKey: planId,
+      }),
+    }).catch(() => {});
+
     try {
       const response = await fetch("/api/billing/checkout", {
         method: "POST",

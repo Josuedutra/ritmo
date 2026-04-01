@@ -280,6 +280,33 @@ export async function GET(request: NextRequest) {
     }
 
     // =========================================================================
+    // 5. Conversion Funnel Metrics (S6-03: trial→paid)
+    // =========================================================================
+    const CONVERSION_FUNNEL_EVENTS = [
+      "pricing_viewed",
+      "upgrade_cta_clicked",
+      "checkout_started",
+      "subscription_created",
+    ];
+
+    const conversionFunnelCounts: Record<string, number> = {};
+    let conversionRate: number | null = null;
+    try {
+      for (const eventName of CONVERSION_FUNNEL_EVENTS) {
+        conversionFunnelCounts[eventName] = await prisma.productEvent.count({
+          where: { name: eventName },
+        });
+      }
+      // conversion_rate = checkout_started / pricing_viewed (as percentage)
+      const pricingViewed = conversionFunnelCounts["pricing_viewed"] ?? 0;
+      const checkoutStarted = conversionFunnelCounts["checkout_started"] ?? 0;
+      conversionRate =
+        pricingViewed > 0 ? Math.round((checkoutStarted / pricingViewed) * 100) : null;
+    } catch {
+      log.warn({ requestId }, "ProductEvent table not available for conversion funnel");
+    }
+
+    // =========================================================================
     // Build Response
     // =========================================================================
     const healthy = alerts.length === 0;
@@ -309,6 +336,10 @@ export async function GET(request: NextRequest) {
           isStale: cronStale,
         },
         productFunnel: funnelCounts,
+        conversionFunnel: {
+          ...conversionFunnelCounts,
+          conversion_rate: conversionRate,
+        },
       },
       thresholds: THRESHOLDS,
     };

@@ -6,6 +6,7 @@ import { createCheckoutSession, getPlanById, isPlanPublic } from "@/lib/stripe";
 import { logger } from "@/lib/logger";
 import { rateLimit, RateLimitConfigs, rateLimitedResponse } from "@/lib/security/rate-limit";
 import { APP_ORIGIN } from "@/lib/config";
+import { trackEvent, ProductEventNames } from "@/lib/product-events";
 
 // Allow hidden plans checkout only if this env var is set (for admin/internal use)
 const ALLOW_HIDDEN_PLANS_CHECKOUT = process.env.ALLOW_HIDDEN_PLANS_CHECKOUT === "true";
@@ -145,6 +146,13 @@ export async function POST(request: NextRequest) {
     }
 
     log.info({ organizationId: session.user.organizationId, planKey }, "Checkout session created");
+
+    // S6-03: Track checkout_started funnel event
+    trackEvent(ProductEventNames.CHECKOUT_STARTED, {
+      organizationId: session.user.organizationId,
+      userId: session.user.id,
+      props: { planKey, planName: plan.name },
+    });
 
     return NextResponse.json({
       url: result.url,
