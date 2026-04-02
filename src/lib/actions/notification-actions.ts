@@ -322,7 +322,7 @@ export async function processOutbox(): Promise<{
         });
       }
     } catch (err) {
-      logger.error(`[notifications] Outbox delivery failed for ${entry.id}:`, err);
+      logger.error(`[notifications] Outbox delivery failed for ${entry.id}: ${String(err)}`);
       const newAttempts = entry.attempts + 1;
       await db.notificationOutbox.update({
         where: { id: entry.id },
