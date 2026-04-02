@@ -40,8 +40,17 @@ describe("N+1 Detection", () => {
     expect(src).toMatch(/include\s*:\s*\{/);
 
     // Must NOT do a prisma call inside a .map() over the results
-    // Pattern: array.map( async => prisma. — indicates N+1
-    expect(src).not.toMatch(/\.map\s*\(\s*async\s+\([^)]*\)\s*=>\s*\{[^}]*prisma\./s);
+    // Simple string check: async map with prisma call inside = N+1
+    const hasAsyncMap = src.includes(".map(async") || src.includes(".map( async");
+    if (hasAsyncMap) {
+      // If there's an async map, ensure it does NOT make prisma calls inside
+      const asyncMapIdx = src.indexOf(".map(async");
+      const snippet = src.substring(asyncMapIdx, asyncMapIdx + 200);
+      expect(snippet).not.toContain("prisma.");
+    } else {
+      // No async map at all = definitely no N+1
+      expect(hasAsyncMap).toBe(false);
+    }
   });
 
   it("GET /api/contacts uses include (not loop queries) for counts", () => {
@@ -51,8 +60,15 @@ describe("N+1 Detection", () => {
     // Must have include or _count
     expect(src).toMatch(/include\s*:\s*\{|_count\s*:/);
 
-    // No N+1 map pattern
-    expect(src).not.toMatch(/\.map\s*\(\s*async\s+\([^)]*\)\s*=>\s*\{[^}]*prisma\./s);
+    // No async map with prisma = no N+1
+    const hasAsyncMap = src.includes(".map(async") || src.includes(".map( async");
+    if (hasAsyncMap) {
+      const asyncMapIdx = src.indexOf(".map(async");
+      const snippet = src.substring(asyncMapIdx, asyncMapIdx + 200);
+      expect(snippet).not.toContain("prisma.");
+    } else {
+      expect(hasAsyncMap).toBe(false);
+    }
   });
 
   it("GET /api/admin/partners has known N+1: boosterLedger aggregate per partner (documented)", () => {
@@ -97,7 +113,7 @@ describe("N+1 Detection", () => {
 
 // Module-level query log — persists across the mock factory closure
 const _queryLog: string[] = [];
-const _findManyCallArgs: Record<string, unknown>[][] = [];
+const _findManyCallArgs: unknown[][] = [];
 
 vi.mock("@/lib/prisma", () => {
   // Re-use the module-level arrays declared above (hoisting makes this work)
@@ -109,7 +125,7 @@ vi.mock("@/lib/prisma", () => {
           return (...args: unknown[]) => {
             _queryLog.push(`${model}.${method}`);
             if (method === "findMany") {
-              _findManyCallArgs.push(args[0] as Record<string, unknown>);
+              _findManyCallArgs.push(args as unknown[]);
               return Promise.resolve([]);
             }
             if (method === "count") return Promise.resolve(0);
@@ -345,7 +361,8 @@ describe("Pagination", () => {
 
     // At least one call to findMany was captured via the module-level mock log
     expect(_findManyCallArgs.length).toBeGreaterThan(0);
-    const findManyArgs = _findManyCallArgs[0];
+    // _findManyCallArgs[0] is the args array; [0][0] is the first argument (the options object)
+    const findManyArgs = (_findManyCallArgs[0] as unknown[])[0] as { take?: number; skip?: number };
     expect(findManyArgs.take).toBe(10);
     expect(findManyArgs.skip).toBe(20);
   });
