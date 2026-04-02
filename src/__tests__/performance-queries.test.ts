@@ -14,6 +14,7 @@
  * 8. createdAt indexes exist for ordering-heavy models
  */
 
+import { describe, it, expect } from "vitest";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 
