@@ -355,7 +355,9 @@ describe("SLA Engine — pause/resume", () => {
 
     expect(resumed.pausedAt).toBeNull();
     expect(resumed.pausedTotal).toBe(6 * ONE_HOUR);
-    expect(resumed.isPaused).toBeUndefined(); // isPaused is on snapshot, not state
+    // isPaused is on SlaSnapshot, not SlaState — verify via computeSlaStatus
+    const snap = computeSlaStatus(resumed, config, offset(start, 12 * ONE_HOUR));
+    expect(snap.isPaused).toBe(false);
   });
 
   it("5c. Resume: pausedTotal accumulates correctly and elapsed continues from pre-pause point", () => {
