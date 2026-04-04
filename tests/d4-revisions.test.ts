@@ -378,7 +378,8 @@ describe("ValidationStamp — payloadHash", () => {
     );
 
     await expect(
-      stampUpdate({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (prisma as any).validationStamp.update({
         where: { id: existingStamp.id },
         data: { payloadHash: computePayloadHash("tampered content") },
       })
