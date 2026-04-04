@@ -98,25 +98,23 @@ vi.mock("@/lib/prisma", () => ({
 
 import { prisma } from "@/lib/prisma";
 
-const mockPrisma = prisma as unknown as {
-  documentRevision: {
-    findMany: ReturnType<typeof vi.fn>;
-    create: ReturnType<typeof vi.fn>;
-    findUnique: ReturnType<typeof vi.fn>;
-  };
-  validationStamp: {
-    create: ReturnType<typeof vi.fn>;
-    findUnique: ReturnType<typeof vi.fn>;
-    update: ReturnType<typeof vi.fn>;
-  };
-};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const revFindMany = vi.mocked((prisma.documentRevision as any).findMany) as ReturnType<
+  typeof vi.fn
+>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const revCreate = vi.mocked((prisma.documentRevision as any).create) as ReturnType<typeof vi.fn>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const stampCreate = vi.mocked((prisma.validationStamp as any).create) as ReturnType<typeof vi.fn>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const stampUpdate = vi.mocked((prisma.validationStamp as any).update) as ReturnType<typeof vi.fn>;
 
 // ============================================================================
 // Stub implementations (TDD — implementation will replace these)
 // ============================================================================
 
 async function createRevision(input: CreateRevisionInput): Promise<DocumentRevision> {
-  const existing: DocumentRevision[] = await mockPrisma.documentRevision.findMany({
+  const existing: DocumentRevision[] = await revFindMany({
     where: { documentId: input.documentId },
     orderBy: { createdAt: "asc" },
   });
@@ -132,7 +130,7 @@ async function createRevision(input: CreateRevisionInput): Promise<DocumentRevis
     createdBy: input.createdBy,
   };
 
-  await mockPrisma.documentRevision.create({ data: revision });
+  await revCreate({ data: revision });
   return revision;
 }
 
@@ -147,12 +145,12 @@ async function createValidationStamp(input: CreateStampInput): Promise<Validatio
     createdBy: input.createdBy,
   };
 
-  await mockPrisma.validationStamp.create({ data: stamp });
+  await stampCreate({ data: stamp });
   return stamp;
 }
 
 async function getRevisionHistory(documentId: string): Promise<DocumentRevision[]> {
-  return mockPrisma.documentRevision.findMany({
+  return revFindMany({
     where: { documentId },
     orderBy: { createdAt: "desc" },
   });
@@ -195,10 +193,8 @@ describe("DocumentRevision — revision code generation", () => {
   });
 
   it("Cenário 1: primeira revisão → revisionCode = P01", async () => {
-    mockPrisma.documentRevision.findMany.mockResolvedValue([]);
-    mockPrisma.documentRevision.create.mockImplementation(({ data }: { data: DocumentRevision }) =>
-      Promise.resolve(data)
-    );
+    revFindMany.mockResolvedValue([]);
+    revCreate.mockImplementation(({ data }: { data: DocumentRevision }) => Promise.resolve(data));
 
     const result = await createRevision({
       documentId: "doc-001",
@@ -208,16 +204,12 @@ describe("DocumentRevision — revision code generation", () => {
 
     expect(result.revisionCode).toBe("P01");
     expect(result.phase).toBe("PRELIMINARY");
-    expect(mockPrisma.documentRevision.create).toHaveBeenCalledOnce();
+    expect(revCreate).toHaveBeenCalledOnce();
   });
 
   it("Cenário 2: segunda revisão preliminar → revisionCode = P02", async () => {
-    mockPrisma.documentRevision.findMany.mockResolvedValue([
-      makeRevision({ revisionCode: "P01", phase: "PRELIMINARY" }),
-    ]);
-    mockPrisma.documentRevision.create.mockImplementation(({ data }: { data: DocumentRevision }) =>
-      Promise.resolve(data)
-    );
+    revFindMany.mockResolvedValue([makeRevision({ revisionCode: "P01", phase: "PRELIMINARY" })]);
+    revCreate.mockImplementation(({ data }: { data: DocumentRevision }) => Promise.resolve(data));
 
     const result = await createRevision({
       documentId: "doc-001",
@@ -229,13 +221,11 @@ describe("DocumentRevision — revision code generation", () => {
   });
 
   it("Cenário 2b: terceira revisão preliminar → revisionCode = P03", async () => {
-    mockPrisma.documentRevision.findMany.mockResolvedValue([
+    revFindMany.mockResolvedValue([
       makeRevision({ revisionCode: "P01", phase: "PRELIMINARY" }),
       makeRevision({ revisionCode: "P02", phase: "PRELIMINARY" }),
     ]);
-    mockPrisma.documentRevision.create.mockImplementation(({ data }: { data: DocumentRevision }) =>
-      Promise.resolve(data)
-    );
+    revCreate.mockImplementation(({ data }: { data: DocumentRevision }) => Promise.resolve(data));
 
     const result = await createRevision({
       documentId: "doc-001",
@@ -247,13 +237,11 @@ describe("DocumentRevision — revision code generation", () => {
   });
 
   it("Cenário 3: primeira revisão aprovada → revisionCode = A", async () => {
-    mockPrisma.documentRevision.findMany.mockResolvedValue([
+    revFindMany.mockResolvedValue([
       makeRevision({ revisionCode: "P01", phase: "PRELIMINARY" }),
       makeRevision({ revisionCode: "P02", phase: "PRELIMINARY" }),
     ]);
-    mockPrisma.documentRevision.create.mockImplementation(({ data }: { data: DocumentRevision }) =>
-      Promise.resolve(data)
-    );
+    revCreate.mockImplementation(({ data }: { data: DocumentRevision }) => Promise.resolve(data));
 
     const result = await createRevision({
       documentId: "doc-001",
@@ -266,13 +254,11 @@ describe("DocumentRevision — revision code generation", () => {
   });
 
   it("Cenário 3b: segunda revisão aprovada → revisionCode = B", async () => {
-    mockPrisma.documentRevision.findMany.mockResolvedValue([
+    revFindMany.mockResolvedValue([
       makeRevision({ revisionCode: "P01", phase: "PRELIMINARY" }),
       makeRevision({ revisionCode: "A", phase: "APPROVED" }),
     ]);
-    mockPrisma.documentRevision.create.mockImplementation(({ data }: { data: DocumentRevision }) =>
-      Promise.resolve(data)
-    );
+    revCreate.mockImplementation(({ data }: { data: DocumentRevision }) => Promise.resolve(data));
 
     const result = await createRevision({
       documentId: "doc-001",
@@ -285,8 +271,8 @@ describe("DocumentRevision — revision code generation", () => {
 
   it("Cenário 4: revisão duplicada → rejeitar (unique constraint)", async () => {
     // Simulate Prisma unique constraint violation
-    mockPrisma.documentRevision.findMany.mockResolvedValue([]);
-    mockPrisma.documentRevision.create.mockRejectedValue(
+    revFindMany.mockResolvedValue([]);
+    revCreate.mockRejectedValue(
       Object.assign(
         new Error("Unique constraint failed on the fields: (`documentId`,`revisionCode`)"),
         {
@@ -350,9 +336,7 @@ describe("ValidationStamp — payloadHash", () => {
   });
 
   it("Cenário 5: stamp com payloadHash SHA-256 verificável", async () => {
-    mockPrisma.validationStamp.create.mockImplementation(({ data }: { data: ValidationStamp }) =>
-      Promise.resolve(data)
-    );
+    stampCreate.mockImplementation(({ data }: { data: ValidationStamp }) => Promise.resolve(data));
 
     const payload = "document content v1.0";
     const result = await createValidationStamp({
@@ -385,12 +369,12 @@ describe("ValidationStamp — payloadHash", () => {
 
     // Simulate Prisma rejecting update on payloadHash field
     // The real implementation must NOT expose an update path for payloadHash
-    mockPrisma.validationStamp.update.mockRejectedValue(
+    stampUpdate.mockRejectedValue(
       new Error("ValidationStamp.payloadHash is immutable — field cannot be updated after creation")
     );
 
     await expect(
-      mockPrisma.validationStamp.update({
+      stampUpdate({
         where: { id: existingStamp.id },
         data: { payloadHash: computePayloadHash("tampered content") },
       })
@@ -398,9 +382,7 @@ describe("ValidationStamp — payloadHash", () => {
   });
 
   it("stamp stores revisionId and createdBy correctly", async () => {
-    mockPrisma.validationStamp.create.mockImplementation(({ data }: { data: ValidationStamp }) =>
-      Promise.resolve(data)
-    );
+    stampCreate.mockImplementation(({ data }: { data: ValidationStamp }) => Promise.resolve(data));
 
     const result = await createValidationStamp({
       revisionId: "rev-xyz",
@@ -410,7 +392,7 @@ describe("ValidationStamp — payloadHash", () => {
 
     expect(result.revisionId).toBe("rev-xyz");
     expect(result.createdBy).toBe("user-42");
-    expect(mockPrisma.validationStamp.create).toHaveBeenCalledOnce();
+    expect(stampCreate).toHaveBeenCalledOnce();
   });
 });
 
@@ -442,7 +424,7 @@ describe("getRevisionHistory — ordenação por createdAt DESC", () => {
     ];
 
     // findMany returns already-sorted results (mock simulates DB ORDER BY createdAt DESC)
-    mockPrisma.documentRevision.findMany.mockResolvedValue(revisions);
+    revFindMany.mockResolvedValue(revisions);
 
     const result = await getRevisionHistory("doc-abc");
 
@@ -453,7 +435,7 @@ describe("getRevisionHistory — ordenação por createdAt DESC", () => {
     expect(result[2].revisionCode).toBe("P01");
 
     // Verify findMany called with correct orderBy
-    expect(mockPrisma.documentRevision.findMany).toHaveBeenCalledWith(
+    expect(revFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { documentId: "doc-abc" },
         orderBy: { createdAt: "desc" },
@@ -462,7 +444,7 @@ describe("getRevisionHistory — ordenação por createdAt DESC", () => {
   });
 
   it("empty history → returns empty array", async () => {
-    mockPrisma.documentRevision.findMany.mockResolvedValue([]);
+    revFindMany.mockResolvedValue([]);
 
     const result = await getRevisionHistory("doc-empty");
 
