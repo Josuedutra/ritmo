@@ -99,22 +99,23 @@ vi.mock("@/lib/prisma", () => ({
 import { prisma } from "@/lib/prisma";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const revFindMany = vi.mocked((prisma.documentRevision as any).findMany) as ReturnType<
-  typeof vi.fn
->;
+const p = prisma as any;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const revCreate = vi.mocked((prisma.documentRevision as any).create) as ReturnType<typeof vi.fn>;
+const revFindMany = vi.mocked(p.documentRevision.findMany) as ReturnType<typeof vi.fn>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const stampCreate = vi.mocked((prisma.validationStamp as any).create) as ReturnType<typeof vi.fn>;
+const revCreate = vi.mocked(p.documentRevision.create) as ReturnType<typeof vi.fn>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const stampUpdate = vi.mocked((prisma.validationStamp as any).update) as ReturnType<typeof vi.fn>;
+const stampCreate = vi.mocked(p.validationStamp.create) as ReturnType<typeof vi.fn>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const stampUpdate = vi.mocked(p.validationStamp.update) as ReturnType<typeof vi.fn>;
 
 // ============================================================================
 // Stub implementations (TDD — implementation will replace these)
 // ============================================================================
 
 async function createRevision(input: CreateRevisionInput): Promise<DocumentRevision> {
-  const existing: DocumentRevision[] = await revFindMany({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const existing: DocumentRevision[] = await (prisma as any).documentRevision.findMany({
     where: { documentId: input.documentId },
     orderBy: { createdAt: "asc" },
   });
@@ -130,7 +131,8 @@ async function createRevision(input: CreateRevisionInput): Promise<DocumentRevis
     createdBy: input.createdBy,
   };
 
-  await revCreate({ data: revision });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (prisma as any).documentRevision.create({ data: revision });
   return revision;
 }
 
@@ -145,12 +147,14 @@ async function createValidationStamp(input: CreateStampInput): Promise<Validatio
     createdBy: input.createdBy,
   };
 
-  await stampCreate({ data: stamp });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (prisma as any).validationStamp.create({ data: stamp });
   return stamp;
 }
 
 async function getRevisionHistory(documentId: string): Promise<DocumentRevision[]> {
-  return revFindMany({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (prisma as any).documentRevision.findMany({
     where: { documentId },
     orderBy: { createdAt: "desc" },
   });
