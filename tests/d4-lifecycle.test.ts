@@ -2,6 +2,8 @@
  * D4-E3-02: CDE Document Lifecycle State Machine Tests
  *
  * TDD — tests written BEFORE implementing transitionDocumentLifecycle().
+ * Models (Document, StatusTransitionLog) exist in the D4 migration (not yet on main).
+ * Using dependency injection to avoid Prisma schema dependency.
  *
  * Valid transition map:
  *   WIP        → SHARED
@@ -44,6 +46,19 @@ interface TransitionResult {
   log: StatusTransitionLog;
 }
 
+// Minimal Prisma interface — matches the D4 schema models
+interface LifecyclePrismaClient {
+  document: {
+    update: (args: { where: { id: string }; data: { status: string } }) => Promise<{
+      id: string;
+      status: DocumentStatus;
+    }>;
+  };
+  statusTransitionLog: {
+    create: (args: { data: object }) => Promise<StatusTransitionLog>;
+  };
+}
+
 // ============================================================================
 // State machine — valid transitions map
 // ============================================================================
@@ -57,35 +72,14 @@ const VALID_TRANSITIONS: Record<DocumentStatus, DocumentStatus[]> = {
 };
 
 // ============================================================================
-// Mock Prisma — using vi.mock + vi.mocked() pattern
+// Reference implementation with dependency injection
+// (defines the contract — real impl comes next task)
 // ============================================================================
 
-vi.mock("@/lib/prisma", () => ({
-  prisma: {
-    document: {
-      findUniqueOrThrow: vi.fn(),
-      update: vi.fn(),
-    },
-    statusTransitionLog: {
-      create: vi.fn(),
-      findMany: vi.fn(),
-    },
-  },
-}));
-
-import { prisma } from "@/lib/prisma";
-
-// Safe typed helpers for mock operations
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const docUpdate = vi.mocked((prisma.document as any).update) as ReturnType<typeof vi.fn>;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const logCreate = vi.mocked((prisma.statusTransitionLog as any).create) as ReturnType<typeof vi.fn>;
-
-// ============================================================================
-// Reference implementation (defines the contract — real impl comes next task)
-// ============================================================================
-
-async function transitionDocumentLifecycle(input: TransitionInput): Promise<TransitionResult> {
+async function transitionDocumentLifecycle(
+  input: TransitionInput,
+  db: LifecyclePrismaClient
+): Promise<TransitionResult> {
   const { documentId, fromStatus, toStatus, reason, userId } = input;
 
   if (!reason || reason.trim() === "") {
@@ -98,14 +92,12 @@ async function transitionDocumentLifecycle(input: TransitionInput): Promise<Tran
     throw new Error(`Invalid transition: ${fromStatus} → ${toStatus}. Allowed: ${allowedStr}`);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const updatedDocument = await (prisma.document as any).update({
+  const updatedDocument = await db.document.update({
     where: { id: documentId },
     data: { status: toStatus },
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const log = await (prisma.statusTransitionLog as any).create({
+  const log = await db.statusTransitionLog.create({
     data: {
       documentId,
       fromStatus,
@@ -120,12 +112,29 @@ async function transitionDocumentLifecycle(input: TransitionInput): Promise<Tran
 }
 
 // ============================================================================
+// Mock Prisma factory
+// ============================================================================
+
+function makeMockDb() {
+  return {
+    document: {
+      update: vi.fn(),
+    },
+    statusTransitionLog: {
+      create: vi.fn(),
+    },
+  };
+}
+
+// ============================================================================
 // Tests
 // ============================================================================
 
 describe("D4-E3-02: Document Lifecycle State Machine", () => {
+  let db: ReturnType<typeof makeMockDb>;
+
   beforeEach(() => {
-    vi.clearAllMocks();
+    db = makeMockDb();
   });
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -145,23 +154,26 @@ describe("D4-E3-02: Document Lifecycle State Machine", () => {
         createdAt: new Date(),
       };
 
-      docUpdate.mockResolvedValue(updatedDoc);
-      logCreate.mockResolvedValue(logEntry);
+      db.document.update.mockResolvedValue(updatedDoc);
+      db.statusTransitionLog.create.mockResolvedValue(logEntry);
 
-      const result = await transitionDocumentLifecycle({
-        documentId: docId,
-        fromStatus: "WIP",
-        toStatus: "SHARED",
-        reason: "Pronto para revisão pela equipa",
-        userId: "user-001",
-      });
+      const result = await transitionDocumentLifecycle(
+        {
+          documentId: docId,
+          fromStatus: "WIP",
+          toStatus: "SHARED",
+          reason: "Pronto para revisão pela equipa",
+          userId: "user-001",
+        },
+        db
+      );
 
       expect(result.document.status).toBe("SHARED");
       expect(result.log.fromStatus).toBe("WIP");
       expect(result.log.toStatus).toBe("SHARED");
       expect(result.log.reason).toBe("Pronto para revisão pela equipa");
-      expect(docUpdate).toHaveBeenCalledOnce();
-      expect(logCreate).toHaveBeenCalledOnce();
+      expect(db.document.update).toHaveBeenCalledOnce();
+      expect(db.statusTransitionLog.create).toHaveBeenCalledOnce();
     });
   });
 
@@ -182,21 +194,24 @@ describe("D4-E3-02: Document Lifecycle State Machine", () => {
         createdAt: new Date(),
       };
 
-      docUpdate.mockResolvedValue(updatedDoc);
-      logCreate.mockResolvedValue(logEntry);
+      db.document.update.mockResolvedValue(updatedDoc);
+      db.statusTransitionLog.create.mockResolvedValue(logEntry);
 
-      const result = await transitionDocumentLifecycle({
-        documentId: docId,
-        fromStatus: "SHARED",
-        toStatus: "PUBLISHED",
-        reason: "Aprovado pela direcção",
-        userId: "user-002",
-      });
+      const result = await transitionDocumentLifecycle(
+        {
+          documentId: docId,
+          fromStatus: "SHARED",
+          toStatus: "PUBLISHED",
+          reason: "Aprovado pela direcção",
+          userId: "user-002",
+        },
+        db
+      );
 
       expect(result.document.status).toBe("PUBLISHED");
       expect(result.log.fromStatus).toBe("SHARED");
       expect(result.log.toStatus).toBe("PUBLISHED");
-      expect(logCreate).toHaveBeenCalledWith(
+      expect(db.statusTransitionLog.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
             fromStatus: "SHARED",
@@ -213,17 +228,20 @@ describe("D4-E3-02: Document Lifecycle State Machine", () => {
   describe("Scenario 3: WIP → PUBLISHED (invalid transition — skip not allowed)", () => {
     it("should throw an error and not touch the database", async () => {
       await expect(
-        transitionDocumentLifecycle({
-          documentId: "doc-003",
-          fromStatus: "WIP",
-          toStatus: "PUBLISHED",
-          reason: "Tentativa de saltar etapas",
-          userId: "user-003",
-        })
+        transitionDocumentLifecycle(
+          {
+            documentId: "doc-003",
+            fromStatus: "WIP",
+            toStatus: "PUBLISHED",
+            reason: "Tentativa de saltar etapas",
+            userId: "user-003",
+          },
+          db
+        )
       ).rejects.toThrow("Invalid transition: WIP → PUBLISHED");
 
-      expect(docUpdate).not.toHaveBeenCalled();
-      expect(logCreate).not.toHaveBeenCalled();
+      expect(db.document.update).not.toHaveBeenCalled();
+      expect(db.statusTransitionLog.create).not.toHaveBeenCalled();
     });
   });
 
@@ -233,27 +251,33 @@ describe("D4-E3-02: Document Lifecycle State Machine", () => {
   describe("Scenario 4: Transition without reason (reason is mandatory)", () => {
     it("should throw when reason is empty string", async () => {
       await expect(
-        transitionDocumentLifecycle({
-          documentId: "doc-004",
-          fromStatus: "WIP",
-          toStatus: "SHARED",
-          reason: "",
-          userId: "user-004",
-        })
+        transitionDocumentLifecycle(
+          {
+            documentId: "doc-004",
+            fromStatus: "WIP",
+            toStatus: "SHARED",
+            reason: "",
+            userId: "user-004",
+          },
+          db
+        )
       ).rejects.toThrow("reason is required");
 
-      expect(docUpdate).not.toHaveBeenCalled();
+      expect(db.document.update).not.toHaveBeenCalled();
     });
 
     it("should throw when reason is whitespace only", async () => {
       await expect(
-        transitionDocumentLifecycle({
-          documentId: "doc-004",
-          fromStatus: "WIP",
-          toStatus: "SHARED",
-          reason: "   ",
-          userId: "user-004",
-        })
+        transitionDocumentLifecycle(
+          {
+            documentId: "doc-004",
+            fromStatus: "WIP",
+            toStatus: "SHARED",
+            reason: "   ",
+            userId: "user-004",
+          },
+          db
+        )
       ).rejects.toThrow("reason is required");
     });
   });
@@ -275,16 +299,19 @@ describe("D4-E3-02: Document Lifecycle State Machine", () => {
         createdAt: new Date(),
       };
 
-      docUpdate.mockResolvedValue(updatedDoc);
-      logCreate.mockResolvedValue(logEntry);
+      db.document.update.mockResolvedValue(updatedDoc);
+      db.statusTransitionLog.create.mockResolvedValue(logEntry);
 
-      const result = await transitionDocumentLifecycle({
-        documentId: docId,
-        fromStatus: "PUBLISHED",
-        toStatus: "SUPERSEDED",
-        reason: "Substituído pela versão v2.0",
-        userId: "user-005",
-      });
+      const result = await transitionDocumentLifecycle(
+        {
+          documentId: docId,
+          fromStatus: "PUBLISHED",
+          toStatus: "SUPERSEDED",
+          reason: "Substituído pela versão v2.0",
+          userId: "user-005",
+        },
+        db
+      );
 
       expect(result.document.status).toBe("SUPERSEDED");
       expect(result.log.fromStatus).toBe("PUBLISHED");
@@ -298,28 +325,34 @@ describe("D4-E3-02: Document Lifecycle State Machine", () => {
   describe("Scenario 6: ARCHIVED → WIP (invalid — terminal state)", () => {
     it("should throw because ARCHIVED is a terminal state with no outgoing transitions", async () => {
       await expect(
-        transitionDocumentLifecycle({
-          documentId: "doc-006",
-          fromStatus: "ARCHIVED",
-          toStatus: "WIP",
-          reason: "Tentar ressuscitar documento arquivado",
-          userId: "user-006",
-        })
+        transitionDocumentLifecycle(
+          {
+            documentId: "doc-006",
+            fromStatus: "ARCHIVED",
+            toStatus: "WIP",
+            reason: "Tentar ressuscitar documento arquivado",
+            userId: "user-006",
+          },
+          db
+        )
       ).rejects.toThrow("Invalid transition: ARCHIVED → WIP");
 
-      expect(docUpdate).not.toHaveBeenCalled();
-      expect(logCreate).not.toHaveBeenCalled();
+      expect(db.document.update).not.toHaveBeenCalled();
+      expect(db.statusTransitionLog.create).not.toHaveBeenCalled();
     });
 
     it("should include 'terminal state' hint in the error message", async () => {
       await expect(
-        transitionDocumentLifecycle({
-          documentId: "doc-006",
-          fromStatus: "ARCHIVED",
-          toStatus: "WIP",
-          reason: "Tentativa",
-          userId: "user-006",
-        })
+        transitionDocumentLifecycle(
+          {
+            documentId: "doc-006",
+            fromStatus: "ARCHIVED",
+            toStatus: "WIP",
+            reason: "Tentativa",
+            userId: "user-006",
+          },
+          db
+        )
       ).rejects.toThrow(/terminal state/i);
     });
   });
@@ -330,8 +363,8 @@ describe("D4-E3-02: Document Lifecycle State Machine", () => {
   describe("StatusTransitionLog — append-only guarantee", () => {
     it("should call statusTransitionLog.create (not update/delete) on every valid transition", async () => {
       const docId = "doc-007";
-      docUpdate.mockResolvedValue({ id: docId, status: "SHARED" });
-      logCreate.mockResolvedValue({
+      db.document.update.mockResolvedValue({ id: docId, status: "SHARED" });
+      db.statusTransitionLog.create.mockResolvedValue({
         id: "log-007",
         documentId: docId,
         fromStatus: "WIP",
@@ -341,25 +374,28 @@ describe("D4-E3-02: Document Lifecycle State Machine", () => {
         createdAt: new Date(),
       });
 
-      await transitionDocumentLifecycle({
-        documentId: docId,
-        fromStatus: "WIP",
-        toStatus: "SHARED",
-        reason: "Primeira transição",
-        userId: "user-007",
-      });
+      await transitionDocumentLifecycle(
+        {
+          documentId: docId,
+          fromStatus: "WIP",
+          toStatus: "SHARED",
+          reason: "Primeira transição",
+          userId: "user-007",
+        },
+        db
+      );
 
-      // Only create is called — never update or delete on the log
-      expect(logCreate).toHaveBeenCalledOnce();
-      expect(docUpdate).toHaveBeenCalledOnce();
+      // Only create is called — never update or delete on the log (append-only)
+      expect(db.statusTransitionLog.create).toHaveBeenCalledOnce();
+      expect(db.document.update).toHaveBeenCalledOnce();
     });
 
     it("should accumulate multiple log entries across sequential transitions", async () => {
       const docId = "doc-008";
 
       // Transition 1: WIP → SHARED
-      docUpdate.mockResolvedValueOnce({ id: docId, status: "SHARED" });
-      logCreate.mockResolvedValueOnce({
+      db.document.update.mockResolvedValueOnce({ id: docId, status: "SHARED" });
+      db.statusTransitionLog.create.mockResolvedValueOnce({
         id: "log-008a",
         documentId: docId,
         fromStatus: "WIP",
@@ -369,17 +405,20 @@ describe("D4-E3-02: Document Lifecycle State Machine", () => {
         createdAt: new Date(),
       });
 
-      await transitionDocumentLifecycle({
-        documentId: docId,
-        fromStatus: "WIP",
-        toStatus: "SHARED",
-        reason: "Para revisão",
-        userId: "user-008",
-      });
+      await transitionDocumentLifecycle(
+        {
+          documentId: docId,
+          fromStatus: "WIP",
+          toStatus: "SHARED",
+          reason: "Para revisão",
+          userId: "user-008",
+        },
+        db
+      );
 
       // Transition 2: SHARED → PUBLISHED
-      docUpdate.mockResolvedValueOnce({ id: docId, status: "PUBLISHED" });
-      logCreate.mockResolvedValueOnce({
+      db.document.update.mockResolvedValueOnce({ id: docId, status: "PUBLISHED" });
+      db.statusTransitionLog.create.mockResolvedValueOnce({
         id: "log-008b",
         documentId: docId,
         fromStatus: "SHARED",
@@ -389,17 +428,20 @@ describe("D4-E3-02: Document Lifecycle State Machine", () => {
         createdAt: new Date(),
       });
 
-      await transitionDocumentLifecycle({
-        documentId: docId,
-        fromStatus: "SHARED",
-        toStatus: "PUBLISHED",
-        reason: "Aprovado",
-        userId: "user-008",
-      });
+      await transitionDocumentLifecycle(
+        {
+          documentId: docId,
+          fromStatus: "SHARED",
+          toStatus: "PUBLISHED",
+          reason: "Aprovado",
+          userId: "user-008",
+        },
+        db
+      );
 
       // Two create calls = two log entries appended (never overwritten)
-      expect(logCreate).toHaveBeenCalledTimes(2);
-      expect(docUpdate).toHaveBeenCalledTimes(2);
+      expect(db.statusTransitionLog.create).toHaveBeenCalledTimes(2);
+      expect(db.document.update).toHaveBeenCalledTimes(2);
     });
   });
 
