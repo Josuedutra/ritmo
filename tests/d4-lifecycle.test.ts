@@ -57,7 +57,7 @@ const VALID_TRANSITIONS: Record<DocumentStatus, DocumentStatus[]> = {
 };
 
 // ============================================================================
-// Mock Prisma
+// Mock Prisma — using vi.mock + vi.mocked() pattern
 // ============================================================================
 
 vi.mock("@/lib/prisma", () => ({
@@ -75,16 +75,11 @@ vi.mock("@/lib/prisma", () => ({
 
 import { prisma } from "@/lib/prisma";
 
-const mockPrisma = prisma as unknown as {
-  document: {
-    findUniqueOrThrow: ReturnType<typeof vi.fn>;
-    update: ReturnType<typeof vi.fn>;
-  };
-  statusTransitionLog: {
-    create: ReturnType<typeof vi.fn>;
-    findMany: ReturnType<typeof vi.fn>;
-  };
-};
+// Safe typed helpers for mock operations
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const docUpdate = vi.mocked((prisma.document as any).update) as ReturnType<typeof vi.fn>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const logCreate = vi.mocked((prisma.statusTransitionLog as any).create) as ReturnType<typeof vi.fn>;
 
 // ============================================================================
 // Reference implementation (defines the contract — real impl comes next task)
@@ -103,12 +98,14 @@ async function transitionDocumentLifecycle(input: TransitionInput): Promise<Tran
     throw new Error(`Invalid transition: ${fromStatus} → ${toStatus}. Allowed: ${allowedStr}`);
   }
 
-  const updatedDocument = await mockPrisma.document.update({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const updatedDocument = await (prisma.document as any).update({
     where: { id: documentId },
     data: { status: toStatus },
   });
 
-  const log = await mockPrisma.statusTransitionLog.create({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const log = await (prisma.statusTransitionLog as any).create({
     data: {
       documentId,
       fromStatus,
@@ -148,8 +145,8 @@ describe("D4-E3-02: Document Lifecycle State Machine", () => {
         createdAt: new Date(),
       };
 
-      mockPrisma.document.update.mockResolvedValue(updatedDoc);
-      mockPrisma.statusTransitionLog.create.mockResolvedValue(logEntry);
+      docUpdate.mockResolvedValue(updatedDoc);
+      logCreate.mockResolvedValue(logEntry);
 
       const result = await transitionDocumentLifecycle({
         documentId: docId,
@@ -163,8 +160,8 @@ describe("D4-E3-02: Document Lifecycle State Machine", () => {
       expect(result.log.fromStatus).toBe("WIP");
       expect(result.log.toStatus).toBe("SHARED");
       expect(result.log.reason).toBe("Pronto para revisão pela equipa");
-      expect(mockPrisma.document.update).toHaveBeenCalledOnce();
-      expect(mockPrisma.statusTransitionLog.create).toHaveBeenCalledOnce();
+      expect(docUpdate).toHaveBeenCalledOnce();
+      expect(logCreate).toHaveBeenCalledOnce();
     });
   });
 
@@ -185,8 +182,8 @@ describe("D4-E3-02: Document Lifecycle State Machine", () => {
         createdAt: new Date(),
       };
 
-      mockPrisma.document.update.mockResolvedValue(updatedDoc);
-      mockPrisma.statusTransitionLog.create.mockResolvedValue(logEntry);
+      docUpdate.mockResolvedValue(updatedDoc);
+      logCreate.mockResolvedValue(logEntry);
 
       const result = await transitionDocumentLifecycle({
         documentId: docId,
@@ -199,7 +196,7 @@ describe("D4-E3-02: Document Lifecycle State Machine", () => {
       expect(result.document.status).toBe("PUBLISHED");
       expect(result.log.fromStatus).toBe("SHARED");
       expect(result.log.toStatus).toBe("PUBLISHED");
-      expect(mockPrisma.statusTransitionLog.create).toHaveBeenCalledWith(
+      expect(logCreate).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
             fromStatus: "SHARED",
@@ -225,8 +222,8 @@ describe("D4-E3-02: Document Lifecycle State Machine", () => {
         })
       ).rejects.toThrow("Invalid transition: WIP → PUBLISHED");
 
-      expect(mockPrisma.document.update).not.toHaveBeenCalled();
-      expect(mockPrisma.statusTransitionLog.create).not.toHaveBeenCalled();
+      expect(docUpdate).not.toHaveBeenCalled();
+      expect(logCreate).not.toHaveBeenCalled();
     });
   });
 
@@ -245,7 +242,7 @@ describe("D4-E3-02: Document Lifecycle State Machine", () => {
         })
       ).rejects.toThrow("reason is required");
 
-      expect(mockPrisma.document.update).not.toHaveBeenCalled();
+      expect(docUpdate).not.toHaveBeenCalled();
     });
 
     it("should throw when reason is whitespace only", async () => {
@@ -278,8 +275,8 @@ describe("D4-E3-02: Document Lifecycle State Machine", () => {
         createdAt: new Date(),
       };
 
-      mockPrisma.document.update.mockResolvedValue(updatedDoc);
-      mockPrisma.statusTransitionLog.create.mockResolvedValue(logEntry);
+      docUpdate.mockResolvedValue(updatedDoc);
+      logCreate.mockResolvedValue(logEntry);
 
       const result = await transitionDocumentLifecycle({
         documentId: docId,
@@ -310,8 +307,8 @@ describe("D4-E3-02: Document Lifecycle State Machine", () => {
         })
       ).rejects.toThrow("Invalid transition: ARCHIVED → WIP");
 
-      expect(mockPrisma.document.update).not.toHaveBeenCalled();
-      expect(mockPrisma.statusTransitionLog.create).not.toHaveBeenCalled();
+      expect(docUpdate).not.toHaveBeenCalled();
+      expect(logCreate).not.toHaveBeenCalled();
     });
 
     it("should include 'terminal state' hint in the error message", async () => {
@@ -333,8 +330,8 @@ describe("D4-E3-02: Document Lifecycle State Machine", () => {
   describe("StatusTransitionLog — append-only guarantee", () => {
     it("should call statusTransitionLog.create (not update/delete) on every valid transition", async () => {
       const docId = "doc-007";
-      mockPrisma.document.update.mockResolvedValue({ id: docId, status: "SHARED" });
-      mockPrisma.statusTransitionLog.create.mockResolvedValue({
+      docUpdate.mockResolvedValue({ id: docId, status: "SHARED" });
+      logCreate.mockResolvedValue({
         id: "log-007",
         documentId: docId,
         fromStatus: "WIP",
@@ -353,18 +350,16 @@ describe("D4-E3-02: Document Lifecycle State Machine", () => {
       });
 
       // Only create is called — never update or delete on the log
-      expect(mockPrisma.statusTransitionLog.create).toHaveBeenCalledOnce();
-      // Confirm no update operation exists (append-only)
-      expect(mockPrisma.document.update).toHaveBeenCalledOnce(); // document update OK
-      // statusTransitionLog has no update mock — proving we don't call it
+      expect(logCreate).toHaveBeenCalledOnce();
+      expect(docUpdate).toHaveBeenCalledOnce();
     });
 
     it("should accumulate multiple log entries across sequential transitions", async () => {
       const docId = "doc-008";
 
       // Transition 1: WIP → SHARED
-      mockPrisma.document.update.mockResolvedValueOnce({ id: docId, status: "SHARED" });
-      mockPrisma.statusTransitionLog.create.mockResolvedValueOnce({
+      docUpdate.mockResolvedValueOnce({ id: docId, status: "SHARED" });
+      logCreate.mockResolvedValueOnce({
         id: "log-008a",
         documentId: docId,
         fromStatus: "WIP",
@@ -383,8 +378,8 @@ describe("D4-E3-02: Document Lifecycle State Machine", () => {
       });
 
       // Transition 2: SHARED → PUBLISHED
-      mockPrisma.document.update.mockResolvedValueOnce({ id: docId, status: "PUBLISHED" });
-      mockPrisma.statusTransitionLog.create.mockResolvedValueOnce({
+      docUpdate.mockResolvedValueOnce({ id: docId, status: "PUBLISHED" });
+      logCreate.mockResolvedValueOnce({
         id: "log-008b",
         documentId: docId,
         fromStatus: "SHARED",
@@ -403,8 +398,8 @@ describe("D4-E3-02: Document Lifecycle State Machine", () => {
       });
 
       // Two create calls = two log entries appended (never overwritten)
-      expect(mockPrisma.statusTransitionLog.create).toHaveBeenCalledTimes(2);
-      expect(mockPrisma.document.update).toHaveBeenCalledTimes(2);
+      expect(logCreate).toHaveBeenCalledTimes(2);
+      expect(docUpdate).toHaveBeenCalledTimes(2);
     });
   });
 
